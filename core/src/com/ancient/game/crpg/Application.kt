@@ -1,10 +1,8 @@
 package com.ancient.game.crpg
 
 import com.ancient.game.crpg.battle.BattleScreen
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
@@ -37,19 +35,6 @@ class Application : KtxGame<Screen>() {
         setScreen<BattleScreen>()
     }
 
-    override fun render() {
-        val assetM = context.inject<AssetManager>()
-        val batch = context.inject<Batch>()
-        if (assetM.update()) {
-            Gdx.gl.glClearColor(1f, 0f, 0f, 1f)
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-            batch.begin()
-            val txr: Texture = assetM[ASSET.SWORD_SHIELD.filePath]
-            batch.draw(txr, 0f, 0f)
-            batch.end()
-
-        }
-    }
 
     override fun dispose() {
         val assetManager = context.inject<AssetManager>()
