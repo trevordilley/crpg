@@ -1,13 +1,15 @@
 package com.ancient.game.crpg.battle
 
-import com.badlogic.gdx.ScreenAdapter
+import com.badlogic.gdx.graphics.g2d.Batch
+import com.badlogic.gdx.scenes.scene2d.Stage
+import ktx.app.KtxScreen
 import ktx.log.info
 
 
-class BattleScreen() : ScreenAdapter() {
+class BattleScreen(val stage: Stage, val batch: Batch) : KtxScreen {
 
     override fun show() {
-        info {"Showing"}
+        info { "Showing" }
         super.show()
     }
 
