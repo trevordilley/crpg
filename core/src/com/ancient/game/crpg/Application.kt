@@ -36,14 +36,13 @@ class Application : KtxGame<Screen>() {
     }
 
     override fun render() {
+        super.render()
         if (!loaded) {
             if (assetManager.update()) {
                 info { "loaded!" }
                 loaded = true
                 setScreen<BattleScreen>()
             }
-        } else {
-            super.render()
         }
     }
 
