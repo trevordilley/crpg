@@ -10,16 +10,16 @@ import ktx.ashley.mapperFor
 
 
 class RenderSystem(val batch: Batch) : IteratingSystem(
-        all(Sprite::class.java).get()) {
+        all(Renderable::class.java).get()) {
 
-    private val spriteMapper: ComponentMapper<Sprite> = mapperFor()
+    private val renderMapper: ComponentMapper<Renderable> = mapperFor()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
         batch.begin()
-        val sprite = entity[spriteMapper]!!
+        val renderable = entity[renderMapper]!!
         batch.setColor(1f, 1f, 1f, 1f)
-        batch.draw(sprite.r.texture, 0f, 0f)
+        batch.draw(renderable.texture, 0f, 0f)
         batch.end()
     }
 

@@ -13,8 +13,7 @@ import ktx.log.info
 
 data class Renderable(val texture: Texture) : Component
 data class Position(val position: Vector2) : Component
-data class Size(val size: Vector2) :  Component
-data class Sprite(val r: Renderable, val pos: Position, val size: Size) : Component
+data class Size(val size: Vector2) : Component
 
 
 class BattleScreen(val assetManager: AssetManager, val batch: Batch) : KtxScreen {
@@ -28,8 +27,8 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch) : KtxScreen
         engine.addSystem(RenderSystem(batch))
         val txr: Texture = assetManager[ASSET.SWORD_SHIELD.filePath]
         engine.addEntity(
-                Entity().add(Sprite(
-                        Renderable(txr), Position(Vector2(0f,0f)), Size(Vector2(200f,200f))))
+                Entity().sprite(
+                        txr, Vector2(0f, 0f), Vector2(200f, 200f))
         )
     }
 
