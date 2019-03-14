@@ -17,10 +17,11 @@ class Application : KtxGame<Screen>() {
     val context = Context()
 
     private val assetManager = AssetManager()
-
+    private var loaded = false
     override fun create() {
         info { "Loading Assets" }
         assetManager.load(ASSET.SWORD_SHIELD.filePath, Texture::class.java)
+
 
         info { "Setting up Context" }
         context.register {
@@ -32,9 +33,19 @@ class Application : KtxGame<Screen>() {
             bindSingleton(BattleScreen(inject(), inject()))
         }
         addScreen(context.inject<BattleScreen>())
-        setScreen<BattleScreen>()
     }
 
+    override fun render() {
+        if (!loaded) {
+            if (assetManager.update()) {
+                info { "loaded!" }
+                loaded = true
+                setScreen<BattleScreen>()
+            }
+        } else {
+            super.render()
+        }
+    }
 
     override fun dispose() {
         val assetManager = context.inject<AssetManager>()
