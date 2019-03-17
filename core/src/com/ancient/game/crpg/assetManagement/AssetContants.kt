@@ -1,4 +1,4 @@
-package com.ancient.game.crpg
+package com.ancient.game.crpg.assetManagement
 
 
 enum class ASSET(val filePath: String) {

@@ -1,5 +1,6 @@
 package com.ancient.game.crpg
 
+import com.ancient.game.crpg.assetManagement.ASSET
 import com.ancient.game.crpg.battle.BattleScreen
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.assets.AssetManager
