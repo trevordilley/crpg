@@ -83,6 +83,7 @@ project(":core") {
         compile "io.github.libktx:ktx-actors:$ktxVersion"
         compile "io.github.libktx:ktx-collections:$ktxVersion"
         compile "io.github.libktx:ktx-style:$ktxVersion"
+        compile "io.github.libktx:ktx-math:$ktxVersion"
     }
 }
 

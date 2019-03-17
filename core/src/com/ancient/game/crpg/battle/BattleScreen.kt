@@ -1,6 +1,5 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.Position
 import com.ancient.game.crpg.RenderSystem
 import com.ancient.game.crpg.assetManagement.ASSET
 import com.ancient.game.crpg.playerCharacter
@@ -45,13 +44,14 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch) : KtxScreen
         engine = PooledEngine()
         engine.addSystem(RenderSystem(batch))
         engine.addSystem(battleCommandSystem)
+        engine.addSystem(BattleMovementSystem())
         val txr: Texture = assetManager[ASSET.SWORD_SHIELD.filePath]
         val sprite = Sprite(txr)
         engine.addEntity(
                 Entity().playerCharacter(
                         sprite
-                        , Position(100f, 100f)
-                        , 1.0f
+                        , Vector2(100f, 100f)
+                        , 80.0f
                         , 90f
                         , Vector2(100f, 100f)
                         , 180f)

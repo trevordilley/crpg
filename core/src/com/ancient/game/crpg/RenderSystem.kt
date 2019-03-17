@@ -10,15 +10,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
-import ktx.log.info
-
-data class Position(val x: Float, val y: Float)
-fun Position.toVector2() = Vector2(this.x, this.y)
-
-
 
 data class Renderable(val sprite: Sprite) : Component
-data class Transform(val position: Position, val rotation: Float? = null) : Component
+data class Transform(var position: Vector2, var rotation: Float? = null) : Component
 
 class RenderSystem(val batch: Batch) : IteratingSystem(
         all(Renderable::class.java, Transform::class.java).get()) {
