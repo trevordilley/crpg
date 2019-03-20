@@ -12,7 +12,7 @@ fun Entity.playerCharacter(sprite: Sprite,
                            position: Vector2,
                            speed: Float,
                            movementDirection: Float,
-                           destination: Vector2,
+                           destination: Vector2? = null,
                            facingDirection: Float? = null
 ) = apply {
     add(Renderable(sprite))

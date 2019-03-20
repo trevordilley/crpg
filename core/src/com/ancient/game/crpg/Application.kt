@@ -24,14 +24,16 @@ class Application : KtxGame<Screen>() {
         assetManager.load(ASSET.SWORD_SHIELD.filePath, Texture::class.java)
 
 
+
         info { "Setting up Context" }
         context.register {
             bindSingleton<Batch>(SpriteBatch())
-            bindSingleton(assetManager)
             bindSingleton<Viewport>(ScreenViewport())
+            //  context.inject<Batch>().projectionMatrix = context.inject<Viewport>().camera.combined
+            bindSingleton(assetManager)
             bindSingleton(Stage(inject(), inject()))
             bindSingleton(this@Application)
-            bindSingleton(BattleScreen(inject(), inject()))
+            bindSingleton(BattleScreen(inject(), inject(),inject()))
         }
         addScreen(context.inject<BattleScreen>())
     }

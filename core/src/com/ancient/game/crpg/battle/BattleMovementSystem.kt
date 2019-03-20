@@ -9,7 +9,6 @@ import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
-import ktx.math.plus
 import ktx.math.times
 
 
@@ -22,17 +21,22 @@ class BattleMovementSystem : IteratingSystem(
         all(Movable::class.java, Transform::class.java).get()) {
     private val movableMapper: ComponentMapper<Movable> = mapperFor()
     private val transformMapper: ComponentMapper<Transform> = mapperFor()
-    private val arrivalDist = 10f
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
-        val movable = entity[movableMapper]!!
-        val transform = entity[transformMapper]!!
+        val destination = entity[movableMapper]!!.destination?.let { Vector2(it.x, it.y) }
+        val speed = entity[movableMapper]!!.speed
+        val position = entity[transformMapper]!!.position
 
-        entity[transformMapper]?.position = movable.destination?.nor()?.let { dir ->
-            dir * (movable.speed * deltaTime)
-        }?.let { dir ->
-            transform.position + dir
-        } ?: transform.position
+        destination
+                ?.sub(position)
+                ?.nor()
+                ?.let { norm ->
+                    norm * (speed * deltaTime)
+                }?.let { dir ->
+                    position.add(dir)
+                }
+
+
     }
 
 }

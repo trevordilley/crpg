@@ -11,21 +11,25 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
 import ktx.log.info
 
 
-class BattleScreen(val assetManager: AssetManager, val batch: Batch) : KtxScreen {
+class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewport: Viewport) : KtxScreen {
 
     private lateinit var engine: PooledEngine
 
     override fun show() {
-        info { "Showing" }
+        info { "Showing at camera pos ${viewport.camera.position}" }
+
+
+
 
         info { "Input Management" }
 
-        val battleCommandSystem = BattleCommandSystem()
+        val battleCommandSystem = BattleCommandSystem(viewport)
 
         Gdx.input.inputProcessor = object : KtxInputAdapter {
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -42,7 +46,7 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch) : KtxScreen
 
         info { "Revving Engines" }
         engine = PooledEngine()
-        engine.addSystem(RenderSystem(batch))
+        engine.addSystem(RenderSystem(batch, viewport))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem())
         val txr: Texture = assetManager[ASSET.SWORD_SHIELD.filePath]
@@ -50,11 +54,10 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch) : KtxScreen
         engine.addEntity(
                 Entity().playerCharacter(
                         sprite
-                        , Vector2(100f, 100f)
+                        , Vector2(0f, 0f)
                         , 80.0f
                         , 90f
-                        , Vector2(100f, 100f)
-                        , 180f)
+                )
         )
     }
 

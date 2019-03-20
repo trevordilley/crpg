@@ -8,35 +8,47 @@ import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
 data class Renderable(val sprite: Sprite) : Component
 data class Transform(var position: Vector2, var rotation: Float? = null) : Component
 
-class RenderSystem(val batch: Batch) : IteratingSystem(
+class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
         all(Renderable::class.java, Transform::class.java).get()) {
 
     private val renderMapper: ComponentMapper<Renderable> = mapperFor()
     private val transform: ComponentMapper<Transform> = mapperFor()
 
+    private var toRender = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
-
-        batch.begin()
-        val renderable = entity[renderMapper]!!
-        val transform = entity[transform]!!
-        val sprite = renderable.sprite
-        // Rotate the sprite if the rotation is present on the transform
-        transform.rotation?.let {
-            sprite.rotation = it
-        }
-
-        batch.setColor(1f, 1f, 1f, 1f)
-        batch.draw(sprite
-                , transform.position.x
-                , transform.position.y
-        )
-        batch.end()
+        entity[renderMapper]?.let { toRender.add(entity) }
     }
 
+    override fun update(deltaTime: Float) {
+        super.update(deltaTime)
+        draw(toRender)
+        toRender.clear()
+    }
+
+    private fun draw(entities: List<Entity>) {
+        viewport.camera.update()
+        batch.projectionMatrix = viewport.camera.combined
+        batch.begin()
+        entities.forEach { entity ->
+            val renderable = entity[renderMapper]!!
+            val position = entity[transform]!!.position.let { viewport.project(it) }
+            val sprite = renderable.sprite
+
+            batch.setColor(1f, 1f, 1f, 1f)
+            batch.draw(sprite
+                    , position.x
+                    , position.y
+            )
+
+        }
+        batch.end()
+
+    }
 }
