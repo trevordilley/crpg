@@ -35,6 +35,11 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
                 inputManager.touchDown(screenX, screenY, pointer, button)
                 return false
             }
+
+            override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+                inputManager.touchUp(screenX, screenY, pointer, button)
+                return false
+            }
         }
 
 

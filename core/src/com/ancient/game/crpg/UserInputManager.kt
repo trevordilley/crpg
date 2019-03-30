@@ -2,14 +2,21 @@ package com.ancient.game.crpg
 
 import com.badlogic.gdx.Input
 import ktx.app.KtxInputAdapter
+import ktx.log.info
 
 
-sealed class UserInputType()
-data class LeftClick(val screenX: Int, val screenY: Int) : UserInputType()
-data class RightClick(val screenX: Int, val screenY: Int) : UserInputType()
+sealed class UserInput
+
+// Left Mouse Button Motions
+data class LeftClick(val screenX: Float, val screenY: Float) : UserInput()
+
+// Right Mouse Button Motions
+data class RightClickDown(val screenX: Float, val screenY: Float) : UserInput()
+
+data class RightClickUp(val screenX: Float, val screenY: Float) : UserInput()
 
 interface UserInputListener {
-    fun onInput(input: UserInputType)
+    fun onInput(input: UserInput)
 }
 
 class UserInputManager(
@@ -17,8 +24,8 @@ class UserInputManager(
 ) : KtxInputAdapter {
 
     var timeSinceLastInput = 0f
-    var previousInput: UserInputType? = null
-    var currentInput: UserInputType? = null
+    var previousInput: UserInput? = null
+    var currentInput: UserInput? = null
 
 
     fun update(dt: Float) = currentInput?.let { input ->
@@ -29,15 +36,26 @@ class UserInputManager(
         timeSinceLastInput = 0f
     } ?: timeSinceLastInput+dt
 
-    private fun touchToMouse(screenX: Int, screenY: Int, button: Int) =
-            when (button) {
-                Input.Buttons.LEFT -> LeftClick(screenX, screenY)
-                Input.Buttons.RIGHT -> RightClick(screenX, screenY)
-                else -> null
-            }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        currentInput = touchToMouse(screenX, screenY, button)
+        currentInput = when (button) {
+            Input.Buttons.LEFT -> LeftClick(screenX.toFloat(), screenY.toFloat())
+            Input.Buttons.RIGHT -> RightClickDown(screenX.toFloat(), screenY.toFloat())
+            else -> null
+        }
         return false
     }
+
+
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        info { "Before UP?" }
+        currentInput = when (button) {
+            Input.Buttons.RIGHT -> RightClickUp(screenX.toFloat(), screenY.toFloat()).also {
+                info { "Up?" }
+            }
+            else -> null
+        }
+        return false
+    }
+
 }

@@ -1,8 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.LeftClick
-import com.ancient.game.crpg.UserInputListener
-import com.ancient.game.crpg.UserInputType
+import com.ancient.game.crpg.*
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -13,12 +11,13 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 import ktx.log.info
+import ktx.math.minus
 
 
 object Selectable : Component
 object PlayerControlled : Component
 
-class BattleCommandSystem(val viewport: Viewport) : UserInputListener,  IteratingSystem(
+class BattleCommandSystem(val viewport: Viewport) : UserInputListener, IteratingSystem(
         all(Selectable::class.java, PlayerControlled::class.java, Movable::class.java).get()) {
 
     private var destination: Vector2? = null
@@ -26,19 +25,35 @@ class BattleCommandSystem(val viewport: Viewport) : UserInputListener,  Iteratin
     private var changed = false
     private val movable: ComponentMapper<Movable> = mapperFor()
 
-    override fun onInput(input: UserInputType) {
-       when(input) {
-           is LeftClick -> {
-               destination = viewport.unproject(Vector2(input.screenX.toFloat(), input.screenY.toFloat()))
-               changed = true
-               info { "Set Destination :$destination" }
-           }
-       }
+    private var rotationPivot: Vector2? = null
+
+    override fun onInput(input: UserInput) {
+        when (input) {
+            is LeftClick -> {
+                destination = viewport.unproject(Vector2(input.screenX, input.screenY))
+                changed = true
+                info { "Set Destination :$destination" }
+            }
+            is RightClickDown -> {
+                rotationPivot = viewport.unproject(Vector2(input.screenX, input.screenY))
+                info { "Right Click Down :$rotationPivot" }
+            }
+            is RightClickUp -> {
+                rotation = rotationPivot?.let { pivot ->
+                    val towards = viewport.unproject(Vector2(input.screenX, input.screenY))
+                    rotationPivot = null
+                    (towards - pivot).nor().angle().also {
+                        info { "Right Click Up :$it" }
+                    }
+                }
+            }
+        }
     }
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         if (changed) {
             entity[movable]?.destination = destination
+            entity[movable]?.facingDirection = rotation
             changed = false
         }
     }

@@ -37,7 +37,7 @@ class BattleMovementSystem : IteratingSystem(
 
             // IMPORTANT: All assets that have a direction must
             // be facing RIGHT!!!
-            val desiredRotation = direction.angle()
+            val desiredRotation = facingDirection ?: direction.angle()
             val currentRot = desiredRotation // + (rotationSpeed * deltaTime)
             entity[transformMapper]!!.rotation = currentRot
 
