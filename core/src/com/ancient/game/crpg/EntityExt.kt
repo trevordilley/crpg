@@ -12,6 +12,7 @@ fun Entity.playerCharacter(sprite: Sprite,
                            position: Vector2,
                            speed: Float,
                            movementDirection: Float,
+                           rotationSpeed: Float,
                            destination: Vector2? = null,
                            facingDirection: Float? = null
 ) = apply {
@@ -19,5 +20,5 @@ fun Entity.playerCharacter(sprite: Sprite,
     add(Transform(position, facingDirection ?: movementDirection))
     add(Selectable)
     add(PlayerControlled)
-    add(Movable(speed, destination, facingDirection))
+    add(Movable(speed, destination, rotationSpeed, facingDirection))
 }

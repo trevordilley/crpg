@@ -26,7 +26,8 @@ management twist!
 
 
 ### Battle
-* Move characters by clicking
+* Set origin of entity to center of sprite.
+    * Currently it's in the bottom left corner.
 * Select groups of characters
 * LOW: Figure out Sprite rotation?
 
@@ -37,3 +38,6 @@ management twist!
 ### Options Menu
 
 ### Opening Menu
+
+# Finished
+*DONE:  Move characters by clicking

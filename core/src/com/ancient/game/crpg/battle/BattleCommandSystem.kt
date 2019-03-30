@@ -1,5 +1,8 @@
 package com.ancient.game.crpg.battle
 
+import com.ancient.game.crpg.LeftClick
+import com.ancient.game.crpg.UserInputListener
+import com.ancient.game.crpg.UserInputType
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -15,28 +18,29 @@ import ktx.log.info
 object Selectable : Component
 object PlayerControlled : Component
 
-class BattleCommandSystem(val viewport: Viewport) : IteratingSystem(
+class BattleCommandSystem(val viewport: Viewport) : UserInputListener,  IteratingSystem(
         all(Selectable::class.java, PlayerControlled::class.java, Movable::class.java).get()) {
 
     private var destination: Vector2? = null
-
+    private var rotation: Float? = null
+    private var changed = false
     private val movable: ComponentMapper<Movable> = mapperFor()
-    fun onTouchDown(
-            screenX: Int, screenY: Int, pointer: Int, button: Int
-    ) {
-        destination = viewport.unproject(Vector2(screenX.toFloat(), screenY.toFloat()))
-        info { "Set Destination :$destination" }
-    }
 
-    fun onTouchUp(
-            screenX: Int, screenY: Int, pointer: Int, button: Int
-    ) {
-        info { "UP: $screenX - $screenY - $pointer - $button" }
+    override fun onInput(input: UserInputType) {
+       when(input) {
+           is LeftClick -> {
+               destination = viewport.unproject(Vector2(input.screenX.toFloat(), input.screenY.toFloat()))
+               changed = true
+               info { "Set Destination :$destination" }
+           }
+       }
     }
-
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[movable]?.destination = destination
+        if (changed) {
+            entity[movable]?.destination = destination
+            changed = false
+        }
     }
 
 }

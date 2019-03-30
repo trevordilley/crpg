@@ -12,8 +12,8 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
-data class Renderable(val sprite: Sprite) : Component
-data class Transform(var position: Vector2, var rotation: Float? = null) : Component
+class Renderable(val sprite: Sprite) : Component
+class Transform(var position: Vector2, var rotation: Float) : Component
 
 class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
         all(Renderable::class.java, Transform::class.java).get()) {
@@ -38,13 +38,25 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
         batch.begin()
         entities.forEach { entity ->
             val renderable = entity[renderMapper]!!
-            val position = entity[transform]!!.position.let { viewport.project(it) }
+            val rotation = entity[transform]!!.rotation
             val sprite = renderable.sprite
+            val position = entity[transform]!!.position.let { viewport.project(it) }
+            val widthOffset = sprite.width / 2
+            val heightOffset = sprite.height / 2
+
 
             batch.setColor(1f, 1f, 1f, 1f)
-            batch.draw(sprite
-                    , position.x
-                    , position.y
+            batch.draw(
+                    sprite,
+                    position.x - widthOffset,
+                    position.y - heightOffset,
+                    widthOffset,
+                    heightOffset,
+                    sprite.width,
+                    sprite.height,
+                    1f,
+                    1f,
+                    rotation
             )
 
         }
