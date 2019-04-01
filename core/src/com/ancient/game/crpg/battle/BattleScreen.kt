@@ -57,10 +57,11 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
                         , Vector2(0f, 0f)
                         , 320.0f
                         , 90f
-                        , 0.5f
+                        , 5f
                 )
         )
     }
+
 
     override fun render(delta: Float) {
         // Receive user input first

@@ -15,6 +15,7 @@ data class RightClickDown(val screenX: Float, val screenY: Float) : UserInput()
 
 data class RightClickUp(val screenX: Float, val screenY: Float) : UserInput()
 
+
 interface UserInputListener {
     fun onInput(input: UserInput)
 }

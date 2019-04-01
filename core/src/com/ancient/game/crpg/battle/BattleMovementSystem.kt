@@ -12,7 +12,6 @@ import ktx.ashley.mapperFor
 import ktx.math.minus
 import ktx.math.times
 
-
 data class Movable(val movementSpeed: Float //How fast are you moving?
                    , var destination: Vector2? // Where are you finally going
                    , val rotationSpeed: Float // How fast can we turn
@@ -26,30 +25,69 @@ class BattleMovementSystem : IteratingSystem(
     private val arrivalDistance = 5f
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
+        // Position
         val destination = entity[movableMapper]!!.destination
         val speed = entity[movableMapper]!!.movementSpeed
-        val rotationSpeed = entity[movableMapper]!!.rotationSpeed
-        val facingDirection = entity[movableMapper]!!.facingDirection
         val position = entity[transformMapper]!!.position
-        val rotation = entity[transformMapper]!!.rotation
-        if (destination != null) {
-            val direction = (destination - position).nor()
 
+        // Rotation
+        val rotationSpeed = entity[movableMapper]!!.rotationSpeed
+        val direction = destination?.let { (destination - position).nor() }
+        val targetAngle = entity[movableMapper]!!.facingDirection ?: direction?.angle()
+
+        if (targetAngle != null) {
             // IMPORTANT: All assets that have a direction must
             // be facing RIGHT!!!
-            val desiredRotation = facingDirection ?: direction.angle()
-            val currentRot = desiredRotation // + (rotationSpeed * deltaTime)
-            entity[transformMapper]!!.rotation = currentRot
+            entity[transformMapper]!!.rotation =
+                    rotate(entity[transformMapper]!!.rotation, targetAngle, rotationSpeed)
 
-            val step = direction * (speed * deltaTime)
-            position.add(step) // This mutates the reference to position in the entity
+        }
+
+
+        if (destination != null) {
             val distToDest = Vector2.dst(position.x, position.y, destination.x, destination.y)
-            if (distToDest <= arrivalDistance) {
-                entity[movableMapper]!!.destination = null
+            if (distToDest > arrivalDistance) {
+                entity[transformMapper]!!.position =
+                        position(position, destination, speed, deltaTime)
             }
         }
 
 
     }
 
+
+    private fun direction(currentPosition: Vector2, destination: Vector2) =
+            (destination - currentPosition).nor()
+
+
+    private fun position(currentPosition: Vector2, destination: Vector2, speed: Float, dt: Float): Vector2 {
+        val direction = direction(currentPosition, destination)
+        val step = direction!! * (speed * dt)
+        currentPosition.add(step) // This mutates the reference to position in the entity
+        return currentPosition
+    }
+
+
+    private fun rotate(currentRotation: Float, targetRotation: Float, rotationSpeed: Float): Float {
+        val rotDelta = Math.abs(targetRotation - currentRotation)
+
+
+        return if (rotDelta < rotationSpeed) {
+            // Rotation difference is so small we should just
+            // set it to the target. This may look "snappy" with
+            // high rotationSpeed values.
+            targetRotation
+        } else {
+            val clockwise = currentRotation - rotationSpeed
+            val clockwiseDistance = Math.abs(targetRotation - clockwise)
+            val counterClockwise = currentRotation + rotationSpeed
+            val counterClockwiseDistance = Math.abs(targetRotation - counterClockwise)
+
+            if (clockwiseDistance < counterClockwiseDistance) {
+                clockwise
+            } else {
+                counterClockwise
+            }
+        }
+    }
 }

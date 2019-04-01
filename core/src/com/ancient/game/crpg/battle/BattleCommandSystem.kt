@@ -21,7 +21,7 @@ class BattleCommandSystem(val viewport: Viewport) : UserInputListener, Iterating
         all(Selectable::class.java, PlayerControlled::class.java, Movable::class.java).get()) {
 
     private var destination: Vector2? = null
-    private var rotation: Float? = null
+    private var rotation: Vector2? = null
     private var changed = false
     private val movable: ComponentMapper<Movable> = mapperFor()
 
@@ -40,9 +40,10 @@ class BattleCommandSystem(val viewport: Viewport) : UserInputListener, Iterating
             }
             is RightClickUp -> {
                 rotation = rotationPivot?.let { pivot ->
+                    changed = true
                     val towards = viewport.unproject(Vector2(input.screenX, input.screenY))
                     rotationPivot = null
-                    (towards - pivot).nor().angle().also {
+                    (towards - pivot).nor().also {
                         info { "Right Click Up :$it" }
                     }
                 }
@@ -53,7 +54,7 @@ class BattleCommandSystem(val viewport: Viewport) : UserInputListener, Iterating
     override fun processEntity(entity: Entity, deltaTime: Float) {
         if (changed) {
             entity[movable]?.destination = destination
-            entity[movable]?.facingDirection = rotation
+            entity[movable]?.facingDirection = rotation?.angle()
             changed = false
         }
     }

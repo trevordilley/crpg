@@ -56,7 +56,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                     sprite.height,
                     1f,
                     1f,
-                    rotation
+                   rotation
             )
 
         }
