@@ -19,7 +19,9 @@ data class Movable(val movementSpeed: Float //How fast are you moving?
 ) : Component
 
 class BattleMovementSystem : IteratingSystem(
-        all(Movable::class.java, Transform::class.java).get()) {
+        all(Movable::class.java, Transform::class.java)
+                .exclude(DeadComponent::class.java)
+                .get()) {
     private val movableMapper: ComponentMapper<Movable> = mapperFor()
     private val transformMapper: ComponentMapper<Transform> = mapperFor()
     private val arrivalDistance = 5f

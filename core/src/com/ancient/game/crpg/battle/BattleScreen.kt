@@ -1,9 +1,10 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.RenderSystem
+import com.ancient.game.crpg.Renderable
+import com.ancient.game.crpg.Transform
 import com.ancient.game.crpg.UserInputManager
-import com.ancient.game.crpg.assetManagement.ASSET
-import com.ancient.game.crpg.playerCharacter
+import com.ancient.game.crpg.assetManagement.Asset
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
@@ -48,18 +49,42 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         engine.addSystem(RenderSystem(batch, viewport))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem())
-        val txr: Texture = assetManager[ASSET.SWORD_SHIELD.filePath]
+        engine.addSystem(HealthSystem())
+        engine.addSystem(DeadSystem())
 
-        val sprite = Sprite(txr)
+
+        // Player Character
+        val playerCharacterTexture: Texture = assetManager[Asset.SWORD_SHIELD.filePath]
+        val playerCharacterSprite = Sprite(playerCharacterTexture)
         engine.addEntity(
-                Entity().playerCharacter(
-                        sprite
-                        , Vector2(0f, 0f)
-                        , 320.0f
-                        , 90f
-                        , 5f
-                )
+                Entity().apply {
+                    add(HealthComponent(200,
+                            250,
+                            1,
+                            1))
+                    add(Renderable(playerCharacterSprite))
+                    add(Transform(Vector2(100f, 100f), 0f))
+                    add(Selectable)
+                    add(PlayerControlled)
+                    add(Movable(320f, null, 8f, null))
+                }
         )
+
+        // Orc
+        val orcTexture: Texture = assetManager[Asset.ORC.filePath]
+        val orcSprite = Sprite(orcTexture)
+        engine.addEntity(
+                Entity().apply {
+                    add(HealthComponent(200,
+                            250,
+                            1,
+                            1))
+                    add(Renderable(orcSprite))
+                    add(Transform(Vector2(350f, 350f), 200f))
+                    add(Movable(320f, null, 8f, null))
+                }
+        )
+
     }
 
 

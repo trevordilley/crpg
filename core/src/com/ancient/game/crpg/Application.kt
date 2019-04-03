@@ -1,6 +1,6 @@
 package com.ancient.game.crpg
 
-import com.ancient.game.crpg.assetManagement.ASSET
+import com.ancient.game.crpg.assetManagement.Asset
 import com.ancient.game.crpg.battle.BattleScreen
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.assets.AssetManager
@@ -21,7 +21,10 @@ class Application : KtxGame<Screen>() {
     private var loaded = false
     override fun create() {
         info { "Loading Assets" }
-        assetManager.load(ASSET.SWORD_SHIELD.filePath, Texture::class.java)
+        Asset.values().forEach {
+            info { "Loading ${it.filePath}" }
+            assetManager.load(it.filePath, Texture::class.java)
+        }
 
 
 
@@ -33,7 +36,7 @@ class Application : KtxGame<Screen>() {
             bindSingleton(assetManager)
             bindSingleton(Stage(inject(), inject()))
             bindSingleton(this@Application)
-            bindSingleton(BattleScreen(inject(), inject(),inject()))
+            bindSingleton(BattleScreen(inject(), inject(), inject()))
         }
         addScreen(context.inject<BattleScreen>())
     }

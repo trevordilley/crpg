@@ -18,7 +18,9 @@ object Selectable : Component
 object PlayerControlled : Component
 
 class BattleCommandSystem(val viewport: Viewport) : UserInputListener, IteratingSystem(
-        all(Selectable::class.java, PlayerControlled::class.java, Movable::class.java).get()) {
+        all(Selectable::class.java, PlayerControlled::class.java, Movable::class.java)
+                .exclude(DeadComponent::class.java)
+                .get()) {
 
     private var destination: Vector2? = null
     private var rotation: Vector2? = null
