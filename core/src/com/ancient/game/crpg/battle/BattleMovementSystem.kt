@@ -1,6 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.Transform
+import com.ancient.game.crpg.TransformC
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -19,11 +19,11 @@ data class Movable(val movementSpeed: Float //How fast are you moving?
 ) : Component
 
 class BattleMovementSystem : IteratingSystem(
-        all(Movable::class.java, Transform::class.java)
-                .exclude(DeadComponent::class.java)
+        all(Movable::class.java, TransformC::class.java)
+                .exclude(DeadC::class.java)
                 .get()) {
     private val movableMapper: ComponentMapper<Movable> = mapperFor()
-    private val transformMapper: ComponentMapper<Transform> = mapperFor()
+    private val transformMapper: ComponentMapper<TransformC> = mapperFor()
     private val arrivalDistance = 5f
     override fun processEntity(entity: Entity, deltaTime: Float) {
 

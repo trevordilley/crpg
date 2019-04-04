@@ -1,6 +1,6 @@
 package com.ancient.game.crpg
 
-import com.ancient.game.crpg.battle.HealthComponent
+import com.ancient.game.crpg.battle.HealthC
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -15,17 +15,16 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.mapperFor
-import ktx.log.info
 
 class Renderable(val sprite: Sprite) : Component
-class Transform(var position: Vector2, var rotation: Float) : Component
+class TransformC(var position: Vector2, var rotation: Float) : Component
 
 class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
-        all(Renderable::class.java, Transform::class.java).get()) {
+        all(Renderable::class.java, TransformC::class.java).get()) {
 
     private val renderMapper: ComponentMapper<Renderable> = mapperFor()
-    private val transform: ComponentMapper<Transform> = mapperFor()
-    private val healthMapper: ComponentMapper<HealthComponent> = mapperFor()
+    private val transform: ComponentMapper<TransformC> = mapperFor()
+    private val healthMapper: ComponentMapper<HealthC> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var toRender = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -65,7 +64,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                 x[idx] = position.x
                 y[idx] = position.y
                 r[idx] = entity[transform]!!.rotation
-                info { "${healthData.size}" }
                 healthData[idx] = entity[healthMapper]?.health
                 staminaData[idx] = entity[healthMapper]?.stamina
                 maxStaminaData[idx] = entity[healthMapper]?.maxStamina

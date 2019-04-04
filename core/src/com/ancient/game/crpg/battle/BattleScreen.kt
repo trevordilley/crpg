@@ -2,7 +2,7 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.RenderSystem
 import com.ancient.game.crpg.Renderable
-import com.ancient.game.crpg.Transform
+import com.ancient.game.crpg.TransformC
 import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.assetManagement.Asset
 import com.badlogic.ashley.core.Entity
@@ -51,39 +51,49 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         engine.addSystem(BattleMovementSystem())
         engine.addSystem(HealthSystem())
         engine.addSystem(DeadSystem())
-
+        engine.addSystem(BattleActionSystem())
+        engine.addSystem(BattleActionEffectSystem())
 
         // Player Character
         val playerCharacterTexture: Texture = assetManager[Asset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
-        engine.addEntity(
+        val playerCharacterEntity =
                 Entity().apply {
-                    add(HealthComponent(200,
+                    add(HealthC(250,
                             250,
                             1,
                             1))
                     add(Renderable(playerCharacterSprite))
-                    add(Transform(Vector2(100f, 100f), 0f))
+                    add(TransformC(Vector2(100f, 100f), 0f))
                     add(Selectable)
                     add(PlayerControlled)
                     add(Movable(320f, null, 8f, null))
                 }
-        )
+
 
         // Orc
         val orcTexture: Texture = assetManager[Asset.ORC.filePath]
         val orcSprite = Sprite(orcTexture)
-        engine.addEntity(
-                Entity().apply {
-                    add(HealthComponent(200,
-                            250,
-                            1,
-                            1))
-                    add(Renderable(orcSprite))
-                    add(Transform(Vector2(350f, 350f), 200f))
-                    add(Movable(320f, null, 8f, null))
-                }
-        )
+        val orcEntity = Entity().apply {
+            add(HealthC(250,
+                    250,
+                    1,
+                    1))
+            add(Renderable(orcSprite))
+            add(TransformC(Vector2(350f, 350f), 200f))
+            add(Movable(320f, null, 8f, null))
+        }
+
+        playerCharacterEntity
+                .add(
+                        ActionC(0f,
+                                10,
+                                3f,
+                                MeleeEffect(playerCharacterEntity, orcEntity, 1000f, 200)))
+
+        engine.addEntity(playerCharacterEntity)
+        engine.addEntity(orcEntity)
+
 
     }
 

@@ -19,7 +19,7 @@ object PlayerControlled : Component
 
 class BattleCommandSystem(val viewport: Viewport) : UserInputListener, IteratingSystem(
         all(Selectable::class.java, PlayerControlled::class.java, Movable::class.java)
-                .exclude(DeadComponent::class.java)
+                .exclude(DeadC::class.java)
                 .get()) {
 
     private var destination: Vector2? = null

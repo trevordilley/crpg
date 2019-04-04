@@ -2,7 +2,6 @@ package com.ancient.game.crpg
 
 import com.badlogic.gdx.Input
 import ktx.app.KtxInputAdapter
-import ktx.log.info
 
 
 sealed class UserInput
@@ -49,10 +48,8 @@ class UserInputManager(
 
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        info { "Before UP?" }
         currentInput = when (button) {
             Input.Buttons.RIGHT -> RightClickUp(screenX.toFloat(), screenY.toFloat()).also {
-                info { "Up?" }
             }
             else -> null
         }
