@@ -40,7 +40,7 @@ class ActionC(
 
 class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
     private val actionMapper: ComponentMapper<ActionC> = mapperFor()
-    private val healthMapper: ComponentMapper<HealthC> = mapperFor()
+    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entity[actionMapper]!!.let { action ->
             action.apply {

@@ -1,6 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.TransformC
+import com.ancient.game.crpg.CTransform
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -16,8 +16,8 @@ class MeleeEffectC(val attacker: Entity, val target: Entity, val range: Float, v
 class BattleActionEffectSystem : IteratingSystem(one(
         MeleeEffectC::class.java).get()) {
     private val meleeMapper: ComponentMapper<MeleeEffectC> = mapperFor()
-    private val transformMapper: ComponentMapper<TransformC> = mapperFor()
-    private val healthMapper: ComponentMapper<HealthC> = mapperFor()
+    private val transformMapper: ComponentMapper<CTransform> = mapperFor()
+    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entity[meleeMapper]?.let { effect -> applyEffect(effect) }

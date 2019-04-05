@@ -12,7 +12,7 @@ import kotlin.math.max
 // Tenth of a second, recharges 10 points per second at rate of 1
 const val STAMINA_RECHARGE_INTERVAL = 0.10f
 
-class HealthC(
+class CHealth(
         var stamina: Int,
         var maxStamina: Int,
         var staminaRechargeRate: Int,
@@ -22,11 +22,11 @@ class HealthC(
 
 class DeadC : Component
 class HealthSystem : IteratingSystem(
-        all(HealthC::class.java).exclude(DeadC::class.java)
+        all(CHealth::class.java).exclude(DeadC::class.java)
                 .get()) {
 
     private var curTimeTillRecharge = 0f
-    private val healthMapper: ComponentMapper<HealthC> = mapperFor()
+    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entity[healthMapper]!!.let { health ->
             if (health.staminaNotRechargingForSeconds > 0f) {

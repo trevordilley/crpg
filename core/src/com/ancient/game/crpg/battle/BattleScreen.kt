@@ -1,8 +1,8 @@
 package com.ancient.game.crpg.battle
 
+import com.ancient.game.crpg.CRenderable
+import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.RenderSystem
-import com.ancient.game.crpg.Renderable
-import com.ancient.game.crpg.TransformC
 import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.assetManagement.Asset
 import com.badlogic.ashley.core.Entity
@@ -62,15 +62,15 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         val playerCharacterSprite = Sprite(playerCharacterTexture)
         val playerCharacterEntity =
                 Entity().apply {
-                    add(HealthC(250,
+                    add(CHealth(250,
                             250,
                             1,
                             1))
-                    add(Renderable(playerCharacterSprite))
-                    add(TransformC(Vector2(100f, 100f), 0f))
-                    add(Selectable)
-                    add(PlayerControlled)
-                    add(Movable(320f, null, 8f, null))
+                    add(CRenderable(playerCharacterSprite))
+                    add(CTransform(Vector2(100f, 100f), 0f, playerCharacterSprite.width / 2f))
+                    add(CSelectable())
+                    add(CPlayerControlled)
+                    add(CMovable(320f, null, 8f, null))
                 }
 
 
@@ -78,13 +78,14 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         val orcTexture: Texture = assetManager[Asset.ORC.filePath]
         val orcSprite = Sprite(orcTexture)
         val orcEntity = Entity().apply {
-            add(HealthC(250,
+            add(CHealth(250,
                     250,
                     1,
                     1))
-            add(Renderable(orcSprite))
-            add(TransformC(Vector2(350f, 350f), 200f))
-            add(Movable(320f, null, 8f, null))
+            add(CRenderable(orcSprite))
+            add(CSelectable())
+            add(CTransform(Vector2(350f, 350f), 200f, orcSprite.width / 2f))
+            add(CMovable(320f, null, 8f, null))
         }
 
         playerCharacterEntity

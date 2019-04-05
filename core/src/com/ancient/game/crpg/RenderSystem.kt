@@ -1,6 +1,7 @@
 package com.ancient.game.crpg
 
-import com.ancient.game.crpg.battle.HealthC
+import com.ancient.game.crpg.battle.CHealth
+import com.ancient.game.crpg.battle.CSelectable
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -16,15 +17,16 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
-class Renderable(val sprite: Sprite) : Component
-class TransformC(var position: Vector2, var rotation: Float) : Component
+class CRenderable(val sprite: Sprite) : Component
+class CTransform(var position: Vector2, var rotation: Float, val radius: Float) : Component
 
 class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
-        all(Renderable::class.java, TransformC::class.java).get()) {
+        all(CRenderable::class.java, CTransform::class.java).get()) {
 
-    private val renderMapper: ComponentMapper<Renderable> = mapperFor()
-    private val transform: ComponentMapper<TransformC> = mapperFor()
-    private val healthMapper: ComponentMapper<HealthC> = mapperFor()
+    private val renderMapper: ComponentMapper<CRenderable> = mapperFor()
+    private val transform: ComponentMapper<CTransform> = mapperFor()
+    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
+    private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var toRender = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -44,7 +46,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
             val sprites: Array<Sprite>,
             val healthData: Array<Int?>,
             val staminaData: Array<Int?>,
-            val maxStaminaData: Array<Int?>
+            val maxStaminaData: Array<Int?>,
+            val selected: BooleanArray
     )
 
     private fun draw(entities: List<Entity>) {
@@ -57,7 +60,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                 entities.map { it[renderMapper]!!.sprite }.toTypedArray(),
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
-                arrayOfNulls(entities.size)
+                arrayOfNulls(entities.size),
+                BooleanArray(entities.size)
         ).apply {
             entities.forEachIndexed { idx, entity ->
                 val position = entity[transform]!!.position.let { viewport.project(it) }
@@ -67,6 +71,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                 healthData[idx] = entity[healthMapper]?.health
                 staminaData[idx] = entity[healthMapper]?.stamina
                 maxStaminaData[idx] = entity[healthMapper]?.maxStamina
+                selected[idx] = entity[selectableMapper]?.selected ?: false
             }
         }.let { data ->
 
@@ -108,30 +113,32 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
             shapeRenderer.projectionMatrix = viewport.camera.combined
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
             data.sprites.forEachIndexed { idx, sprite ->
-                shapeRenderer.apply {
-                    // Vulnerable
-                    color = Color.RED
-                    arc(
-                            data.x[idx],
-                            data.y[idx],
-                            sprite.width / 2,
-                            data.r[idx] + 90f,
-                            180f
-                    )
-
-                    // Defensive arc
-                    listOf(1f
-                            , 180f
-                    ).forEach { a ->
-                        color = Color(0f, 0f, (360f - a) / 360f, 1f)
+                if (data.selected[idx]) {
+                    shapeRenderer.apply {
+                        // Vulnerable
+                        color = Color.RED
                         arc(
                                 data.x[idx],
                                 data.y[idx],
                                 sprite.width / 2,
-                                data.r[idx] - (a / 2),
-                                a
+                                data.r[idx] + 90f,
+                                180f
                         )
 
+                        // Defensive arc
+                        listOf(1f
+                                , 180f
+                        ).forEach { a ->
+                            color = Color(0f, 0f, (360f - a) / 360f, 1f)
+                            arc(
+                                    data.x[idx],
+                                    data.y[idx],
+                                    sprite.width / 2,
+                                    data.r[idx] - (a / 2),
+                                    a
+                            )
+
+                        }
                     }
                 }
             }

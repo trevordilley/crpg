@@ -7,7 +7,11 @@ import ktx.app.KtxInputAdapter
 sealed class UserInput
 
 // Left Mouse Button Motions
-data class LeftClick(val screenX: Float, val screenY: Float) : UserInput()
+data class LeftClick(
+        val screenX: Float,
+        val screenY: Float,
+        val ctrlDown: Boolean = false
+) : UserInput()
 
 // Right Mouse Button Motions
 data class RightClickDown(val screenX: Float, val screenY: Float) : UserInput()
