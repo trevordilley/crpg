@@ -8,7 +8,6 @@ import com.badlogic.ashley.systems.IteratingSystem
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 import ktx.ashley.remove
-import ktx.log.info
 
 /**
  * Consider these steps for an action:
@@ -49,7 +48,6 @@ class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
                 if (timePassed >= duration) {
                     applyEffect(action)
                     entity[healthMapper]?.let { health ->
-                        info { "Applying $staminaCost damage" }
                         health.damages.add(staminaCost)
                     }
                     entity.remove<ActionC>()
@@ -61,7 +59,10 @@ class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
     // Consider pooling these entities, they'll be short lived
     // and happen quite a bit
     private fun applyEffect(action: ActionC) {
+        println("BattleActionSystem.applyEffect adding effect")
+        println("engine.entities.size() = ${engine.entities.size()}")
         engine.addEntity(Entity().add(action.effect))
+        println("engine.entities.size() = ${engine.entities.size()}")
     }
 
 }

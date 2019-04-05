@@ -55,6 +55,7 @@ class HealthSystem : IteratingSystem(
                     }
                 }
             }
+            health.damages.clear()
         }
     }
 
