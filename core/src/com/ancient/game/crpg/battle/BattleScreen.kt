@@ -17,9 +17,12 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
 import ktx.log.info
+import org.slf4j.LoggerFactory
 
 
 class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewport: Viewport) : KtxScreen {
+
+    private val logger = LoggerFactory.getLogger(BattleScreen::class.java)
 
     private lateinit var engine: PooledEngine
     private lateinit var inputManager: UserInputManager
