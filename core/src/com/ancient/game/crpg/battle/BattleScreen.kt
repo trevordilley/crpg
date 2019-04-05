@@ -89,12 +89,10 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
                         ActionC(0f,
                                 10,
                                 3f,
-                                MeleeEffectC(playerCharacterEntity, orcEntity, 1000f, 40)))
+                                MeleeEffectC(playerCharacterEntity, orcEntity, 100f, 40)))
 
         engine.addEntity(playerCharacterEntity)
         engine.addEntity(orcEntity)
-
-
     }
 
 
@@ -104,8 +102,5 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
 
         // Update systems
         engine.update(delta)
-        if(engine.entities.size() == 3) {
-            println("engine.entities.size() = ${engine.entities.size()}")
-        }
     }
 }

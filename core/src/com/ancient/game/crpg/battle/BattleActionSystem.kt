@@ -59,10 +59,7 @@ class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
     // Consider pooling these entities, they'll be short lived
     // and happen quite a bit
     private fun applyEffect(action: ActionC) {
-        println("BattleActionSystem.applyEffect adding effect")
-        println("engine.entities.size() = ${engine.entities.size()}")
         engine.addEntity(Entity().add(action.effect))
-        println("engine.entities.size() = ${engine.entities.size()}")
     }
 
 }
