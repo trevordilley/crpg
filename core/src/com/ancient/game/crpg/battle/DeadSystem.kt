@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
 import ktx.log.info
 
-class DeadSystem : IteratingSystem(all(DeadC::class.java).get()) {
+class DeadSystem : IteratingSystem(all(CDead::class.java).get()) {
     private val log = gameLogger(this::class.java)
     override fun processEntity(entity: Entity, deltaTime: Float) {
 

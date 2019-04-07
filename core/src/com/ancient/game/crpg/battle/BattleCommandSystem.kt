@@ -24,7 +24,7 @@ enum class InputMode {
 
 class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CMovable::class.java, CTransform::class.java)
-                .exclude(DeadC::class.java)
+                .exclude(CDead::class.java)
                 .get()) {
 
     private val log = gameLogger(this::class.java)
@@ -126,7 +126,6 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                     } else {
                         goToSelectMode()
                     }
-
                 }
             }
         }

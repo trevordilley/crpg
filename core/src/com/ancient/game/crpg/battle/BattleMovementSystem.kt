@@ -20,7 +20,7 @@ data class CMovable(val movementSpeed: Float //How fast are you moving?
 
 class BattleMovementSystem : IteratingSystem(
         all(CMovable::class.java, CTransform::class.java)
-                .exclude(DeadC::class.java)
+                .exclude(CDead::class.java)
                 .get()) {
     private val movableMapper: ComponentMapper<CMovable> = mapperFor()
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()

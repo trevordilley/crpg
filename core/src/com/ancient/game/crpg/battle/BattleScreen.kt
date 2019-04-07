@@ -2,6 +2,8 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.Asset
+import com.ancient.game.crpg.equipment.*
+import com.ancient.game.crpg.equipment.Nothing
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
@@ -51,12 +53,24 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         engine.addSystem(DeadSystem())
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
-
+        engine.addSystem(CombatantSystem())
         // Player Character
         val playerCharacterTexture: Texture = assetManager[Asset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
         val playerCharacterEntity =
                 Entity().apply {
+                    add(CCombatant(Team.PLAYER,
+                            Equipment(
+                                    MeleeWeapon(
+                                            "Short Sword",
+                                            10,
+                                            60,
+                                            1.5f,
+                                            NumberHandsToWield.ONE,
+                                            5f),
+                                    Shield("Large Shield", 50f),
+                                    Armor("Plate Mail", 20, 30f))
+                    ))
                     add(CHealth(250,
                             250,
                             1,
@@ -73,6 +87,18 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         val orcTexture: Texture = assetManager[Asset.ORC.filePath]
         val orcSprite = Sprite(orcTexture)
         val orcEntity = Entity().apply {
+            add(CCombatant(Team.ENEMY,
+                    Equipment(
+                            MeleeWeapon("Large Axe",
+                                    30,
+                                    120,
+                                    2f,
+                                    NumberHandsToWield.TWO,
+                                    140f
+                            ),
+                            Nothing,
+                            Armor("Shirt", 0, 0f))
+            ))
             add(CHealth(250,
                     250,
                     1,
@@ -83,12 +109,6 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
             add(CMovable(320f, null, 8f, null))
         }
 
-        playerCharacterEntity
-                .add(
-                        ActionC(0f,
-                                10,
-                                3f,
-                                MeleeEffectC(playerCharacterEntity, orcEntity, 100f, 40)))
 
         engine.addEntity(playerCharacterEntity)
         engine.addEntity(orcEntity)

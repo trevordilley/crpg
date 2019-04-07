@@ -20,9 +20,9 @@ class CHealth(
         val damages: MutableList<Int> = mutableListOf(),
         var staminaNotRechargingForSeconds: Float = 0f) : Component
 
-class DeadC : Component
+class CDead : Component
 class HealthSystem : IteratingSystem(
-        all(CHealth::class.java).exclude(DeadC::class.java)
+        all(CHealth::class.java).exclude(CDead::class.java)
                 .get()) {
 
     private var curTimeTillRecharge = 0f
@@ -44,14 +44,14 @@ class HealthSystem : IteratingSystem(
             health.damages.forEach { damage ->
                 if (health.stamina == 0) {
                     if (health.health <= 0) {
-                        entity.add(DeadC())
+                        entity.add(CDead())
                     } else {
                         health.health--
                     }
                 } else {
                     health.stamina = max(health.stamina - damage, 0)
                     if (health.stamina == 0) {
-                        health.staminaNotRechargingForSeconds = 1f
+                        health.staminaNotRechargingForSeconds = 4f
                     }
                 }
             }
