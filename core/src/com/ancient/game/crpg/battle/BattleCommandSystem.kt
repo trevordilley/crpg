@@ -32,7 +32,8 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
     private var destination: Vector2? = null
     private var rotation: Vector2? = null
     private var rotationPivot: Vector2? = null
-    private var changed = false
+    private var destinationChanged = false
+    private var rotationChanged = false
     private var currentSelection: MutableSet<CSelectable> = mutableSetOf()
     private var mode: InputMode = InputMode.SELECT
 
@@ -105,22 +106,24 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
             when (left) {
                 is MouseUp -> {
                     destination = viewport.unproject(Vector2(left.screenX, left.screenY))
-                    changed = true
+                    destinationChanged = true
                     log.info("Set Destination :$destination")
                 }
             }
         }
 
         input.right?.let { right ->
+            log.info("Clicked Right $right")
             when (right) {
                 is MouseDown -> {
+                    log.info("dragging?")
                     rotationPivot = viewport.unproject(Vector2(right.screenX, right.screenY))
                     log.info("Right Click Down :$rotationPivot")
                 }
                 is MouseUp -> {
                     if (right.wasDragging) {
                         rotation = rotationPivot?.let { pivot ->
-                            changed = true
+                            rotationChanged = true
                             val towards = viewport.unproject(Vector2(right.screenX, right.screenY))
                             rotationPivot = null
                             (towards - pivot).nor().also {
@@ -129,6 +132,7 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                         }
                     } else {
                         deselect()
+                        mode = InputMode.SELECT
                     }
 
                 }
@@ -137,11 +141,20 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
     }
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        if (changed) {
-            entity[movable]?.destination = destination
-            entity[movable]?.facingDirection = rotation?.angle()
-            changed = false
+        entity[selectable]?.let {
+            if (it.selected) {
+                if (destinationChanged) {
+                    entity[movable]?.destination = destination
+                    destinationChanged = false
+                }
+                if (rotationChanged) {
+                    entity[movable]?.facingDirection = rotation?.angle()
+                    rotationChanged = false
+                }
+
+            }
         }
     }
+
 
 }
