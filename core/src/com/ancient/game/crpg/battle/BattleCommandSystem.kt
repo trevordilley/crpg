@@ -85,11 +85,9 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
             it.selected = true
         }
         currentSelection.addAll(selection)
-        log.debug("Selected: ${currentSelection.size}")
     }
 
     private fun deselect() {
-        log.debug("Deselecting: ${currentSelection.size}")
         currentSelection.forEach {
             it.selected = false
         }
@@ -107,18 +105,14 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                 is MouseUp -> {
                     destination = viewport.unproject(Vector2(left.screenX, left.screenY))
                     destinationChanged = true
-                    log.info("Set Destination :$destination")
                 }
             }
         }
 
         input.right?.let { right ->
-            log.info("Clicked Right $right")
             when (right) {
                 is MouseDown -> {
-                    log.info("dragging?")
                     rotationPivot = viewport.unproject(Vector2(right.screenX, right.screenY))
-                    log.info("Right Click Down :$rotationPivot")
                 }
                 is MouseUp -> {
                     if (right.wasDragging) {
@@ -127,7 +121,6 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                             val towards = viewport.unproject(Vector2(right.screenX, right.screenY))
                             rotationPivot = null
                             (towards - pivot).nor().also {
-                                log.info("Right Click Up :$it")
                             }
                         }
                     } else {
