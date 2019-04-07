@@ -14,12 +14,13 @@ import ktx.ashley.mapperFor
 import ktx.math.component1
 import ktx.math.component2
 
-enum class Team {
-    PLAYER,
-    ENEMY
-}
 
-class CCombatant(val team: Team, val equipment: Equipment) : Component
+sealed class Combatant
+object Player : Combatant()
+data class Enemy(val aggroRange: Float) : Combatant()
+
+
+class CCombatant(val combatant: Combatant, val equipment: Equipment) : Component
 
 class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
@@ -33,7 +34,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
 
     override fun update(deltaTime: Float) {
         val (players, enemies) =
-                entities.partition { it[combatantMapper]!!.team == Team.PLAYER }
+                entities.partition { it[combatantMapper]!!.combatant is Player }
 
         if (players.isEmpty()) {
             entitiesToProcess.clear()
@@ -44,6 +45,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             val player = players.first()
             val (tx, ty) = player[transformMapper]!!.position
             val (x, y) = enemy[transformMapper]!!.position
+            val combatant = enemy[combatantMapper]!!.combatant as Enemy
             val gear = enemy[combatantMapper]!!.equipment
 
             val weapon: MeleeWeapon = listOf(gear.rightHand,
@@ -56,7 +58,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
                                     MeleeEffectC(enemy, player, weapon.range, weapon.staminaDamage)
                             ))
                     enemy[movableMapper]!!.destination = null
-                } else {
+                } else if (distance <= combatant.aggroRange) {
                     enemy[movableMapper]!!.destination = Vector2(tx, ty)
                 }
 

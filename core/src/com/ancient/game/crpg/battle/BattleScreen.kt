@@ -59,7 +59,7 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         val playerCharacterSprite = Sprite(playerCharacterTexture)
         val playerCharacterEntity =
                 Entity().apply {
-                    add(CCombatant(Team.PLAYER,
+                    add(CCombatant(Player,
                             Equipment(
                                     MeleeWeapon(
                                             "Short Sword",
@@ -87,7 +87,7 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         val orcTexture: Texture = assetManager[Asset.ORC.filePath]
         val orcSprite = Sprite(orcTexture)
         val orcEntity = Entity().apply {
-            add(CCombatant(Team.ENEMY,
+            add(CCombatant(Enemy(300f),
                     Equipment(
                             MeleeWeapon("Large Axe",
                                     30,
