@@ -65,9 +65,9 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
                                             "Short Sword",
                                             10,
                                             60,
-                                            1.5f,
+                                            0.5f,
                                             NumberHandsToWield.ONE,
-                                            5f),
+                                            140f),
                                     Shield("Large Shield", 50f),
                                     Armor("Plate Mail", 20, 30f))
                     ))

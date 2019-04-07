@@ -41,32 +41,41 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             return
         }
 
-        enemies.forEach { enemy ->
-            val player = players.first()
-            val (tx, ty) = player[transformMapper]!!.position
-            val (x, y) = enemy[transformMapper]!!.position
-            val combatant = enemy[combatantMapper]!!.combatant as Enemy
-            val gear = enemy[combatantMapper]!!.equipment
+        players.firstOrNull()?.let { attackNearby(it, enemies) }
+        enemies.firstOrNull()?.let { attackNearby(it, players) }
 
-            val weapon: MeleeWeapon = listOf(gear.rightHand,
-                    gear.leftHand).filter { it is MeleeWeapon }.first() as MeleeWeapon
-            Vector2.dst(x, y, tx, ty).let { distance ->
-                if (distance <= weapon.range) {
-                    // Start Attack
-                    enemy[actionMapper] ?: enemy.add(
-                            ActionC(0f, weapon.staminaCost, weapon.duration,
-                                    MeleeEffectC(enemy, player, weapon.range, weapon.staminaDamage)
-                            ))
-                    enemy[movableMapper]!!.destination = null
-                } else if (distance <= combatant.aggroRange) {
-                    enemy[movableMapper]!!.destination = Vector2(tx, ty)
+        entitiesToProcess.clear()
+        super.update(deltaTime)
+    }
+
+    private fun attackNearby(attacker: Entity, targets: List<Entity>) {
+        val target = targets.firstOrNull() ?: return
+        val (tx, ty) = target[transformMapper]!!.position
+        val (x, y) = attacker[transformMapper]!!.position
+        val combatant = attacker[combatantMapper]!!.combatant
+        val gear = attacker[combatantMapper]!!.equipment
+        val weapon: MeleeWeapon = listOf(gear.rightHand,
+                gear.leftHand).filter { it is MeleeWeapon }.first() as MeleeWeapon
+        Vector2.dst(x, y, tx, ty).let { distance ->
+            if (distance <= weapon.range) {
+                // Start Attack
+                attacker[actionMapper] ?: attacker.add(
+                        ActionC(0f, weapon.staminaCost, weapon.duration,
+                                MeleeEffectC(attacker, target, weapon.range, weapon.staminaDamage)
+                        )).also { println("Weapon: ${weapon.name}") }
+                attacker[movableMapper]!!.destination = null
+            } else {
+                when (combatant) {
+                    is Enemy -> {
+                        if (distance <= combatant.aggroRange) {
+                            attacker[movableMapper]!!.destination = Vector2(tx, ty)
+                        }
+                    }
                 }
-
             }
 
         }
-        entitiesToProcess.clear()
-        super.update(deltaTime)
+
     }
 
 }
