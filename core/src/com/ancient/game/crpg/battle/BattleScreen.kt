@@ -1,9 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.CRenderable
-import com.ancient.game.crpg.CTransform
-import com.ancient.game.crpg.RenderSystem
-import com.ancient.game.crpg.UserInputManager
+import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.Asset
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
@@ -16,19 +13,17 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
-import ktx.log.info
-import org.slf4j.LoggerFactory
 
 
 class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewport: Viewport) : KtxScreen {
 
-    private val logger = LoggerFactory.getLogger(BattleScreen::class.java)
+    private val log = gameLogger(this::class.java)
 
     private lateinit var engine: PooledEngine
     private lateinit var inputManager: UserInputManager
     override fun show() {
-        info { "Showing at camera pos ${viewport.camera.position}" }
-        info { "Input Management" }
+        log.info("Showing at camera pos ${viewport.camera.position}")
+        log.info("Input Management")
 
         val battleCommandSystem = BattleCommandSystem(viewport)
 
@@ -47,7 +42,7 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         }
 
 
-        info { "Revving Engines" }
+        log.info("Revving Engines")
         engine = PooledEngine()
         engine.addSystem(RenderSystem(batch, viewport))
         engine.addSystem(battleCommandSystem)

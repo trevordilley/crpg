@@ -12,23 +12,25 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.app.KtxGame
 import ktx.inject.Context
-import ktx.log.info
 
 class Application : KtxGame<Screen>() {
+
+    private val log = gameLogger(this::class.java)
+
     val context = Context()
 
     private val assetManager = AssetManager()
     private var loaded = false
     override fun create() {
-        info { "Loading Assets" }
+        log.info("Loading Assets")
         Asset.values().forEach {
-            info { "Loading ${it.filePath}" }
+            log.info("Loading ${it.filePath}")
             assetManager.load(it.filePath, Texture::class.java)
         }
 
 
 
-        info { "Setting up Context" }
+        log.info("Setting up Context")
         context.register {
             bindSingleton<Batch>(SpriteBatch())
             bindSingleton<Viewport>(ScreenViewport())
@@ -45,7 +47,7 @@ class Application : KtxGame<Screen>() {
         super.render()
         if (!loaded) {
             if (assetManager.update()) {
-                info { "loaded!" }
+                log.info("loaded!")
                 loaded = true
                 setScreen<BattleScreen>()
             }
