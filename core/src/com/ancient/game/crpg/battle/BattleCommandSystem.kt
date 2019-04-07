@@ -124,13 +124,22 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                             }
                         }
                     } else {
-                        deselect()
-                        mode = InputMode.SELECT
+                        goToSelectMode()
                     }
 
                 }
             }
         }
+    }
+
+    private fun goToSelectMode() {
+        deselect()
+        mode = InputMode.SELECT
+        destination = null
+        rotation = null
+        rotationPivot = null
+        destinationChanged = true
+        rotationChanged = true
     }
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
