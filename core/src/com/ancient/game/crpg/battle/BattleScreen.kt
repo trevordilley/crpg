@@ -64,7 +64,6 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
                                     MeleeWeapon(
                                             "Short Sword",
                                             10,
-                                            60,
                                             0.5f,
                                             NumberHandsToWield.ONE,
                                             140f),
@@ -90,7 +89,6 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
             add(CCombatant(Enemy(300f),
                     Equipment(
                             MeleeWeapon("Large Axe",
-                                    30,
                                     120,
                                     2f,
                                     NumberHandsToWield.TWO,

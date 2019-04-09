@@ -36,7 +36,7 @@ class BattleActionEffectSystem : IteratingSystem(one(
                                     tarPos.position.y
                             )
                     if (distance <= eff.range) {
-                        health.damages.add(eff.staminaDamage)
+                        health.damages.add(Damage(eff.staminaDamage, attackerPos.position))
                     }
                 }
             }

@@ -33,23 +33,18 @@ import ktx.ashley.remove
 // Actions create effects
 class ActionC(
         var timePassed: Float,
-        val staminaCost: Int,
         val duration: Float,
         val effect: ActionEffectC
 ) : Component
 
 class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
     private val actionMapper: ComponentMapper<ActionC> = mapperFor()
-    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entity[actionMapper]!!.let { action ->
             action.apply {
                 timePassed += deltaTime
                 if (timePassed >= duration) {
                     applyEffect(action)
-                    entity[healthMapper]?.let { health ->
-                        health.damages.add(staminaCost)
-                    }
                     entity.remove<ActionC>()
                 }
             }

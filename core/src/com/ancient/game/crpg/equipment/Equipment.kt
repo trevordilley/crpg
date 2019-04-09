@@ -16,7 +16,6 @@ sealed class Wielded
 
 data class MeleeWeapon(
         val name: String,
-        val staminaCost: Int,
         val staminaDamage: Int,
         val duration: Float,
         val numHands: NumberHandsToWield,
@@ -25,7 +24,8 @@ data class MeleeWeapon(
 
 data class Shield(
         val name: String,
-        val damagePercentReduction: Float
+        val damagePercentReduction: Float,
+        val protectionArc: Float = 90f
 ) : Wielded()
 
 object Nothing : Wielded()

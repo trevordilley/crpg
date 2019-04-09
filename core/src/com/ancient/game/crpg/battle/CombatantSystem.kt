@@ -55,12 +55,12 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
         val combatant = attacker[combatantMapper]!!.combatant
         val gear = attacker[combatantMapper]!!.equipment
         val weapon: MeleeWeapon = listOf(gear.rightHand,
-                gear.leftHand).filter { it is MeleeWeapon }.first() as MeleeWeapon
+                gear.leftHand).first { it is MeleeWeapon } as MeleeWeapon
         Vector2.dst(x, y, tx, ty).let { distance ->
             if (distance <= weapon.range) {
                 // Start Attack
                 attacker[actionMapper] ?: attacker.add(
-                        ActionC(0f, weapon.staminaCost, weapon.duration,
+                        ActionC(0f, weapon.duration,
                                 MeleeEffectC(attacker, target, weapon.range, weapon.staminaDamage)
                         )).also { println("Weapon: ${weapon.name}") }
                 attacker[movableMapper]!!.destination = null
