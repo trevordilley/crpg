@@ -67,7 +67,7 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
                                             0.5f,
                                             NumberHandsToWield.ONE,
                                             140f),
-                                    Shield("Large Shield", 50f),
+                                    Shield("Large Shield", 0.75f),
                                     Armor("Plate Mail", 20, 30f))
                     ))
                     add(CHealth(250,

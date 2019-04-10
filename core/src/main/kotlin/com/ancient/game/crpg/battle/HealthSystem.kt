@@ -11,6 +11,7 @@ import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
+import ktx.math.minus
 import kotlin.math.max
 
 // Tenth of a second, recharges 10 points per second at rate of 1
@@ -59,12 +60,13 @@ class HealthSystem : IteratingSystem(
 
             health.damages.forEach { damage ->
                 val defenderRotation = entity[transformMapper]!!.rotation
-                val damageFromAngle = damage.originPosition.angle()
+                val defenderPosition = entity[transformMapper]!!.position
+                val damageFromAngle = (damage.originPosition - defenderPosition).angle()
                 val shieldAdjustedDamage = shield?.let {
                     val inShieldArc = angleWithinArc(defenderRotation, damageFromAngle, it.protectionArc)
-
                     if (inShieldArc) {
-                        damage.copy(stamina = (damage.stamina * (1f - it.damagePercentReduction)).toInt())
+                        damage.copy(stamina = (damage.stamina * (1f - it.damagePercentReduction)).toInt()).also {
+                        }
                     } else {
                         damage
                     }
