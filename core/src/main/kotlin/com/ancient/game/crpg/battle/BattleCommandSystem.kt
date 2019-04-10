@@ -42,14 +42,7 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
     private val playerControlled: ComponentMapper<CPlayerControlled> = mapperFor()
     private val selectable: ComponentMapper<CSelectable> = mapperFor()
 
-    override fun onInput(mouseInput: MouseInput) {
-        when (mode) {
-            InputMode.SELECT -> handleSelectModeInput(mouseInput)
-            InputMode.DIRECT -> handleDirectModeInput(mouseInput)
-        }
-    }
-
-    private fun handleSelectModeInput(input: MouseInput) {
+    override fun onInput(input: MouseInput) {
         input.left?.let { left ->
             when (left) {
                 is MouseUp -> {
@@ -61,19 +54,45 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                                             pointWithinTransformRadius(worldPos, transform)
                                         } ?: false
                             }
-                            ?.let {
-                                select(it[selectable]!!)
-                                if (it.has(playerControlled)) {
-                                    mode = InputMode.DIRECT
-                                }
-                            }
+                            ?.let { select(it[selectable]!!) }
+                            ?: {
+                                entities
+                                        .filter { it.has(selectable) && it.has(playerControlled) && it.has(movable) }
+                                        .filter { currentSelection.contains(it[selectable]) }
+                                        .forEach {
+                                            it[movable]!!.destination = viewport.unproject(
+                                                    Vector2(left.screenX, left.screenY))
+                                        }
+                            }.invoke()
 
                 }
                 else -> {
                 }
             }
         }
+
+        input.right?.let { right ->
+            when (right) {
+                is MouseDown -> {
+                    rotationPivot = viewport.unproject(Vector2(right.screenX, right.screenY))
+                }
+                is MouseUp -> {
+                    if (right.wasDragging) {
+                        rotation = rotationPivot?.let { pivot ->
+                            rotationChanged = true
+                            val towards = viewport.unproject(Vector2(right.screenX, right.screenY))
+                            rotationPivot = null
+                            (towards - pivot).nor().also {
+                            }
+                        }
+                    } else {
+                        resetSelection()
+                    }
+                }
+            }
+        }
     }
+
 
     private fun select(selection: CSelectable) {
         select(listOf(selection))
@@ -99,39 +118,8 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
             Vector2.dst(point.x, point.y, transform.position.x,
                     transform.position.y) <= transform.radius
 
-    private fun handleDirectModeInput(input: MouseInput) {
-        input.left?.let { left ->
-            when (left) {
-                is MouseUp -> {
-                    destination = viewport.unproject(Vector2(left.screenX, left.screenY))
-                    destinationChanged = true
-                }
-            }
-        }
 
-        input.right?.let { right ->
-            when (right) {
-                is MouseDown -> {
-                    rotationPivot = viewport.unproject(Vector2(right.screenX, right.screenY))
-                }
-                is MouseUp -> {
-                    if (right.wasDragging) {
-                        rotation = rotationPivot?.let { pivot ->
-                            rotationChanged = true
-                            val towards = viewport.unproject(Vector2(right.screenX, right.screenY))
-                            rotationPivot = null
-                            (towards - pivot).nor().also {
-                            }
-                        }
-                    } else {
-                        goToSelectMode()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun goToSelectMode() {
+    private fun resetSelection() {
         deselect()
         mode = InputMode.SELECT
         destination = null

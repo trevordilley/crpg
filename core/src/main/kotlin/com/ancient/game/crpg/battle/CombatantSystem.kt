@@ -41,17 +41,20 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             return
         }
 
-        players.firstOrNull()?.let { attackNearby(it, enemies) }
-        enemies.firstOrNull()?.let { attackNearby(it, players) }
+        players.forEach { attackNearby(it, enemies) }
+        enemies.forEach { attackNearby(it, players) }
 
         entitiesToProcess.clear()
         super.update(deltaTime)
     }
 
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
-        val target = targets.firstOrNull() ?: return
-        val (tx, ty) = target[transformMapper]!!.position
         val (x, y) = attacker[transformMapper]!!.position
+        val target = targets.sortedBy {
+            val (tx, ty) = it[transformMapper]!!.position
+            Vector2.dst(x, y, tx, ty)
+        }.firstOrNull() ?: return
+        val (tx, ty) = target[transformMapper]!!.position
         val combatant = attacker[combatantMapper]!!.combatant
         val gear = attacker[combatantMapper]!!.equipment
         val weapon: MeleeWeapon = listOf(gear.rightHand,

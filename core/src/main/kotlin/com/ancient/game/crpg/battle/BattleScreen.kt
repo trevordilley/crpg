@@ -57,59 +57,70 @@ class BattleScreen(val assetManager: AssetManager, val batch: Batch, val viewpor
         // Player Character
         val playerCharacterTexture: Texture = assetManager[Asset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
-        val playerCharacterEntity =
-                Entity().apply {
-                    add(CCombatant(Player,
-                            Equipment(
-                                    MeleeWeapon(
-                                            "Short Sword",
-                                            10,
-                                            0.5f,
-                                            NumberHandsToWield.ONE,
-                                            140f),
-                                    Shield("Large Shield", 0.75f),
-                                    Armor("Plate Mail", 20, 30f))
-                    ))
-                    add(CHealth(250,
-                            250,
-                            1,
-                            1))
-                    add(CRenderable(playerCharacterSprite))
-                    add(CTransform(Vector2(100f, 100f), 0f, playerCharacterSprite.width / 2f))
-                    add(CSelectable())
-                    add(CPlayerControlled)
-                    add(CMovable(320f, null, 8f, null))
-                }
+
+        val createPc = { pos: Vector2 ->
+            Entity().apply {
+                add(CCombatant(Player,
+                        Equipment(
+                                MeleeWeapon(
+                                        "Short Sword",
+                                        10,
+                                        0.5f,
+                                        NumberHandsToWield.ONE,
+                                        140f),
+                                Shield("Large Shield", 0.7f),
+                                Armor("Plate Mail", 20, 30f))
+                ))
+                add(CHealth(250,
+                        250,
+                        1,
+                        1))
+                add(CRenderable(playerCharacterSprite))
+                add(CTransform(pos, 0f, playerCharacterSprite.width / 2f))
+                add(CSelectable())
+                add(CPlayerControlled)
+                add(CMovable(320f, null, 8f, null))
+            }
+        }
 
 
         // Orc
         val orcTexture: Texture = assetManager[Asset.ORC.filePath]
         val orcSprite = Sprite(orcTexture)
-        val orcEntity = Entity().apply {
-            add(CCombatant(Enemy(300f),
-                    Equipment(
-                            MeleeWeapon("Large Axe",
-                                    120,
-                                    2f,
-                                    NumberHandsToWield.TWO,
-                                    140f
-                            ),
-                            Nothing,
-                            Armor("Shirt", 0, 0f))
-            ))
-            add(CHealth(250,
-                    250,
-                    1,
-                    1))
-            add(CRenderable(orcSprite))
-            add(CSelectable())
-            add(CTransform(Vector2(350f, 350f), 200f, orcSprite.width / 2f))
-            add(CMovable(320f, null, 8f, null))
+        val createOrc = { pos: Vector2 ->
+            Entity().apply {
+                add(CCombatant(Enemy(300f),
+                        Equipment(
+                                MeleeWeapon("Large Axe",
+                                        120,
+                                        2f,
+                                        NumberHandsToWield.TWO,
+                                        140f
+                                ),
+                                Nothing,
+                                Armor("Shirt", 0, 0f))
+                ))
+                add(CHealth(250,
+                        250,
+                        1,
+                        1))
+                add(CRenderable(orcSprite))
+                add(CSelectable())
+                add(CTransform(pos, 180f, orcSprite.width / 2f))
+                add(CMovable(320f, null, 8f, null))
+            }
         }
 
 
-        engine.addEntity(playerCharacterEntity)
-        engine.addEntity(orcEntity)
+
+        engine.addEntity(createPc(Vector2(100f, 100f)))
+        engine.addEntity(createPc(Vector2(100f, 200f)))
+        engine.addEntity(createPc(Vector2(100f, 300f)))
+        engine.addEntity(createPc(Vector2(100f, 400f)))
+        engine.addEntity(createOrc(Vector2(500f, 100f)))
+        engine.addEntity(createOrc(Vector2(500f, 200f)))
+        engine.addEntity(createOrc(Vector2(500f, 300f)))
+        engine.addEntity(createOrc(Vector2(500f, 400f)))
     }
 
 
