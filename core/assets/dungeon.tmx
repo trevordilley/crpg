@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
- <tileset firstgid="1" source="../../../../dungeon-test.tsx"/>
+ <tileset firstgid="1" source="dungeon-tileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="30" height="30">
   <data encoding="csv">
 11,2,2,2,2,2,2,2,16,79,79,79,21,2,2,2,2,2,2,2,2,6,79,31,2,2,2,2,2,6,
