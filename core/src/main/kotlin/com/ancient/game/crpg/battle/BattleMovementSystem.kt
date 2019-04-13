@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.rotate
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -35,13 +36,14 @@ class BattleMovementSystem : IteratingSystem(
         // Rotation
         val rotationSpeed = entity[movableMapper]!!.rotationSpeed
         val direction = destination?.let { (destination - position).nor() }
-        val targetAngle = entity[movableMapper]!!.facingDirection ?: direction?.angle()
 
-        if (targetAngle != null) {
+        val facingDirection = entity[movableMapper]!!.facingDirection
+
+        if (facingDirection != null) {
             // IMPORTANT: All assets that have a direction must
             // be facing RIGHT!!!
             entity[transformMapper]!!.rotation =
-                    rotate(entity[transformMapper]!!.rotation, targetAngle, rotationSpeed)
+                    rotate(entity[transformMapper]!!.rotation, facingDirection, rotationSpeed)
 
         }
 
@@ -51,6 +53,19 @@ class BattleMovementSystem : IteratingSystem(
             if (distToDest > arrivalDistance) {
                 entity[transformMapper]!!.position =
                         position(position, destination, speed, deltaTime)
+
+                val targetAngle = if (facingDirection == null) {
+                    direction?.angle()
+                } else null
+
+                if (targetAngle != null) {
+                    // IMPORTANT: All assets that have a direction must
+                    // be facing RIGHT!!!
+                    entity[transformMapper]!!.rotation =
+                            rotate(entity[transformMapper]!!.rotation, targetAngle, rotationSpeed)
+
+                }
+
             }
         }
 
@@ -70,26 +85,4 @@ class BattleMovementSystem : IteratingSystem(
     }
 
 
-    private fun rotate(currentRotation: Float, targetRotation: Float, rotationSpeed: Float): Float {
-        val rotDelta = Math.abs(targetRotation - currentRotation)
-
-
-        return if (rotDelta < rotationSpeed) {
-            // Rotation difference is so small we should just
-            // set it to the target. This may look "snappy" with
-            // high rotationSpeed values.
-            targetRotation
-        } else {
-            val clockwise = currentRotation - rotationSpeed
-            val clockwiseDistance = Math.abs(targetRotation - clockwise)
-            val counterClockwise = currentRotation + rotationSpeed
-            val counterClockwiseDistance = Math.abs(targetRotation - counterClockwise)
-
-            if (clockwiseDistance < counterClockwiseDistance) {
-                clockwise
-            } else {
-                counterClockwise
-            }
-        }
-    }
 }

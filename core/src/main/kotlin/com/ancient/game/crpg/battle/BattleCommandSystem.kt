@@ -130,18 +130,21 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
     }
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[selectable]?.let {
-            if (it.selected) {
-                if (destinationChanged) {
-                    entity[movable]?.destination = destination
-                    destinationChanged = false
-                }
-                if (rotationChanged) {
-                    entity[movable]?.facingDirection = rotation?.angle()
-                    rotationChanged = false
-                }
+        if (entity.has(selectable) && entity.has(playerControlled)) {
+            entity[selectable]!!.let {
+                if (it.selected) {
+                    if (destinationChanged) {
+                        entity[movable]?.destination = destination
+                        destinationChanged = false
+                    }
+                    if (rotationChanged) {
+                        entity[movable]?.facingDirection = rotation?.angle()
+                        rotationChanged = false
+                    }
 
+                }
             }
+
         }
     }
 
