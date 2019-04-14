@@ -4,7 +4,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxInputAdapter
 
-
 data class MouseInput(val left: MouseButtonAction?,
                       val right: MouseButtonAction?)
 
@@ -26,12 +25,22 @@ internal const val START_DRAGGING_DISTANCE = 5f
 
 
 interface UserInputListener {
-    fun onInput(mouseInput: MouseInput)
+    fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
+                right: Boolean, down: Boolean)
 }
+
 
 class UserInputManager(
         private val listeners: List<UserInputListener>
 ) : KtxInputAdapter {
+
+    /*******
+     *
+     *  HEY
+     *
+     *  DONT FORGET TO UPDATE THE Gdx.input.inputProcessor in BattleScreen.kt, etc!
+     *
+     */
 
     private val logger = gameLogger(this::class.java)
 
@@ -86,12 +95,17 @@ class UserInputManager(
                     MouseInput(
                             leftButton?.deriveAction(),
                             rightButton?.deriveAction()
-                    )
+                    ),
+                    left,
+                    up,
+                    right,
+                    down
             )
         }
 
         rightButton?.up?.let { rightButton = null }
         leftButton?.up?.let { leftButton = null }
+
     }
 
 
@@ -116,6 +130,36 @@ class UserInputManager(
                 )
             }
         }
+        return false
+    }
+
+    private var up: Boolean = false
+    private var down: Boolean = false
+    private var left: Boolean = false
+    private var right: Boolean = false
+
+    private fun setArrowKeys(keyCode: Int, isPressed: Boolean) {
+        when (keyCode) {
+            Input.Keys.LEFT -> left = isPressed
+            Input.Keys.A -> left = isPressed
+            Input.Keys.UP -> up = isPressed
+            Input.Keys.W -> up = isPressed
+            Input.Keys.RIGHT -> right = isPressed
+            Input.Keys.D -> right = isPressed
+            Input.Keys.DOWN -> down = isPressed
+            Input.Keys.S -> down = isPressed
+        }
+
+    }
+
+
+    override fun keyDown(keycode: Int): Boolean {
+        setArrowKeys(keycode, true)
+        return false
+    }
+
+    override fun keyUp(keycode: Int): Boolean {
+        setArrowKeys(keycode, false)
         return false
     }
 

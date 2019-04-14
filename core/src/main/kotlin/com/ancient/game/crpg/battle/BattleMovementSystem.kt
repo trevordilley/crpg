@@ -25,7 +25,7 @@ class BattleMovementSystem : IteratingSystem(
                 .get()) {
     private val movableMapper: ComponentMapper<CMovable> = mapperFor()
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
-    private val arrivalDistance = 5f
+    private val arrivalDistance = 0.2f
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
         // Position

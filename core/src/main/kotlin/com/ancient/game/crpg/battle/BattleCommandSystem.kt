@@ -42,7 +42,10 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
     private val playerControlled: ComponentMapper<CPlayerControlled> = mapperFor()
     private val selectable: ComponentMapper<CSelectable> = mapperFor()
 
-    override fun onInput(input: MouseInput) {
+    override fun onInput(input: MouseInput, left: Boolean, up: Boolean,
+                         right: Boolean, down: Boolean) {
+
+
         input.left?.let { left ->
             when (left) {
                 is MouseUp -> {

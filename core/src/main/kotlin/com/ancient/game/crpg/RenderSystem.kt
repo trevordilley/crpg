@@ -17,26 +17,30 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
-class CRenderable(val sprite: Sprite) : Component
+
+class CRenderableSprite(val sprite: Sprite) : Component
 class CTransform(var position: Vector2, var rotation: Float, val radius: Float) : Component
 
+// TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
-        all(CRenderable::class.java, CTransform::class.java).get()) {
+        all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
-    private val renderMapper: ComponentMapper<CRenderable> = mapperFor()
+    private val log = gameLogger(this::class.java)
+
+    private val spriteRenderMapper: ComponentMapper<CRenderableSprite> = mapperFor()
     private val transform: ComponentMapper<CTransform> = mapperFor()
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
-    private var toRender = mutableListOf<Entity>()
+    private var spritesToRender = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[renderMapper]?.let { toRender.add(entity) }
+        entity[spriteRenderMapper]?.let { spritesToRender.add(entity) }
     }
 
     override fun update(deltaTime: Float) {
         super.update(deltaTime)
-        draw(toRender)
-        toRender.clear()
+        draw(spritesToRender)
+        spritesToRender.clear()
     }
 
     private class DrawData(
@@ -52,19 +56,20 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
 
     private fun draw(entities: List<Entity>) {
         viewport.camera.update()
-
+        // Render sprites
         DrawData(
                 FloatArray(entities.size),
                 FloatArray(entities.size),
                 FloatArray(entities.size),
-                entities.map { it[renderMapper]!!.sprite }.toTypedArray(),
+                entities.map { it[spriteRenderMapper]!!.sprite }.toTypedArray(),
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
                 BooleanArray(entities.size)
         ).apply {
             entities.forEachIndexed { idx, entity ->
-                val position = entity[transform]!!.position.let { viewport.project(it) }
+                val position: Vector2 = entity[transform]!!.position
+                println(position)
                 x[idx] = position.x
                 y[idx] = position.y
                 r[idx] = entity[transform]!!.rotation
@@ -80,9 +85,13 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
             batch.projectionMatrix = viewport.camera.combined
             batch.begin()
             data.sprites.forEachIndexed { index, sprite ->
-                val widthOffset = sprite.width / 2
-                val heightOffset = sprite.height / 2
+                val width = sprite.width * SiUnits.PIXELS_TO_METER
+                val height = sprite.height * SiUnits.PIXELS_TO_METER
 
+
+                val widthOffset = width / 2
+                val heightOffset = height / 2
+                // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
                 batch.setColor(1f, 1f, 1f, 1f)
                 batch.draw(
                         sprite,
@@ -90,11 +99,11 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                         data.y[index] - heightOffset,
                         widthOffset,
                         heightOffset,
-                        sprite.width,
-                        sprite.height,
-                        1f,
-                        1f,
+                        width,
+                        height,
+                        1f, 1f,
                         data.r[index]
+
                 )
                 val healthLabel = data.healthData[index]?.let { hp -> "Health: $hp" }
                 val staminaLabel = data.staminaData[index]?.let { stm ->
@@ -103,7 +112,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                 }
                 font.draw(
                         batch,
-                        "$staminaLabel  $healthLabel",
+//                        "$staminaLabel  $healthLabel",
+                        "",
                         data.x[index] - widthOffset,
                         data.y[index] + heightOffset + 10
                 )
@@ -120,7 +130,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                         arc(
                                 data.x[idx],
                                 data.y[idx],
-                                sprite.width / 2,
+                                (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
                                 data.r[idx] + 90f,
                                 180f
                         )
@@ -133,7 +143,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                             arc(
                                     data.x[idx],
                                     data.y[idx],
-                                    sprite.width / 2,
+                                    (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
                                     data.r[idx] - (a / 2),
                                     a
                             )
