@@ -20,7 +20,7 @@ import ktx.app.KtxGame
 import ktx.inject.Context
 
 object SiUnits {
-    const val UNIT = 16 // minimum resolution of a character.
+    const val UNIT = 64 // minimum resolution of a character.
     const val PIXELS_TO_METER = 1.0f / UNIT.toFloat()
 }
 
