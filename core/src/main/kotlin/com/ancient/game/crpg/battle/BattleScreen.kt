@@ -59,6 +59,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
 
+        // Map
+        log.info("Building Map")
+        val map: TiledMap = assetManager[MAP_FILEPATH]
+        val mapManager = TiledMapManager(map, SiUnits.PIXELS_TO_METER)
+        mapManager.collisionPoints()
+        mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
+
 
         log.info("Revving Engines")
         engine = PooledEngine()
@@ -85,7 +92,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                         10,
                                         0.5f,
                                         NumberHandsToWield.ONE,
-                                        5f),
+                                        1f),
                                 Shield("Large Shield", 0.7f),
                                 Armor("Plate Mail", 20, 30f))
                 ))
@@ -94,10 +101,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         1,
                         1))
                 add(CRenderableSprite(playerCharacterSprite))
-                add(CTransform(pos, 0f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
+                add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
                 add(CSelectable())
                 add(CPlayerControlled)
-                add(CMovable(20f, null, 8f, null))
+                add(CMovable(2f, null, 8f, null))
             }
         }
 
@@ -107,13 +114,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val orcSprite = Sprite(orcTexture)
         val createOrc = { pos: Vector2 ->
             Entity().apply {
-                add(CCombatant(Enemy(30f),
+                add(CCombatant(Enemy(2f),
                         Equipment(
                                 MeleeWeapon("Large Axe",
                                         120,
                                         2f,
                                         NumberHandsToWield.TWO,
-                                        5f
+                                        1f
                                 ),
                                 Nothing,
                                 Armor("Shirt", 0, 0f))
@@ -124,26 +131,19 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         1))
                 add(CRenderableSprite(orcSprite))
                 //    add(CSelectable()) causes strange selection errors...
-                add(CTransform(pos, 180f, orcSprite.width / 2f))
-                add(CMovable(10f, null, 8f, null))
+                add(CTransform(pos, 270f, orcSprite.width / 2f))
+                add(CMovable(2f, null, 8f, null))
             }
         }
 
 
-        engine.addEntity(createPc(Vector2(10f, 10f)))
-        engine.addEntity(createPc(Vector2(10f, 20f)))
-        engine.addEntity(createPc(Vector2(10f, 30f)))
-        engine.addEntity(createPc(Vector2(10f, 40f)))
-        engine.addEntity(createOrc(Vector2(60f, 10f)))
-        engine.addEntity(createOrc(Vector2(60f, 20f)))
-        engine.addEntity(createOrc(Vector2(60f, 30f)))
-        engine.addEntity(createOrc(Vector2(60f, 40f)))
+        engine.addEntity(createPc(Vector2(1.5f, 1f)))
+        engine.addEntity(createPc(Vector2(1.5f, 2f)))
+        engine.addEntity(createPc(Vector2(2.5f, 1f)))
+        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+        engine.addEntity(createOrc(Vector2(1.5f, 5f)))
+        engine.addEntity(createOrc(Vector2(2.5f, 5f)))
 
-        // Map
-        val map: TiledMap = assetManager[MAP_FILEPATH]
-
-        val unitScale = SiUnits.PIXELS_TO_METER
-        mapRenderer = OrthogonalTiledMapRenderer(map, unitScale, batch)
     }
 
 

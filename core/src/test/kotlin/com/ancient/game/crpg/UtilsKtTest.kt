@@ -73,7 +73,6 @@ internal class UtilsKtTest {
 
         var currentAngle = positiveNormedDegrees(startRotationInt)
 
-        println("Current: $currentAngle -- Target: $targetAngle")
 
         val numAllowedSteps = 200
         for (i in 0..numAllowedSteps) {

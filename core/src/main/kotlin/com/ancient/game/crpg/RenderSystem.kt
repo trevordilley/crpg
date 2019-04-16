@@ -69,7 +69,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
         ).apply {
             entities.forEachIndexed { idx, entity ->
                 val position: Vector2 = entity[transform]!!.position
-                println(position)
                 x[idx] = position.x
                 y[idx] = position.y
                 r[idx] = entity[transform]!!.rotation

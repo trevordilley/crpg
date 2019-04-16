@@ -65,7 +65,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
                 attacker[actionMapper] ?: attacker.add(
                         ActionC(0f, weapon.duration,
                                 MeleeEffectC(attacker, target, weapon.range, weapon.staminaDamage)
-                        )).also { println("Weapon: ${weapon.name}") }
+                        ))
                 attacker[movableMapper]!!.destination = null
             } else {
                 when (combatant) {
