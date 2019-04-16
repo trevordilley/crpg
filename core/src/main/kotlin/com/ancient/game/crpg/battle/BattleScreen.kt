@@ -63,15 +63,15 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         log.info("Building Map")
         val map: TiledMap = assetManager[MAP_FILEPATH]
         val mapManager = TiledMapManager(map, SiUnits.PIXELS_TO_METER)
-        mapManager.collisionPoints()
+        val collisionPoints = mapManager.collisionPoints()
         mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
 
 
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(RenderSystem(batch, viewportManager.viewport))
+        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints))
         engine.addSystem(battleCommandSystem)
-        engine.addSystem(BattleMovementSystem())
+        engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
         engine.addSystem(DeadSystem())
         engine.addSystem(BattleActionSystem())
@@ -138,11 +138,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
-        engine.addEntity(createPc(Vector2(1.5f, 2f)))
-        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-        engine.addEntity(createPc(Vector2(2.5f, 2f)))
-        engine.addEntity(createOrc(Vector2(1.5f, 5f)))
-        engine.addEntity(createOrc(Vector2(2.5f, 5f)))
+//        engine.addEntity(createPc(Vector2(1.5f, 2f)))
+//        engine.addEntity(createPc(Vector2(2.5f, 1f)))
+//        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+//        engine.addEntity(createOrc(Vector2(1.5f, 5f)))
+//        engine.addEntity(createOrc(Vector2(2.5f, 5f)))
 
     }
 

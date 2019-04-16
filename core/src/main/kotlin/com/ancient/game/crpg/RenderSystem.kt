@@ -22,7 +22,8 @@ class CRenderableSprite(val sprite: Sprite) : Component
 class CTransform(var position: Vector2, var rotation: Float, val radius: Float) : Component
 
 // TODO add the CRenderableMap to the system!
-class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
+class RenderSystem(val batch: Batch, val viewport: Viewport,
+                   val collisionPoints: Set<Vector2>) : IteratingSystem(
         all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
     private val log = gameLogger(this::class.java)
@@ -146,9 +147,35 @@ class RenderSystem(val batch: Batch, val viewport: Viewport) : IteratingSystem(
                                     data.r[idx] - (a / 2),
                                     a
                             )
-
                         }
+
+                        (Pair(data.x[idx], data.y[idx]))
+                                .let { (x, y) ->
+                                    Pair(
+                                            x.toInt().toFloat(),
+                                            y.toInt().toFloat()
+                                    )
+                                }
+                                .let { (x, y) ->
+                                    listOf(
+                                            Vector2(x, y),
+                                            Vector2(x + 1, y),
+                                            Vector2(x, y + 1),
+                                            Vector2(x + 1, y + 1)
+
+                                    )
+                                }.forEach { v ->
+                                    color = Color.MAGENTA
+                                    circle(v.x, v.y, 0.2f)
+                                }
+
                     }
+                }
+            }
+            collisionPoints.forEach { v ->
+                shapeRenderer.apply {
+                    color = Color.YELLOW
+                    rect(v.x, v.y, 1f, 1f)
                 }
             }
             shapeRenderer.end()
