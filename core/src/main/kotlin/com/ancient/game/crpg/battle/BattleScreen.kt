@@ -5,9 +5,12 @@ import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.SpriteAsset
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
+import com.ancient.game.crpg.map.TileCell
+import com.ancient.game.crpg.map.TiledMapManager
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.ai.pfa.GraphPath
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
@@ -29,6 +32,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
     private lateinit var engine: PooledEngine
     private lateinit var inputManager: UserInputManager
     private lateinit var mapRenderer: BatchTiledMapRenderer
+    private lateinit var path: GraphPath<TileCell>
+
     override fun show() {
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
         log.info("Input Management")
@@ -63,13 +68,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         log.info("Building Map")
         val map: TiledMap = assetManager[MAP_FILEPATH]
         val mapManager = TiledMapManager(map, SiUnits.PIXELS_TO_METER)
-        val collisionPoints = mapManager.collisionPoints()
+        path = mapManager.findPath(Vector2(0f, 0f), Vector2(23f, 14f))
+        val collisionPoints = mapManager.impassableCellPositions()
         mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
 
 
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints))
+        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, path))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())

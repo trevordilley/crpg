@@ -2,11 +2,13 @@ package com.ancient.game.crpg
 
 import com.ancient.game.crpg.battle.CHealth
 import com.ancient.game.crpg.battle.CSelectable
+import com.ancient.game.crpg.map.TileCell
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.ai.pfa.GraphPath
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -23,7 +25,7 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float) 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>) : IteratingSystem(
+                   val collisionPoints: Set<Vector2>, val path: GraphPath<TileCell>) : IteratingSystem(
         all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
     private val log = gameLogger(this::class.java)
@@ -178,6 +180,15 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                     rect(v.x, v.y, 1f, 1f)
                 }
             }
+
+            path.forEach { t ->
+                shapeRenderer.apply {
+                    color = Color.BLUE
+                    rect(t.pos.x, t.pos.y, 1f, 1f)
+                }
+
+            }
+
             shapeRenderer.end()
 
         }
