@@ -14,14 +14,17 @@ import ktx.math.component1
 import ktx.math.component2
 import ktx.math.minus
 import ktx.math.times
+import java.util.Stack
 
 data class CMovable(val movementSpeed: Float //How fast are you moving?
                     , var destination: Vector2? // Where are you finally going
+                    , var path: Stack<Vector2>
                     , val rotationSpeed: Float // How fast can we turn
                     , var facingDirection: Float? = null // Where are you looking while you move?
 ) : Component
 
-class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
+
+class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : IteratingSystem(
         all(CMovable::class.java, CTransform::class.java)
                 .exclude(CDead::class.java)
                 .get()) {
@@ -33,6 +36,9 @@ class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
+        // Pathfinding
+        val path = entity[movableMapper]!!.path
+
         // Position
         val destination = entity[movableMapper]!!.destination
         val speed = entity[movableMapper]!!.movementSpeed
@@ -40,7 +46,6 @@ class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
 
         // Rotation
         val rotationSpeed = entity[movableMapper]!!.rotationSpeed
-        val direction = destination?.let { (destination - position).nor() }
 
         val facingDirection = entity[movableMapper]!!.facingDirection
 
@@ -53,12 +58,27 @@ class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
         }
 
 
+
         if (destination != null) {
             val distToDest = Vector2.dst(position.x, position.y, destination.x, destination.y)
             if (distToDest > arrivalDistance) {
 
-                positionUpdatesThisFrame.put(entity, position(position, destination, speed, deltaTime))
+                val dest = if (path.empty()) destination else {
+                    val checkNode = path.peek()
+                    val distToNextNode = Vector2.dst(position.x, position.y, checkNode.x, checkNode.y)
+                    if (distToNextNode <= arrivalDistance) {
+                        path.pop()
+                    }
+                    if (!path.empty()) {
+                        path.peek()
+                    } else {
+                        destination
+                    }
+                }
 
+                positionUpdatesThisFrame[entity] = position(position, dest, speed, deltaTime)
+
+                val direction = (dest - position).nor()
                 val targetAngle = if (facingDirection == null) {
                     direction?.angle()
                 } else null
@@ -69,15 +89,19 @@ class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
                     entity[transformMapper]!!.rotation =
                             rotate(entity[transformMapper]!!.rotation, targetAngle, rotationSpeed)
                 }
+            } else {
+                // set destination to null and clear stack
+
             }
         }
     }
 
     override fun update(deltaTime: Float) {
         super.update(deltaTime)
-        positionUpdatesThisFrame
-                .filter { (entity, newPosition) ->
 
+
+        positionUpdatesThisFrame
+                .forEach { entity, newPosition ->
 
                     val (x, y) = newPosition
                             .let { (x, y) ->
@@ -86,9 +110,21 @@ class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
                                         y.toInt()
                                 )
                             }
-                    !(collisionPoints.contains(Vector2(x.toFloat(), y.toFloat())))
-                }.forEach { entity, newPosition ->
-                    entity[transformMapper]!!.position = newPosition
+                    if ((collisionPoints.contains(Vector2(x.toFloat(), y.toFloat())))) {
+                        // do some collision correction, move them slightly closer to the center of their
+                        // containing cell
+                        val centerOfTheirCell = entity[transformMapper]!!.position.let {
+                            Vector2(it.x.toInt().toFloat() + 0.5f, it.y.toInt().toFloat() + 0.5f)
+                        }
+                        entity[transformMapper]!!.position = position(entity[transformMapper]!!.position,
+                                centerOfTheirCell, 3f, deltaTime)
+
+
+                    } else {
+                        entity[transformMapper]!!.position = newPosition
+                    }
+
+
                 }
         positionUpdatesThisFrame.clear()
     }
@@ -100,8 +136,7 @@ class BattleMovementSystem(val collisionPoints: Set<Vector2>) : IteratingSystem(
     private fun position(currentPosition: Vector2, destination: Vector2, speed: Float, dt: Float): Vector2 {
         val direction = direction(currentPosition, destination)
         val step = direction!! * (speed * dt)
-        val newPosition = Vector2(currentPosition.x, currentPosition.y).add(step)
-        return newPosition
+        return Vector2(currentPosition.x, currentPosition.y).add(step)
     }
 
 

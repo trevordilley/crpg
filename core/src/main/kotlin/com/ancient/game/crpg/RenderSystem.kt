@@ -1,14 +1,13 @@
 package com.ancient.game.crpg
 
 import com.ancient.game.crpg.battle.CHealth
+import com.ancient.game.crpg.battle.CMovable
 import com.ancient.game.crpg.battle.CSelectable
-import com.ancient.game.crpg.map.TileCell
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
-import com.badlogic.gdx.ai.pfa.GraphPath
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
@@ -17,6 +16,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
+import ktx.ashley.has
 import ktx.ashley.mapperFor
 
 
@@ -25,13 +25,14 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float) 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>, val path: GraphPath<TileCell>) : IteratingSystem(
+                   val collisionPoints: Set<Vector2>) : IteratingSystem(
         all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
     private val log = gameLogger(this::class.java)
 
     private val spriteRenderMapper: ComponentMapper<CRenderableSprite> = mapperFor()
     private val transform: ComponentMapper<CTransform> = mapperFor()
+    private val movable: ComponentMapper<CMovable> = mapperFor()
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
@@ -181,10 +182,22 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
 
-            path.forEach { t ->
-                shapeRenderer.apply {
-                    color = Color.BLUE
-                    rect(t.pos.x, t.pos.y, 1f, 1f)
+            entities.filter { it.has(movable) }.forEach {
+                it[movable]!!.path.toList().let {
+                    var prevPoint = it.firstOrNull()
+                    if (prevPoint != null) {
+                        it.forEach {
+                            shapeRenderer.apply {
+                                color = Color.BLUE
+                                prevPoint?.let { p ->
+                                    line(p.x, p.y, it.x, it.y)
+                                    circle(it.x, it.y, 0.2f)
+                                }
+                                prevPoint = it
+                            }
+                        }
+
+                    }
                 }
 
             }

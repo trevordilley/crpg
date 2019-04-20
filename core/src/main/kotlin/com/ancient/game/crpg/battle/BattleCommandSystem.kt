@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
+import com.ancient.game.crpg.map.TiledMapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -12,6 +13,7 @@ import ktx.ashley.get
 import ktx.ashley.has
 import ktx.ashley.mapperFor
 import ktx.math.minus
+import java.util.Stack
 
 
 class CSelectable(var selected: Boolean = false) : Component
@@ -22,7 +24,8 @@ enum class InputMode {
     DIRECT
 }
 
-class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, IteratingSystem(
+class BattleCommandSystem(private val viewport: Viewport,
+                          private val tiledMapManager: TiledMapManager) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CMovable::class.java, CTransform::class.java)
                 .exclude(CDead::class.java)
                 .get()) {
@@ -41,6 +44,7 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
     private val transform: ComponentMapper<CTransform> = mapperFor()
     private val playerControlled: ComponentMapper<CPlayerControlled> = mapperFor()
     private val selectable: ComponentMapper<CSelectable> = mapperFor()
+
 
     override fun onInput(input: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
@@ -63,8 +67,21 @@ class BattleCommandSystem(private val viewport: Viewport) : UserInputListener, I
                                         .filter { it.has(selectable) && it.has(playerControlled) && it.has(movable) }
                                         .filter { currentSelection.contains(it[selectable]) }
                                         .forEach {
+
+                                            val destination = viewport.unproject(Vector2(left.screenX, left.screenY))
+
+                                            val path = tiledMapManager.findPath(it[transform]!!.position, destination)
+
                                             it[movable]!!.destination = viewport.unproject(
                                                     Vector2(left.screenX, left.screenY))
+                                            it[movable]!!.path = path.let { p ->
+                                                val stack = Stack<Vector2>()
+                                                p.toList().reversed().forEach { tile ->
+                                                    // Move to middle of the tile
+                                                    stack.push(Vector2(tile.pos.x + 0.5f, tile.pos.y + 0.5f))
+                                                }
+                                                stack
+                                            }
                                         }
                             }.invoke()
 

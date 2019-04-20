@@ -46,6 +46,7 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
     }
 
     override fun getIndex(node: TileCell?): Int {
+        println("Node: ${node?.pos}")
         return node!!.index
     }
 
@@ -55,12 +56,18 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
 
 
     // TODO OPTIMIZE>>>>
-    fun findPath(start: Vector2, end: Vector2): GraphPath<TileCell> {
-        val start = allCells.find { it.pos == start }
-        val end = allCells.find { it.pos == end }
+    fun findPath(startPos: Vector2, endPos: Vector2): GraphPath<TileCell> {
+        println("vec2 pos: $startPos, $endPos")
+        val flooredVec = { vec: Vector2 -> Vector2(vec.x.toInt().toFloat(), vec.y.toInt().toFloat()) }
+        val start = allCells.find { it.pos == flooredVec(startPos) }
+        val end = allCells.find { it.pos == flooredVec(endPos) }
+        println("cell pos: $start, $end")
         val graph = DefaultGraphPath<TileCell>()
         IndexedAStarPathFinder(this).searchNodePath(start, end,
-                { a, b -> Vector2.dst(a.pos.x, a.pos.y, b.pos.x, b.pos.y) }, graph)
+                { a, b ->
+                    Vector2.dst(a.pos.x + 0.5f, a.pos.y + 0.5f, b.pos.x + 0.5f, b.pos.y + 0.5f)
+                }
+                , graph)
         return graph
     }
 
@@ -128,7 +135,6 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
                         }
                     }
                 }
-
     }
 
 

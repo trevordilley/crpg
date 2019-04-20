@@ -22,6 +22,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
+import java.util.Stack
 
 
 class BattleScreen(private val assetManager: AssetManager, private val batch: Batch,
@@ -38,7 +39,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
         log.info("Input Management")
 
-        val battleCommandSystem = BattleCommandSystem(viewportManager.viewport)
+        log.info("Building Map")
+        val map: TiledMap = assetManager[MAP_FILEPATH]
+        val mapManager = TiledMapManager(map, SiUnits.PIXELS_TO_METER)
+        val collisionPoints = mapManager.impassableCellPositions()
+        mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
+
+        val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager)
 
         inputManager = UserInputManager(listOf(battleCommandSystem, viewportManager))
 
@@ -65,17 +72,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         }
 
         // Map
-        log.info("Building Map")
-        val map: TiledMap = assetManager[MAP_FILEPATH]
-        val mapManager = TiledMapManager(map, SiUnits.PIXELS_TO_METER)
-        path = mapManager.findPath(Vector2(0f, 0f), Vector2(23f, 14f))
-        val collisionPoints = mapManager.impassableCellPositions()
-        mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
 
 
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, path))
+        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
@@ -110,7 +111,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
                 add(CSelectable())
                 add(CPlayerControlled)
-                add(CMovable(2f, null, 8f, null))
+                add(CMovable(2f, null, Stack(), 8f, null))
             }
         }
 
@@ -138,7 +139,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CRenderableSprite(orcSprite))
                 //    add(CSelectable()) causes strange selection errors...
                 add(CTransform(pos, 270f, orcSprite.width / 2f))
-                add(CMovable(2f, null, 8f, null))
+                add(CMovable(2f, null, Stack(), 8f, null))
             }
         }
 
