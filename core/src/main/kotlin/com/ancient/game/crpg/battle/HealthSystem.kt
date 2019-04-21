@@ -100,8 +100,10 @@ class HealthSystem : IteratingSystem(
     }
 
     override fun update(deltaTime: Float) {
-        curTimeTillRecharge += deltaTime
-        super.update(deltaTime)
+        val dt = UserInputManager.deltaTime(deltaTime)
+
+        curTimeTillRecharge += dt
+        super.update(dt)
         if (curTimeTillRecharge > STAMINA_RECHARGE_INTERVAL) {
             curTimeTillRecharge = 0f
         }
