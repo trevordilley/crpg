@@ -111,7 +111,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
                 add(CSelectable())
                 add(CPlayerControlled)
-                add(CMovable(2f, null, Stack(), 8f, null))
+                add(CMovable(5f, null, Stack(), 8f, null))
             }
         }
 
@@ -145,12 +145,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
-//        engine.addEntity(createPc(Vector2(1.5f, 2f)))
-//        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-//        engine.addEntity(createPc(Vector2(2.5f, 2f)))
-//        engine.addEntity(createOrc(Vector2(1.5f, 5f)))
-//        engine.addEntity(createOrc(Vector2(2.5f, 5f)))
+        engine.addEntity(createPc(Vector2(1.5f, 2f)))
+        engine.addEntity(createPc(Vector2(2.5f, 1f)))
+        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+        engine.addEntity(createOrc(Vector2(9.5f, 7f)))
+        engine.addEntity(createOrc(Vector2(8.5f, 8f)))
 
+        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
+        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
     }
 
 

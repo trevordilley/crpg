@@ -27,10 +27,16 @@ MVP:
  - Entities should not overlap with one another. 
 
 #### Dungeon
-* Load level via tiled
-* Cannot walk through walls
-* path finding
-
+* Pausing
+* Line of Sight
+    * Doesn't need to correlate with Aggro really. Just
+    need the atmospheric-ish effect
+* Loot & "Mules"
+    * Mules are characters that are non-combatants which
+    move fast and can carry loot. Could also be player
+    characters. 
+    * Loot will be a selectable object that PC's can pick up
+    * To "earn/claim" the loot, must be brought back to "camp"
 * Health pips on character
 * Make entities collide
 * Attacks are determined by clicking on another entity
@@ -55,4 +61,15 @@ MVP:
     * LOW: Stamina drains slower near familiar
     territory. 
 * Populate with random sites
- 
+
+
+### Random Thoughts
+
+#### Arbitrary Polyigonal Dungeons/Environments
+* Create dungeons using marching cubes + perlin noise + other prng
+* Use voronoi + delaunay to determine pathing maps. More dense amounts
+of nodes will create denser maps which should allow pathing through arbitrary
+dungeons. Create a delaunay triangulation to connect the nodes,  walk each node and 
+mark them as within or outside collision polygons, and deconnect all nodes
+within the collision polygons. 
+
