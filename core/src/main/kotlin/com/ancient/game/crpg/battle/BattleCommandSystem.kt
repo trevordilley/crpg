@@ -46,14 +46,14 @@ class BattleCommandSystem(private val viewport: Viewport,
     private val selectable: ComponentMapper<CSelectable> = mapperFor()
 
 
-    override fun onInput(input: MouseInput, left: Boolean, up: Boolean,
+    override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
 
 
-        input.left?.let { left ->
-            when (left) {
+        mouseInput.left?.let { leftClick ->
+            when (leftClick) {
                 is MouseUp -> {
-                    val worldPos = viewport.unproject(Vector2(left.screenX, left.screenY))
+                    val worldPos = viewport.unproject(Vector2(leftClick.screenX, leftClick.screenY))
                     entities
                             .firstOrNull {
                                 it[selectable] != null &&
@@ -68,12 +68,13 @@ class BattleCommandSystem(private val viewport: Viewport,
                                         .filter { currentSelection.contains(it[selectable]) }
                                         .forEach {
 
-                                            val destination = viewport.unproject(Vector2(left.screenX, left.screenY))
+                                            val destination = viewport.unproject(
+                                                    Vector2(leftClick.screenX, leftClick.screenY))
 
                                             val path = tiledMapManager.findPath(it[transform]!!.position, destination)
 
                                             it[movable]!!.destination = viewport.unproject(
-                                                    Vector2(left.screenX, left.screenY))
+                                                    Vector2(leftClick.screenX, leftClick.screenY))
                                             it[movable]!!.path = path.let { p ->
                                                 val stack = Stack<Vector2>()
                                                 p.toList().reversed().forEach { tile ->
@@ -91,16 +92,16 @@ class BattleCommandSystem(private val viewport: Viewport,
             }
         }
 
-        input.right?.let { right ->
-            when (right) {
+        mouseInput.right?.let { rightClick ->
+            when (rightClick) {
                 is MouseDown -> {
-                    rotationPivot = viewport.unproject(Vector2(right.screenX, right.screenY))
+                    rotationPivot = viewport.unproject(Vector2(rightClick.screenX, rightClick.screenY))
                 }
                 is MouseUp -> {
-                    if (right.wasDragging) {
+                    if (rightClick.wasDragging) {
                         rotation = rotationPivot?.let { pivot ->
                             rotationChanged = true
-                            val towards = viewport.unproject(Vector2(right.screenX, right.screenY))
+                            val towards = viewport.unproject(Vector2(rightClick.screenX, rightClick.screenY))
                             rotationPivot = null
                             (towards - pivot).nor().also {
                             }

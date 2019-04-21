@@ -111,7 +111,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
                 add(CSelectable())
                 add(CPlayerControlled)
-                add(CMovable(5f, null, Stack(), 8f, null))
+                add(CMovable(5f, null, Stack(), 600f, null))
             }
         }
 

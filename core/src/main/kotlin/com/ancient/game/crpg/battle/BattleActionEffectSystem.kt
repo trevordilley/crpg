@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.UserInputManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -20,8 +21,10 @@ class BattleActionEffectSystem : IteratingSystem(one(
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[meleeMapper]?.let { effect -> applyEffect(effect) }
-        engine.removeEntity(entity)
+        if (!UserInputManager.isPaused) {
+            entity[meleeMapper]?.let { effect -> applyEffect(effect) }
+            engine.removeEntity(entity)
+        }
     }
 
     private fun applyEffect(effect: MeleeEffectC) = effect.let { eff ->

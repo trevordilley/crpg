@@ -1,5 +1,6 @@
 package com.ancient.game.crpg.battle
 
+import com.ancient.game.crpg.UserInputManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -40,9 +41,12 @@ class ActionC(
 class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
     private val actionMapper: ComponentMapper<ActionC> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
+        val dt = UserInputManager.deltaTime(deltaTime)
+
+
         entity[actionMapper]!!.let { action ->
             action.apply {
-                timePassed += deltaTime
+                timePassed += dt
                 if (timePassed >= duration) {
                     applyEffect(action)
                     entity.remove<ActionC>()

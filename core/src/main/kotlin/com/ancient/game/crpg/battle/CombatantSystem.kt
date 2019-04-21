@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.equipment.Equipment
 import com.ancient.game.crpg.equipment.MeleeWeapon
 import com.badlogic.ashley.core.Component
@@ -33,6 +34,8 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     }
 
     override fun update(deltaTime: Float) {
+        val dt = UserInputManager.deltaTime(deltaTime)
+
         val (players, enemies) =
                 entities.partition { it[combatantMapper]!!.combatant is Player }
 
@@ -45,7 +48,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
         enemies.forEach { attackNearby(it, players) }
 
         entitiesToProcess.clear()
-        super.update(deltaTime)
+        super.update(dt)
     }
 
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {

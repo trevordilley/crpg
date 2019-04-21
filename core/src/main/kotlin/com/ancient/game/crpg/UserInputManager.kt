@@ -41,6 +41,18 @@ class UserInputManager(
      *  DONT FORGET TO UPDATE THE Gdx.input.inputProcessor in BattleScreen.kt, etc!
      *
      */
+    companion object {
+        // TODO: How to make this mutable only from the UserInputManager?
+        var isPaused = false
+
+        fun deltaTime(dt: Float): Float {
+            return if (UserInputManager.isPaused) {
+                0f
+            } else {
+                dt
+            }
+        }
+    }
 
     private val logger = gameLogger(this::class.java)
 
@@ -155,11 +167,15 @@ class UserInputManager(
 
     override fun keyDown(keycode: Int): Boolean {
         setArrowKeys(keycode, true)
+        when (keycode) {
+            Input.Keys.SPACE -> UserInputManager.isPaused = !UserInputManager.isPaused
+        }
         return false
     }
 
     override fun keyUp(keycode: Int): Boolean {
         setArrowKeys(keycode, false)
+
         return false
     }
 

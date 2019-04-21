@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.rotate
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
@@ -35,6 +36,8 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
     private val positionUpdatesThisFrame: MutableMap<Entity, Vector2> = mutableMapOf()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
+        val dt = UserInputManager.deltaTime(deltaTime)
+
 
         // Pathfinding
         val path = entity[movableMapper]!!.path
@@ -45,7 +48,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
         val position = entity[transformMapper]!!.position
 
         // Rotation
-        val rotationSpeed = entity[movableMapper]!!.rotationSpeed
+        val rotationSpeed = entity[movableMapper]!!.rotationSpeed * dt
 
         val facingDirection = entity[movableMapper]!!.facingDirection
 
@@ -76,7 +79,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                     }
                 }
 
-                positionUpdatesThisFrame[entity] = position(position, dest, speed, deltaTime)
+                positionUpdatesThisFrame[entity] = position(position, dest, speed, dt)
 
                 val direction = (dest - position).nor()
                 val targetAngle = if (facingDirection == null) {
@@ -99,6 +102,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
     override fun update(deltaTime: Float) {
         super.update(deltaTime)
 
+        val dt = UserInputManager.deltaTime(deltaTime)
 
         positionUpdatesThisFrame
                 .forEach { entity, newPosition ->
@@ -117,7 +121,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                             Vector2(it.x.toInt().toFloat() + 0.5f, it.y.toInt().toFloat() + 0.5f)
                         }
                         entity[transformMapper]!!.position = position(entity[transformMapper]!!.position,
-                                centerOfTheirCell, 3f, deltaTime)
+                                centerOfTheirCell, 3f, dt)
 
 
                     } else {

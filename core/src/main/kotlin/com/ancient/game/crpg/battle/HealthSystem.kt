@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.angleWithinArc
 import com.ancient.game.crpg.equipment.Shield
 import com.badlogic.ashley.core.Component
@@ -40,9 +41,10 @@ class HealthSystem : IteratingSystem(
 
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
+        val dt = UserInputManager.deltaTime(deltaTime)
         entity[healthMapper]!!.let { health ->
             if (health.staminaNotRechargingForSeconds > 0f) {
-                health.staminaNotRechargingForSeconds -= deltaTime
+                health.staminaNotRechargingForSeconds -= dt
             }
 
             val shouldRechargeStamina =
