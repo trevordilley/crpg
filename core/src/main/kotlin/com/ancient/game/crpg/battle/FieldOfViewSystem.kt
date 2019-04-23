@@ -30,7 +30,8 @@ class FieldOfViewSystem(private val mapManager: MapManager) : IteratingSystem(
 
         // line 91 sight-and-light.js
         val angles = uniquePoints.map { p ->
-            val a = (p - pos).angle()
+            //            val a = Math.atan2((p.y - pos.y).toDouble(), (p.x - pos.x).toDouble()).toFloat()
+            val a = (p - pos).angleRad()
             val tweak = 0.00001f
             listOf(a, a + tweak, a - tweak)
         }.flatten()
