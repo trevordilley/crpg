@@ -27,10 +27,25 @@ MVP:
  - Entities should not overlap with one another. 
 
 #### Dungeon
-* Pausing
 * Line of Sight
-    * Doesn't need to correlate with Aggro really. Just
-    need the atmospheric-ish effect
+    * References
+        * https://www.redblobgames.com/articles/visibility/
+        * https://ncase.me/sight-and-light/
+        * http://saltares.com/blog/games/2d-vision-system-with-ashley-and-box2d/
+    * Need to convert tiles to polygons
+    * Find all polygons in site radius of each unit and enemy
+    * Grab all lines on polygons
+    * Execute above algorithms
+    * Field-of-view based on direction
+    entity is facing?  
+* Sound
+    * Ambient drops of water and other
+    spooky dungeons soudns
+* Moving makes noice, causing little
+graphical things to happen to symbolize
+hearing stuff. This helps if we do
+FOV based on entities
+* Enemy AI based on FOV  
 * Loot & "Mules"
     * Mules are characters that are non-combatants which
     move fast and can carry loot. Could also be player

@@ -1,8 +1,10 @@
 package com.ancient.game.crpg
 
+import com.ancient.game.crpg.battle.CFoV
 import com.ancient.game.crpg.battle.CHealth
 import com.ancient.game.crpg.battle.CMovable
 import com.ancient.game.crpg.battle.CSelectable
+import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -25,7 +27,7 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float) 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>) : IteratingSystem(
+                   val collisionPoints: Set<Vector2>, val mapManager: MapManager) : IteratingSystem(
         all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
     private val log = gameLogger(this::class.java)
@@ -35,6 +37,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private val movable: ComponentMapper<CMovable> = mapperFor()
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
+    private val fov: ComponentMapper<CFoV> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var spritesToRender = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -210,6 +213,13 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
 
+            mapManager.opaqueEdges.forEach { e ->
+                shapeRenderer.apply {
+                    color = Color.MAGENTA
+                    line(e.p1, e.p2)
+                }
+            }
+
             entities.filter { it.has(movable) }.forEach {
                 it[movable]!!.path.toList().let {
                     var prevPoint = it.firstOrNull()
@@ -228,6 +238,15 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                     }
                 }
 
+            }
+
+            entities.filter { it.has(fov) }.forEach {
+                shapeRenderer.apply {
+                    color = Color.ORANGE
+                    it[fov]!!.fovPoly?.vertices?.let {
+                        polygon(it)
+                    }
+                }
             }
 
             shapeRenderer.end()

@@ -13,7 +13,18 @@ import com.badlogic.gdx.utils.Array
 import ktx.math.component1
 import ktx.math.component2
 
-data class TileCell(val cell: Cell, val pos: Vector2, val index: Int)
+data class TileCell(val cell: Cell, val pos: Vector2, val index: Int) {
+    fun bl() = pos
+    fun tl() = Vector2(pos.x, pos.y + 1f)
+    fun tr() = Vector2(pos.x + 1, pos.y + 1)
+    fun br() = Vector2(pos.x + 1, pos.y)
+    fun edges() = listOf(
+            Edge(bl(), tl()),
+            Edge(tl(), tr()),
+            Edge(tr(), br()),
+            Edge(br(), bl())
+    )
+}
 
 data class TileCellConnection(val source: TileCell,
                               val sink: TileCell) : Connection<TileCell> {
@@ -24,11 +35,14 @@ data class TileCellConnection(val source: TileCell,
     override fun getFromNode() = source
 }
 
-class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<TileCell> {
+data class Edge(val p1: Vector2, val p2: Vector2)
+
+class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
 
     private val allCells: List<TileCell>
     private val adjacencyList: Map<TileCell, List<TileCellConnection>>
     private val cellsCount: Int
+    val opaqueEdges: List<Edge>
 
     init {
         allCells = getCells()
@@ -36,6 +50,7 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
                 .let { cells -> cellConnections(cells) }
                 .let { conns -> cellAdjacencyList(conns) }
         cellsCount = allCells.size
+        opaqueEdges = getOpaqueEdges(allCells)
     }
 
 
@@ -53,6 +68,13 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
     override fun getNodeCount(): Int {
         return cellsCount
     }
+
+
+    private fun getOpaqueEdges(tiles: List<TileCell>) =
+            tiles
+                    .filter { isOpaqueCell(it) }
+                    .map { t -> t.edges() }
+                    .flatten()
 
 
     // TODO OPTIMIZE>>>>
@@ -86,7 +108,7 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
             cells: List<TileCell>): List<TileCellConnection> {
         var idx = 0
         val positions = cells
-                .filter { !isImpassableCell(it.cell) }
+                .filter { !isImpassableCell(it) }
                 .map { it.pos to it }
                 .toMap()
         return mutableListOf<TileCellConnection>().apply {
@@ -104,7 +126,7 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
                 )
                         .filterNotNull()
                         .filter { c ->
-                            !isImpassableCell(c.cell)
+                            !isImpassableCell(c)
                         }
                         .map {
                             TileCellConnection(cell, it).also {
@@ -148,21 +170,26 @@ class TiledMapManager(val map: TiledMap, val unitScale: Float) : IndexedGraph<Ti
 
     companion object {
         val impassablePropertyName = "impassable"
-        fun isImpassableCell(cell: TiledMapTileLayer.Cell) =
+
+        // TODO: change to opaque when I update the tileset
+        val opaquePropertyName = "impassable"
+
+        fun isImpassableCell(cell: TileCell) = hasProperty(cell.cell, impassablePropertyName)
+        fun isOpaqueCell(cell: TileCell) = hasProperty(cell.cell, opaquePropertyName)
+        fun hasProperty(cell: TiledMapTileLayer.Cell, property: String) =
                 cell.tile.properties.keys.let {
                     mutableSetOf<String>().apply {
                         it.forEach {
                             add(it)
                         }
                     }
-                }.contains(impassablePropertyName)
-
+                }.contains(property)
     }
 
 
     fun getImpassableCells() = getCells()
             .filter {
-                isImpassableCell(it.cell)
+                isImpassableCell(it)
             }
 
     fun impassableCellPositions(): Set<Vector2> {

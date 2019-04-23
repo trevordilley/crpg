@@ -5,19 +5,16 @@ import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.SpriteAsset
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
-import com.ancient.game.crpg.map.TileCell
-import com.ancient.game.crpg.map.TiledMapManager
+import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ai.pfa.GraphPath
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.renderers.BatchTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxInputAdapter
@@ -32,8 +29,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
     private lateinit var engine: PooledEngine
     private lateinit var inputManager: UserInputManager
-    private lateinit var mapRenderer: BatchTiledMapRenderer
-    private lateinit var path: GraphPath<TileCell>
+    private lateinit var mapRenderer: OrthogonalTiledMapRenderer
 
     override fun show() {
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
@@ -41,7 +37,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         log.info("Building Map")
         val map: TiledMap = assetManager[MAP_FILEPATH]
-        val mapManager = TiledMapManager(map, SiUnits.PIXELS_TO_METER)
+        val mapManager = MapManager(map)
         val collisionPoints = mapManager.impassableCellPositions()
         mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
 
@@ -76,7 +72,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints))
+        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, mapManager))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
@@ -84,6 +80,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
+        engine.addSystem(FieldOfViewSystem(mapManager))
 
 
         // Player Character
@@ -110,6 +107,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CRenderableSprite(playerCharacterSprite))
                 add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
                 add(CSelectable())
+                add(CFoV(null))
                 add(CPlayerControlled)
                 add(CMovable(5f, null, Stack(), 600f, null))
             }
@@ -121,7 +119,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val orcSprite = Sprite(orcTexture)
         val createOrc = { pos: Vector2 ->
             Entity().apply {
-                add(CCombatant(Enemy(2f),
+                add(CCombatant(Enemy(3f),
                         Equipment(
                                 MeleeWeapon("Large Axe",
                                         120,
@@ -145,14 +143,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
-        engine.addEntity(createPc(Vector2(1.5f, 2f)))
-        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-        engine.addEntity(createPc(Vector2(2.5f, 2f)))
-        engine.addEntity(createOrc(Vector2(9.5f, 7f)))
-        engine.addEntity(createOrc(Vector2(8.5f, 8f)))
-
-        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
-        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
+//        engine.addEntity(createPc(Vector2(1.5f, 2f)))
+//        engine.addEntity(createPc(Vector2(2.5f, 1f)))
+//        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+//        engine.addEntity(createOrc(Vector2(9.5f, 7f)))
+//        engine.addEntity(createOrc(Vector2(8.5f, 8f)))
+//
+//        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
+//        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
     }
 
 

@@ -1,7 +1,7 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
-import com.ancient.game.crpg.map.TiledMapManager
+import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -25,7 +25,7 @@ enum class InputMode {
 }
 
 class BattleCommandSystem(private val viewport: Viewport,
-                          private val tiledMapManager: TiledMapManager) : UserInputListener, IteratingSystem(
+                          private val mapManager: MapManager) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CMovable::class.java, CTransform::class.java)
                 .exclude(CDead::class.java)
                 .get()) {
@@ -71,7 +71,7 @@ class BattleCommandSystem(private val viewport: Viewport,
                                             val destination = viewport.unproject(
                                                     Vector2(leftClick.screenX, leftClick.screenY))
 
-                                            val path = tiledMapManager.findPath(it[transform]!!.position, destination)
+                                            val path = mapManager.findPath(it[transform]!!.position, destination)
 
                                             it[movable]!!.destination = viewport.unproject(
                                                     Vector2(leftClick.screenX, leftClick.screenY))
