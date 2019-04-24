@@ -1,12 +1,45 @@
 package com.ancient.game.crpg
 
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.EarClippingTriangulator
+import com.badlogic.gdx.math.Polygon
 import kotlin.math.min
+
 
 fun <T, R> T.letIf(predicate: Boolean, block: (T) -> R): R? {
     return if (predicate) {
         block(this)
     } else {
         null
+    }
+}
+
+
+data class TriangleShapeData(val x1: Float, val y1: Float, val x2: Float, val y2: Float, val x3: Float, val y3: Float)
+
+fun ShapeRenderer.triangle(data: TriangleShapeData) {
+    this.triangle(data.x1, data.y1, data.x2, data.y2, data.x3, data.y3)
+}
+
+fun EarClippingTriangulator.createRenderableFilledPolygonMesh(polygon: Polygon): List<TriangleShapeData> {
+    val vertices = polygon.transformedVertices
+    val triangleIndices = this.computeTriangles(vertices)
+    return mutableListOf<TriangleShapeData>().apply {
+        var i = 0
+        while (i < triangleIndices.size) {
+            add(
+                    // Each of these lists should be used like this in the render code:
+                    // shapeRenderer.triangle(it)
+                    TriangleShapeData(
+                            vertices[triangleIndices.get(i) * 2],
+                            vertices[triangleIndices.get(i) * 2 + 1],
+                            vertices[triangleIndices.get(i + 1) * 2],
+                            vertices[triangleIndices.get(i + 1) * 2 + 1],
+                            vertices[triangleIndices.get(i + 2) * 2],
+                            vertices[triangleIndices.get(i + 2) * 2 + 1])
+            )
+            i += 3
+        }
     }
 }
 

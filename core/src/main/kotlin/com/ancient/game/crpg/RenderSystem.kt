@@ -10,11 +10,15 @@ import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.EarClippingTriangulator
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
@@ -39,7 +43,9 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
     private val fov: ComponentMapper<CFoV> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
+    private val polygonRenderer = PolygonSpriteBatch()
     private var spritesToRender = mutableListOf<Entity>()
+    private val earTriangulator: EarClippingTriangulator = EarClippingTriangulator()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entity[spriteRenderMapper]?.let { spritesToRender.add(entity) }
     }
@@ -61,8 +67,38 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             val selected: BooleanArray
     )
 
+
     private fun draw(entities: List<Entity>) {
+
+
         viewport.camera.update()
+
+        shapeRenderer.projectionMatrix = viewport.camera.combined
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+
+
+        Gdx.gl20.glClearDepthf(1f)
+        Gdx.gl20.glClear(GL20.GL_DEPTH_BUFFER_BIT)
+        Gdx.gl20.glDepthFunc(GL20.GL_LESS)
+        Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
+        Gdx.gl20.glDepthMask(true)
+        Gdx.gl20.glColorMask(false, false, false, false)
+        entities.filter { it.has(fov) }.forEach {
+            shapeRenderer.apply {
+                color = Color.ORANGE
+                it[fov]!!.fovPoly?.let {
+                    val tris = earTriangulator.createRenderableFilledPolygonMesh(it)
+                    tris.forEach {
+                        triangle(it)
+                    }
+                }
+            }
+
+        }
+
+        shapeRenderer.end()
+
+
         // Render sprites
         DrawData(
                 FloatArray(entities.size),
@@ -89,6 +125,10 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
             batch.projectionMatrix = viewport.camera.combined
             batch.begin()
+            Gdx.gl20.glColorMask(true, true, true, true)
+            Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
+            Gdx.gl20.glDepthFunc(GL20.GL_EQUAL)
+
             data.sprites.forEachIndexed { index, sprite ->
                 val width = sprite.width * SiUnits.PIXELS_TO_METER
                 val height = sprite.height * SiUnits.PIXELS_TO_METER
@@ -154,7 +194,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             batch.end()
             batch.projectionMatrix = originalMatrix
 
-            shapeRenderer.projectionMatrix = viewport.camera.combined
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
             data.sprites.forEachIndexed { idx, sprite ->
                 if (data.selected[idx]) {
@@ -240,14 +279,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
             }
 
-            entities.filter { it.has(fov) }.forEach {
-                shapeRenderer.apply {
-                    color = Color.ORANGE
-                    it[fov]!!.fovPoly?.vertices?.let {
-                        polygon(it)
-                    }
-                }
-            }
+
 
             shapeRenderer.end()
 

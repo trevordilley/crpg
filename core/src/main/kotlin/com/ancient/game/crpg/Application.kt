@@ -41,6 +41,7 @@ class Application : KtxGame<Screen>() {
 
         """.trimIndent())
 
+
         //    val camera = OrthographicCamera()
         val camera = OrthographicCamera(Gdx.graphics.width * SiUnits.PIXELS_TO_METER,
                 Gdx.graphics.height * SiUnits.PIXELS_TO_METER)
@@ -58,7 +59,6 @@ class Application : KtxGame<Screen>() {
         }
         assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
         assetManager.load(MAP_FILEPATH, TiledMap::class.java)
-
         log.info("Setting up Context")
         context.register {
             bindSingleton<Batch>(SpriteBatch())

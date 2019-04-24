@@ -32,6 +32,7 @@ allprojects {
         logbackVersion = "1.3.0-alpha4"
         quickCheckVersion = "0.8.2"
         jUnitVersion = "4.13-beta-2"
+        visUiVersion = "1.3.0"
     }
 
     repositories {
@@ -67,19 +68,15 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         compile "com.badlogicgames.ashley:ashley:$ashleyVersion"
-        compile "com.badlogicgames.box2dlights:box2dlights:$box2DLightsVersion"
-        compile "com.kotcrab.vis:vis-ui:1.3.0"
+        compile "com.kotcrab.vis:vis-ui:$visUiVersion"
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
         compile "io.github.libktx:ktx-log:$ktxVersion"
         compile "io.github.libktx:ktx-app:$ktxVersion"
         compile "io.github.libktx:ktx-ashley:$ktxVersion"
         compile "io.github.libktx:ktx-graphics:$ktxVersion"
-        compile "io.github.libktx:ktx-scene2d:$ktxVersion"
         compile "io.github.libktx:ktx-async:$ktxVersion"
-        compile "io.github.libktx:ktx-box2d:$ktxVersion"
         compile "io.github.libktx:ktx-inject:$ktxVersion"
         compile "io.github.libktx:ktx-math:$ktxVersion"
         compile "io.github.libktx:ktx-assets:$ktxVersion"
