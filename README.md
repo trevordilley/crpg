@@ -27,6 +27,11 @@ MVP:
  - Entities should not overlap with one another. 
  - As a player I can find loot and must carry it out
 #### Dungeon
+* UI Layer
+    * Fix shapes showing direction of characters
+    * Fix pathing line
+    * Mouse over character shows their data (Gear with numbers) 
+    * Flavor text messages (like in Nox, nice white floating text that disappears)
 * Ranged attacks
 * Enemy AI based on FOV  
 * Loot & "Mules"
@@ -63,20 +68,15 @@ MVP:
         1. optimizing tile polygons
         2. Parallelize polygon calculations
     * Fix going around corners
-    * UI Layer
-        * Fix shapes showing direction of characters
-        * Fix pathing line
-        * Mouse over character shows their data (Gear with numbers) 
-        * Flavor text messages (like in Nox, nice white floating text that disappears)
         
         
 ### Demo Battle Sceen
 30 x 30 dungeon
 party: 
-    4 fighters with shields
+    2 fighters with shields
     2 fighter with great sword
     2 fighters with bows
-    4 "mules"
+    4 "scouts" (fast, no armor or shields, low damage)
     
 Starting location has a fire and tents
 

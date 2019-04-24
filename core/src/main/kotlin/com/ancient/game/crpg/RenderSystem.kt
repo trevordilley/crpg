@@ -74,9 +74,9 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         viewport.camera.update()
 
         shapeRenderer.projectionMatrix = viewport.camera.combined
+
+        //// FOV Render
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-
-
         Gdx.gl20.glClearDepthf(1f)
         Gdx.gl20.glClear(GL20.GL_DEPTH_BUFFER_BIT)
         Gdx.gl20.glDepthFunc(GL20.GL_LESS)
@@ -123,6 +123,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         }.let { data ->
 
 
+            // Entity Renders
             batch.projectionMatrix = viewport.camera.combined
             batch.begin()
             Gdx.gl20.glColorMask(true, true, true, true)
@@ -154,6 +155,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             batch.end()
 
 
+            // UI Rendering
             val originalMatrix = batch.projectionMatrix.cpy()
             val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
             batch.projectionMatrix = uiMatrix
