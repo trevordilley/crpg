@@ -143,11 +143,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
-//        engine.addEntity(createPc(Vector2(1.5f, 2f)))
+        engine.addEntity(createPc(Vector2(1.5f, 2f)))
 //        engine.addEntity(createPc(Vector2(2.5f, 1f)))
 //        engine.addEntity(createPc(Vector2(2.5f, 2f)))
-//        engine.addEntity(createOrc(Vector2(9.5f, 7f)))
-//        engine.addEntity(createOrc(Vector2(8.5f, 8f)))
+        engine.addEntity(createOrc(Vector2(14.5f, 17f)))
+        engine.addEntity(createOrc(Vector2(15.5f, 18f)))
 //
 //        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
 //        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
