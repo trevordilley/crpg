@@ -67,11 +67,20 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             if (distance <= weapon.range) {
                 // Start Attack
                 attacker[actionMapper] ?: attacker.add(
+
+                        // This is where we can figure out how to animate/make pretty
+                        // melee attacks. Moving the character around is proving to be a bad idea
+                        // cause it offsets their position and more importantly THEIR ROTATION (you
+                        // can get hit in the back!!! insta-kill!!)
+                        //
+                        // So we should look for a more mature solution, but this is a step closer to
+                        // solving how to animate + damage an entity.
                         CAction { dt, duration ->
                             val passed = duration / weapon.duration
                             if (passed >= 1.0f) {
                                 true
                             } else {
+
 
                                 val t = when (passed) {
                                     in 0.2f..0.5f -> (passed / 1.0f) * 1.2f
