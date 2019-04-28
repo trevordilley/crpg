@@ -4,6 +4,7 @@ import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.equipment.Equipment
 import com.ancient.game.crpg.equipment.MeleeWeapon
+import com.ancient.game.crpg.quadraticBezier
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -27,7 +28,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
     private val movableMapper: ComponentMapper<CMovable> = mapperFor()
     private val combatantMapper: ComponentMapper<CCombatant> = mapperFor()
-    private val actionMapper: ComponentMapper<ActionC> = mapperFor()
+    private val actionMapper: ComponentMapper<CAction> = mapperFor()
     private val entitiesToProcess = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entitiesToProcess.add(entity)
@@ -66,9 +67,29 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             if (distance <= weapon.range) {
                 // Start Attack
                 attacker[actionMapper] ?: attacker.add(
-                        ActionC(0f, weapon.duration,
-                                MeleeEffectC(attacker, target, weapon.range, weapon.staminaDamage)
-                        ))
+                        CAction { dt, duration ->
+                            val passed = duration / weapon.duration
+                            if (passed >= 1.0f) {
+                                true
+                            } else {
+
+                                val t = when (passed) {
+                                    in 0.2f..0.5f -> (passed / 1.0f) * 1.2f
+                                    in 0.5f..1f -> (passed / 1.0f) * 1.1f
+                                    else -> 0f
+                                }
+                                attacker[transformMapper]!!.position = quadraticBezier(Vector2(x, y), Vector2(tx, ty),
+                                        Vector2(x, y), t)
+
+                                if (passed >= 0.5 && !effectApplied) {
+                                    BattleActionEffectSystem.applyEffect(engine,
+                                            CMeleeEffect(attacker, target, weapon.range, weapon.staminaDamage))
+                                    effectApplied = true
+                                }
+                                false
+                            }
+                        }
+                )
                 attacker[movableMapper]!!.destination = null
             } else {
                 when (combatant) {

@@ -4,6 +4,7 @@ import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.UserInputManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
+import com.badlogic.ashley.core.Engine
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.one
 import com.badlogic.ashley.systems.IteratingSystem
@@ -11,12 +12,19 @@ import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
-sealed class ActionEffectC : Component
-class MeleeEffectC(val attacker: Entity, val target: Entity, val range: Float, val staminaDamage: Int) : ActionEffectC()
+sealed class CActionEffect : Component
+class CMeleeEffect(val attacker: Entity, val target: Entity, val range: Float, val staminaDamage: Int) : CActionEffect()
 
 class BattleActionEffectSystem : IteratingSystem(one(
-        MeleeEffectC::class.java).get()) {
-    private val meleeMapper: ComponentMapper<MeleeEffectC> = mapperFor()
+        CMeleeEffect::class.java).get()) {
+
+    companion object {
+        fun applyEffect(engine: Engine, effect: CActionEffect) {
+            engine.addEntity(Entity().add(effect))
+        }
+    }
+
+    private val meleeMapper: ComponentMapper<CMeleeEffect> = mapperFor()
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
 
@@ -27,7 +35,7 @@ class BattleActionEffectSystem : IteratingSystem(one(
         }
     }
 
-    private fun applyEffect(effect: MeleeEffectC) = effect.let { eff ->
+    private fun applyEffect(effect: CMeleeEffect) = effect.let { eff ->
         eff.target[transformMapper]?.let { tarPos ->
             eff.target[healthMapper]?.let { health ->
                 eff.attacker[transformMapper]?.let { attackerPos ->

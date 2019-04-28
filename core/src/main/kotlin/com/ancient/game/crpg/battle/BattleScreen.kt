@@ -82,7 +82,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
 
-
         // Player Character
         val playerCharacterTexture: Texture = assetManager[SpriteAsset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
@@ -94,7 +93,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                 MeleeWeapon(
                                         "Short Sword",
                                         10,
-                                        0.5f,
+                                        1f,
                                         NumberHandsToWield.ONE,
                                         1f),
                                 Shield("Large Shield", 0.7f),

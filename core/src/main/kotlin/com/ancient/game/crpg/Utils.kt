@@ -3,6 +3,9 @@ package com.ancient.game.crpg
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.EarClippingTriangulator
 import com.badlogic.gdx.math.Polygon
+import com.badlogic.gdx.math.Vector2
+import ktx.math.minus
+import ktx.math.plus
 import kotlin.math.min
 
 
@@ -91,3 +94,17 @@ fun rotate(currentRotation: Float, targetRotation: Float, rotationSpeed: Float):
         }
     }
 }
+
+fun linearCurve(p1: Vector2, p2: Vector2, t: Float): Vector2 = p1 + (p2 - p1).scl(t)
+
+fun quadraticBezier(p1: Vector2, p2: Vector2, p3: Vector2, t: Float): Vector2 {
+    val u = 1.0f - t
+    val a = u * u
+    val b = 2.0f * t * u
+    val c = t * t
+    return (p1.scl(a) + p2.scl(b) + p3.scl(c))
+}
+
+
+
+

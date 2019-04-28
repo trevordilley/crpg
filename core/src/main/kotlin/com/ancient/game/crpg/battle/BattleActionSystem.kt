@@ -10,55 +10,37 @@ import ktx.ashley.get
 import ktx.ashley.mapperFor
 import ktx.ashley.remove
 
-/**
- * Consider these steps for an action:
- *
- * Build-up (will not apply effect yet):
- * Examples - Winding up for a weapon strike, incantations for spell cast, etc)
- * Probably has some kind of animation associated with it
- *
- * In-Flight (may apply effect on collision, otherwise upon reaching destination):
- * Examples - Sword swing coming down, arrow in flight
- * May have sprite while in flight
- *
- * On Execution (Moment we apply the effect):
- * Examples - Actually hitting opponent with sword, fireball exploding on ground
- * Could generate other effects (Fireball explosion for example may make a ring of fire
- * that does the actual damage) or immediately apply the effect to whatever it may have hit
- *
- * == LifeCycle Functions ==
- * What data do/should they have? Is the component system the right fit for them?
- */
+class CAction(
+        val onProgression: CAction.(deltaTime: Float, duration: Float) -> Boolean
+) : Component {
+    private var completed: Boolean = false
+    private var duration: Float = 0f
+    private var deltaTime: Float = 0f
 
+    // Instead of a boolean, I could eventually see this being a map, list, or stack of effects
+    // that the user could query and pull from. Currently that's outside the
+    // scope of this work.
 
-// Actions create effects
-class ActionC(
-        var timePassed: Float,
-        val duration: Float,
-        val effect: ActionEffectC
-) : Component
+    var effectApplied: Boolean = false
+    fun update(dt: Float): Boolean {
+        deltaTime = dt
+        duration += dt
+        completed = this.onProgression(this, deltaTime, duration)
+        return completed
+    }
+}
 
-class BattleActionSystem : IteratingSystem(all(ActionC::class.java).get()) {
-    private val actionMapper: ComponentMapper<ActionC> = mapperFor()
+class BattleActionSystem : IteratingSystem(all(CAction::class.java).get()) {
+    private val actionMapper: ComponentMapper<CAction> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
 
-
-        entity[actionMapper]!!.let { action ->
-            action.apply {
-                timePassed += dt
-                if (timePassed >= duration) {
-                    applyEffect(action)
-                    entity.remove<ActionC>()
-                }
+        entity[actionMapper]!!.update(dt).let { isCompleted ->
+            if (isCompleted) {
+                entity.remove<CAction>()
             }
         }
     }
 
-    // Consider pooling these entities, they'll be short lived
-    // and happen quite a bit
-    private fun applyEffect(action: ActionC) {
-        engine.addEntity(Entity().add(action.effect))
-    }
 
 }
