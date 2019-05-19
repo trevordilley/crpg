@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlinVersion = '1.2.71'
-
+//    ext.libgdx_addons = 'v1.0'
     repositories {
         mavenLocal()
         mavenCentral()
@@ -86,6 +86,9 @@ project(":core") {
         compile "io.github.libktx:ktx-style:$ktxVersion"
         compile "io.github.libktx:ktx-math:$ktxVersion"
 
+        // LibGDX Addons
+//        compile "com.github.dwursteisen.libgdx-addons:aseprite-addons:latest.integration"
+
         // Logging
         compile "org.slf4j:slf4j-api:$slf4jVersion"
         compile "ch.qos.logback:logback-classic:$logbackVersion"
@@ -96,6 +99,8 @@ project(":core") {
         testCompile "com.pholser:junit-quickcheck-generators:$quickCheckVersion"
         // https://mvnrepository.com/artifact/junit/junit
         testCompile "junit:junit:$jUnitVersion"
+
+
     }
 }
 

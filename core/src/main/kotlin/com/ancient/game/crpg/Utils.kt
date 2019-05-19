@@ -18,9 +18,12 @@ fun <T, R> T.letIf(predicate: Boolean, block: (T) -> R): R? {
 }
 
 
+
+
 data class TriangleShapeData(val x1: Float, val y1: Float, val x2: Float, val y2: Float, val x3: Float, val y3: Float)
 
 fun ShapeRenderer.triangle(data: TriangleShapeData) {
+
     this.triangle(data.x1, data.y1, data.x2, data.y2, data.x3, data.y3)
 }
 

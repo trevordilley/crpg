@@ -1,8 +1,10 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
+import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.SpriteAsset
+import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
 import com.ancient.game.crpg.map.MapManager
@@ -81,11 +83,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
-
+        engine.addSystem(AnimationSystem())
         // Player Character
         val playerCharacterTexture: Texture = assetManager[SpriteAsset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
-
+        val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
         val createPc = { pos: Vector2 ->
             Entity().apply {
                 add(CCombatant(Player,
@@ -109,6 +111,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CFoV(null))
                 add(CPlayerControlled)
                 add(CMovable(5f, null, Stack(), 600f, null))
+                add(CAnimated(IdleAnimation(playerCharacterAnim)))
             }
         }
 

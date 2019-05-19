@@ -1,7 +1,12 @@
 package com.ancient.game.crpg
 
+import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.SpriteAsset
+import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
+import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJson
+import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJsonLoader
+import com.ancient.game.crpg.assetManagement.aseprite.AsepriteLoader
 import com.ancient.game.crpg.battle.BattleScreen
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
@@ -57,6 +62,14 @@ class Application : KtxGame<Screen>() {
             log.info("Loading ${it.filePath}")
             assetManager.load(it.filePath, Texture::class.java)
         }
+
+        assetManager.setLoader(Aseprite::class.java, AsepriteLoader(InternalFileHandleResolver()))
+        assetManager.setLoader(AsepriteJson::class.java, AsepriteJsonLoader(InternalFileHandleResolver()))
+        AsepriteAsset.values().forEach {
+            log.info("Loading Aesprite Asset: ${it.assetName}")
+            assetManager.load(it.assetName, Aseprite::class.java)
+        }
+
         assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
         assetManager.load(MAP_FILEPATH, TiledMap::class.java)
         log.info("Setting up Context")

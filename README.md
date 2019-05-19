@@ -9,6 +9,25 @@ management twist!
     * Stamina dictates everything
     * Pause and plan style 
 
+## Asset Curation/Creation
+Tilesets ripped from Google Image search
+Need to get animation and such in. Going to use Dust3D to whip out a bunch of quick 3d models. Perhaps find a way to 
+texture them, then render in Blender to spritesheets or something. 
+
+### Dust3D
+Dust3D is a open source tool for building super fast 3D meshes. The cool thing about a 3D mesh is once you have one, you have
+all the different angles to view it from, which saves a ton of work. However making nice meshes is generally a lot of work! 
+Dust3D (might? haven't tried it as of writing this doc) let's you make low-poly meshes fast
+
+http://docs.dust3d.org/en/latest/shortcuts.html
+
+I *think* we can even animate in Dust3D, if so then we just need a tool which takes a rig/animation
+and outputs spritesheets. 
+
+One thought is we create our asset in Dust3D, then use the cli tools Blender providers to generate our 
+spritesheet.
+
+
 ## TODO's by priority 
 
 ### Battle

@@ -1,1 +1,8 @@
+//sourceControl {
+//    gitRepository("https://github.com/dwursteisen/libgdx-addons.git") {
+//        producesModule("com.github.dwursteisen.libgdx-addons:aseprite-addons")
+//    }
+//}
+
+
 include 'desktop', 'core'

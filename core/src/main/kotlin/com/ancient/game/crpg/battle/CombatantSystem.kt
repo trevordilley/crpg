@@ -16,7 +16,6 @@ import ktx.ashley.mapperFor
 import ktx.math.component1
 import ktx.math.component2
 
-
 sealed class Combatant
 object Player : Combatant()
 data class Enemy(val aggroRange: Float) : Combatant()
