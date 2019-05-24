@@ -84,6 +84,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
+
         // Player Character
         val playerCharacterTexture: Texture = assetManager[SpriteAsset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
@@ -105,7 +106,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         250,
                         1,
                         1))
-                add(CRenderableSprite(playerCharacterSprite))
+                add(CRenderableSprite(Sprite(playerCharacterAnim.frame(0))))
                 add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
                 add(CSelectable())
                 add(CFoV(null))

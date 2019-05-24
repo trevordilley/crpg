@@ -33,6 +33,7 @@ class CAnimated(private val currentAnimationState: AnimationState) : Component {
         timePassed += dt
     }
 
+
     fun currentFrame(): TextureRegion = currentAnimationState.let {
         it.animation.getKeyFrame(timePassed, it.looping)
     }
@@ -67,7 +68,8 @@ class AnimationSystem() : IteratingSystem(
         anim.step(dt)
         val render = entity[rendered]!!
         // TODO: Is this correct? Unsure if this is performant...
-        render.sprite.texture = anim.currentFrame().texture
+        render.sprite.setRegion(anim.currentFrame())
+
         anim.invokeAction()
     }
 }
