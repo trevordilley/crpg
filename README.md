@@ -11,22 +11,12 @@ management twist!
 
 ## Asset Curation/Creation
 Tilesets ripped from Google Image search
-Need to get animation and such in. Going to use Dust3D to whip out a bunch of quick 3d models. Perhaps find a way to 
-texture them, then render in Blender to spritesheets or something. 
 
-### Dust3D
-Dust3D is a open source tool for building super fast 3D meshes. The cool thing about a 3D mesh is once you have one, you have
-all the different angles to view it from, which saves a ton of work. However making nice meshes is generally a lot of work! 
-Dust3D (might? haven't tried it as of writing this doc) let's you make low-poly meshes fast
+TileSet management using Tiled
+https://www.mapeditor.org/
 
-http://docs.dust3d.org/en/latest/shortcuts.html
-
-I *think* we can even animate in Dust3D, if so then we just need a tool which takes a rig/animation
-and outputs spritesheets. 
-
-One thought is we create our asset in Dust3D, then use the cli tools Blender providers to generate our 
-spritesheet.
-
+Sprite/Animation management using Aseprite
+https://www.aseprite.org/
 
 ## TODO's by priority 
 
@@ -45,6 +35,8 @@ MVP:
  - As a player I have enemies that are both melee and ranged, fast and slow
  - Entities should not overlap with one another. 
  - As a player I can find loot and must carry it out
+ - As a player, the light level in a dungeon or area plays an important tactical role
+
 #### Dungeon
 * UI Layer
     * Fix shapes showing direction of characters
@@ -73,16 +65,8 @@ MVP:
     graphical things to happen to symbolize
     hearing stuff. This helps if we do
     FOV based on entities
-* Level up system!
-    * For Demo
-        * 1000 points per level
-        * Increases stamina
-        * Goblin gives 50xp
-        * Orc gives 100xp
-        * Big orc gives 300xp 
 * Polish
-    * Fix rotation bug (measure by angle not distance silly)
-    * Attack animations
+    * Fix rotation bug 
     * Optimize FOV 
         1. optimizing tile polygons
         2. Parallelize polygon calculations
@@ -141,6 +125,18 @@ of nodes will create denser maps which should allow pathing through arbitrary
 dungeons. Create a delaunay triangulation to connect the nodes,  walk each node and 
 mark them as within or outside collision polygons, and deconnect all nodes
 within the collision polygons. 
+
+## Future
+* Magic
+    * Casting a spell drains all stamina?
+    
+* Level up system!
+    * For Demo
+        * 1000 points per level
+        * Increases stamina
+        * Goblin gives 50xp
+        * Orc gives 100xp
+        * Big orc gives 300xp 
 
 ## Maybe/Future
 
