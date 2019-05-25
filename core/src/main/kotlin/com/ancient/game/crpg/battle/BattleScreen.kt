@@ -111,8 +111,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CSelectable())
                 add(CFoV(null))
                 add(CPlayerControlled)
-                add(CMovable(5f, null, Stack(), 600f, null))
-                add(CAnimated(IdleAnimation(playerCharacterAnim)))
+                add(CMovable(2f, null, Stack(), 600f, null))
+                add(CAnimated(IdleAnimation(playerCharacterAnim), listOf(
+                        IdleAnimation(playerCharacterAnim),
+                        AttackAnimation(playerCharacterAnim),
+                        MovingAnimation(playerCharacterAnim)
+                )))
             }
         }
 

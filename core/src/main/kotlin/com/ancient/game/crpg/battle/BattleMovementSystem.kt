@@ -1,8 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.CTransform
-import com.ancient.game.crpg.UserInputManager
-import com.ancient.game.crpg.rotate
+import com.ancient.game.crpg.*
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -31,6 +29,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                 .get()) {
     private val movableMapper: ComponentMapper<CMovable> = mapperFor()
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
+    private val animatedMapper: ComponentMapper<CAnimated> = mapperFor()
     private val arrivalDistance = 0.2f
 
     private val positionUpdatesThisFrame: MutableMap<Entity, Vector2> = mutableMapOf()
@@ -94,7 +93,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                 }
             } else {
                 // set destination to null and clear stack
-
+                entity[animatedMapper]?.setAnimation<IdleAnimation>()
             }
         }
     }

@@ -44,7 +44,7 @@ class BattleCommandSystem(private val viewport: Viewport,
     private val transform: ComponentMapper<CTransform> = mapperFor()
     private val playerControlled: ComponentMapper<CPlayerControlled> = mapperFor()
     private val selectable: ComponentMapper<CSelectable> = mapperFor()
-
+    private val animated: ComponentMapper<CAnimated> = mapperFor()
 
     override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
@@ -72,6 +72,8 @@ class BattleCommandSystem(private val viewport: Viewport,
                                                     Vector2(leftClick.screenX, leftClick.screenY))
 
                                             val path = mapManager.findPath(it[transform]!!.position, destination)
+
+                                            it[animated]?.setAnimation<MovingAnimation>()
 
                                             it[movable]!!.destination = viewport.unproject(
                                                     Vector2(leftClick.screenX, leftClick.screenY))

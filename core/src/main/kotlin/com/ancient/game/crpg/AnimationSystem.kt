@@ -23,16 +23,30 @@ sealed class AnimationState(val animation: Animation<TextureRegion>, val looping
 class IdleAnimation(animation: Aseprite) :
         AnimationState(animation[AnimationNames.IDLE.animName], true)
 
-class AttackAnimation(animation: Aseprite) : AnimationState(animation[AnimationNames.ATTACK.animName], false)
+class AttackAnimation(animation: Aseprite) : AnimationState(
+        animation[AnimationNames.ATTACK.animName], false)
+
 class MovingAnimation(animation: Aseprite) : AnimationState(animation[AnimationNames.MOVING.animName], true)
 
-class CAnimated(private val currentAnimationState: AnimationState) : Component {
+class CAnimated(var currentAnimationState: AnimationState, val animations: List<AnimationState>) : Component {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private var timePassed: Float = 0f
     fun step(dt: Float) {
         timePassed += dt
     }
 
+    // By making this an inline function it can't be made both private and reified
+    // so we need to think of a simpler implementation.
+    inline fun <reified T> setAnimation() where T : AnimationState {
+        animations
+                .filterIsInstance<T>()
+                .firstOrNull()
+                ?.let {
+                    if (currentAnimationState !is T) {
+                        currentAnimationState = it
+                    }
+                }
+    }
 
     fun currentFrame(): TextureRegion = currentAnimationState.let {
         it.animation.getKeyFrame(timePassed, it.looping)
