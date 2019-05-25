@@ -125,6 +125,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Orc
         val orcTexture: Texture = assetManager[SpriteAsset.ORC.filePath]
         val orcSprite = Sprite(orcTexture)
+        val orcAnim: Aseprite = assetManager[AsepriteAsset.ORC.assetName]
         val createOrc = { pos: Vector2 ->
             Entity().apply {
                 add(CCombatant(Enemy(3f),
@@ -146,6 +147,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 //    add(CSelectable()) causes strange selection errors...
                 add(CTransform(pos, 270f, orcSprite.width / 2f))
                 add(CMovable(2f, null, Stack(), 8f, null))
+                add(CAnimated(IdleAnimation(orcAnim), listOf(
+                        IdleAnimation(orcAnim),
+                        AttackAnimation(orcAnim),
+                        MovingAnimation(orcAnim)
+                )))
             }
         }
 

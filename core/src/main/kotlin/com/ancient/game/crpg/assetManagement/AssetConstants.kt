@@ -7,7 +7,8 @@ enum class SpriteAsset(val filePath: String) {
 }
 
 enum class AsepriteAsset(val assetName: String) {
-    SWORD_SHIELD("64_rpg_sword_shield_ase")
+    SWORD_SHIELD("64_rpg_sword_shield_ase"),
+    ORC("orc_ase")
 }
 
 const val MAP_FILEPATH = "64-dungeon-30x30.tmx"
