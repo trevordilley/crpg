@@ -25,7 +25,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
     private val movableMapper: ComponentMapper<CMovable> = mapperFor()
     private val combatantMapper: ComponentMapper<CCombatant> = mapperFor()
-    private val actionMapper: ComponentMapper<CAction> = mapperFor()
     private val animatedMapper: ComponentMapper<CAnimated> = mapperFor()
     private val entitiesToProcess = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -71,43 +70,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
 
                     attacker[animatedMapper]?.setAnimation<IdleAnimation>()
                 }
-//                attacker[actionMapper] ?: attacker.add(
-//
-//                        // This is where we can figure out how to animate/make pretty
-//                        // melee attacks. Moving the character around is proving to be a bad idea
-//                        // cause it offsets their position and more importantly THEIR ROTATION (you
-//                        // can get hit in the back!!! insta-kill!!)
-//                        //
-//                        // So we should look for a more mature solution, but this is a step closer to
-//                        // solving how to animate + damage an entity.
-//                        CAction { dt, duration ->
-//
-//
-//
-//
-//                            val passed = duration / weapon.duration
-//                            if (passed >= 1.0f) {
-//                                true
-//                            } else {
-//
-//
-//                                val t = when (passed) {
-//                                    in 0.2f..0.5f -> (passed / 1.0f) * 1.2f
-//                                    in 0.5f..1f -> (passed / 1.0f) * 1.1f
-//                                    else -> 0f
-//                                }
-//                                attacker[transformMapper]!!.position = quadraticBezier(Vector2(x, y), Vector2(tx, ty),
-//                                        Vector2(x, y), t)
-//
-//                                if (passed >= 0.5 && !effectApplied) {
-//                                    BattleActionEffectSystem.applyEffect(engine,
-//                                            CMeleeEffect(attacker, target, weapon.range, weapon.staminaDamage))
-//                                    effectApplied = true
-//                                }
-//                                false
-//                            }
-//                        }
-//                )
                 attacker[movableMapper]!!.destination = null
             } else {
                 when (combatant) {
@@ -118,9 +80,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
                     }
                 }
             }
-
         }
-
     }
-
 }
