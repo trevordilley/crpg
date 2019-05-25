@@ -74,7 +74,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, mapManager))
+        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, mapManager
+                , showDebug = false))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
@@ -175,7 +176,5 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         // Update systems
         engine.update(delta)
-
-
     }
 }

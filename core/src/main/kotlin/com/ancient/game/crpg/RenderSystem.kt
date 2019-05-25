@@ -15,7 +15,6 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.EarClippingTriangulator
@@ -31,7 +30,8 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float) 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>, val mapManager: MapManager) : IteratingSystem(
+                   val collisionPoints: Set<Vector2>, val mapManager: MapManager,
+                   val showDebug: Boolean = true) : IteratingSystem(
         all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
     private val log = gameLogger(this::class.java)
@@ -43,7 +43,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
     private val fov: ComponentMapper<CFoV> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
-    private val polygonRenderer = PolygonSpriteBatch()
     private var spritesToRender = mutableListOf<Entity>()
     private val earTriangulator: EarClippingTriangulator = EarClippingTriangulator()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -196,34 +195,42 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             batch.end()
             batch.projectionMatrix = originalMatrix
 
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-            data.sprites.forEachIndexed { idx, sprite ->
-                if (data.selected[idx]) {
-                    shapeRenderer.apply {
-                        // Vulnerable
-                        color = Color.RED
+            debugDraw(showDebug, data)
+        }
+
+
+    }
+
+    private fun debugDraw(displayDebug: Boolean, data: DrawData) {
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        data.sprites.forEachIndexed { idx, sprite ->
+            if (data.selected[idx]) {
+                shapeRenderer.apply {
+                    // Vulnerable
+                    color = Color.RED
+                    arc(
+                            data.x[idx],
+                            data.y[idx],
+                            (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
+                            data.r[idx] + 90f,
+                            180f
+                    )
+
+                    // Defensive arc
+                    listOf(1f
+                            , 180f
+                    ).forEach { a ->
+                        color = Color(0f, 0f, (360f - a) / 360f, 1f)
                         arc(
                                 data.x[idx],
                                 data.y[idx],
                                 (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
-                                data.r[idx] + 90f,
-                                180f
+                                data.r[idx] - (a / 2),
+                                a
                         )
-
-                        // Defensive arc
-                        listOf(1f
-                                , 180f
-                        ).forEach { a ->
-                            color = Color(0f, 0f, (360f - a) / 360f, 1f)
-                            arc(
-                                    data.x[idx],
-                                    data.y[idx],
-                                    (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
-                                    data.r[idx] - (a / 2),
-                                    a
-                            )
-                        }
-
+                    }
+                    if (showDebug) {
                         (Pair(data.x[idx], data.y[idx]))
                                 .let { (x, y) ->
                                     Pair(
@@ -243,10 +250,12 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                                     color = Color.MAGENTA
                                     circle(v.x, v.y, 0.2f)
                                 }
-
                     }
+
                 }
             }
+        }
+        if (showDebug) {
             collisionPoints.forEach { v ->
                 shapeRenderer.apply {
                     color = Color.YELLOW
@@ -280,13 +289,10 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
 
             }
-
-
-
-            shapeRenderer.end()
-
         }
 
+
+        shapeRenderer.end()
 
     }
 }
