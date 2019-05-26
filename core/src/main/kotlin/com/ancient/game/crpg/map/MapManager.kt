@@ -69,10 +69,11 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
         return cellsCount
     }
 
-
     private fun getOpaqueEdges(tiles: List<TileCell>) =
             tiles
                     .filter { isOpaqueCell(it) }
+                    .let { getTilesInAdjacentGroups(it) }
+                    .let { it.values.flatten() } // dummy line
                     .map { t -> t.edges() }
                     .flatten()
 
@@ -184,6 +185,62 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
                         }
                     }
                 }.contains(property)
+
+
+        fun getTilesInAdjacentGroups(tiles: List<TileCell>): Map<Int, List<TileCell>> {
+            val posToTile =
+                    tiles
+                            .map { Pair(it.pos.x.toInt(), it.pos.y.toInt()) to it }
+                            .toMap()
+            val maxX = tiles.maxBy { it.pos.x }!!.pos.x.toInt()
+            val maxY = tiles.maxBy { it.pos.y }!!.pos.y.toInt()
+
+            var curGroup = 0
+
+            val posToGroup = mutableMapOf<Pair<Int, Int>, Int>()
+
+            for (i in 0..maxX) {
+                for (j in 0..maxY) {
+
+                    val curPos = Pair(i, j)
+                    if (!posToTile.containsKey(curPos)) {
+                        continue
+                    }
+
+                    val group = if (posToGroup.containsKey(curPos)) {
+                        posToGroup[curPos]!!
+                    } else {
+                        curGroup++
+                        posToGroup[curPos] = curGroup
+                        curGroup
+                    }
+
+                    val bottom = Pair(curPos.first, curPos.second + 1)
+                    if (posToTile.contains(bottom) && !posToGroup.containsKey(bottom)) {
+                        posToGroup[bottom] = group
+                    }
+
+                    val right = Pair(curPos.first + 1, curPos.second)
+                    if (posToTile.contains(right) && !posToGroup.containsKey(right)) {
+                        posToGroup[right] = group
+                    }
+                }
+            }
+
+            return mutableMapOf<Int, MutableList<TileCell>>().apply {
+                posToGroup.values.forEach { group ->
+                    this[group] = mutableListOf()
+                }
+                posToGroup.forEach { pos, group ->
+                    posToTile[pos]?.let { tile ->
+                        this[group]!!.add(tile)
+                    }
+                }
+            }
+
+
+        }
+
     }
 
 
