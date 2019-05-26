@@ -73,8 +73,7 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
             tiles
                     .filter { isOpaqueCell(it) }
                     .let { getTilesInAdjacentGroups(it) }
-                    .let { it.values.flatten() } // dummy line
-                    .map { t -> t.edges() }
+                    .map { getEdgesFromTileGroup(it) }
                     .flatten()
 
 
@@ -187,7 +186,115 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
                 }.contains(property)
 
 
-        fun getTilesInAdjacentGroups(tiles: List<TileCell>): Map<Int, List<TileCell>> {
+        fun getVertCounts(tiles: List<Pair<Float, Float>>): Map<Pair<Float, Float>, Int> {
+            return mutableMapOf<Pair<Float, Float>, Int>().let { vertToCount ->
+                tiles.map {
+                    if (!vertToCount.contains(it)) {
+                        vertToCount.put(it, 1)
+                    } else {
+                        vertToCount[it] = vertToCount[it]!! + 1
+                    }
+                }
+                vertToCount
+            }
+        }
+
+        fun getCornersFromVertCounts(vertsToCounts: Map<Pair<Float, Float>, Int>): Set<Pair<Float, Float>> =
+                vertsToCounts
+                        .map {
+                            when (it.value) {
+                                1 -> it.key // 1 tile had this vert, so it's an exterior corner
+                                2 -> null // 2 tiles had this vert, so it's the side of an edge
+                                3 -> it.key // 3 tiles had this vert, so it's a convex corner
+                                4 -> null // 4 tiles had this vert, so it's an interior vert and not part of an edge
+                                else -> throw Error("Unexpected number of overlaps ${it.value}")
+                            }
+                        }
+                        .filterNotNull()
+                        .toSet()
+
+
+        fun getVertsForTilePos(pos: Vector2): List<Pair<Float, Float>> {
+            return listOf(
+                    pos.x to pos.y, // Bottom Left
+                    pos.x + 1 to pos.y, // Bottom Right
+                    pos.x to pos.y + 1, // Top Left
+                    pos.x + 1 to pos.y + 1 // Top Right
+            )
+        }
+
+        fun dedupeEdges(edges: List<Edge>): List<Edge> {
+            val posToEdge =
+                    mutableMapOf<String, Edge>()
+            val edgeStr =
+                    { edge: Edge -> "${edge.p1.x}-${edge.p1.y}-${edge.p2.x}-${edge.p2.y}" }
+            edges.forEach { e ->
+                val key = edgeStr(e)
+                val inverseKey = edgeStr(Edge(e.p2, e.p1))
+                if (!(posToEdge.containsKey(key) || posToEdge.containsKey(inverseKey))) {
+                    posToEdge[key] = e
+                }
+            }
+            return posToEdge.values.toList()
+        }
+
+        fun getEdgesFromCornersAndVerts(corners: Set<Pair<Float, Float>>,
+                                        verts: Set<Pair<Float, Float>>): List<Edge> {
+
+            val up = Pair(0f, 1f)
+            val right = Pair(1f, 0f)
+            val down = Pair(0f, -1f)
+            val left = (Pair(-1f, 0f))
+            return corners
+                    .map {
+                        listOf(
+                                walkDirection(it, up, corners, verts),
+                                walkDirection(it, right, corners, verts),
+                                walkDirection(it, down, corners, verts),
+                                walkDirection(it, left, corners, verts)
+                        )
+                                .filterNotNull()
+                    }
+                    .flatten()
+                    .let { dedupeEdges(it) }
+
+        }
+
+        fun walkDirection(start: Pair<Float, Float>, direction: Pair<Float, Float>, corners: Set<Pair<Float, Float>>,
+                          verts: Set<Pair<Float, Float>>): Edge? {
+
+            val nextVert = { cur: Pair<Float, Float> ->
+                Pair(cur.first + direction.first, cur.second + direction.second)
+            }
+            var curVert = start
+            while (true) {
+                val next = nextVert(curVert)
+                // Sanity Check
+                if (next == start) throw Error("How did the start and next become equal?")
+                if (corners.contains(next)) {
+                    return Edge(Vector2(start.first, start.second), Vector2(next.first, next.second))
+                } else if (!verts.contains(next)) {
+                    return null // Hit a terminating side
+                } else {
+                    curVert = next
+                }
+            }
+
+        }
+
+        fun getEdgesFromTileGroup(tiles: List<TileCell>): List<Edge> =
+                tiles
+                        .map { getVertsForTilePos(it.pos) }
+                        .flatten()
+                        .let { getVertCounts(it) }
+                        .let { vertsToCounts ->
+                            val corners = getCornersFromVertCounts(vertsToCounts)
+                            val verts = vertsToCounts.keys
+                            getEdgesFromCornersAndVerts(corners, verts)
+                        }
+
+
+        fun getTilesInAdjacentGroups(tiles: List<TileCell>): List<List<TileCell>> {
             val posToTile =
                     tiles
                             .map { Pair(it.pos.x.toInt(), it.pos.y.toInt()) to it }
@@ -236,7 +343,7 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
                         this[group]!!.add(tile)
                     }
                 }
-            }
+            }.values.toList()
 
 
         }
