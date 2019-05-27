@@ -66,10 +66,6 @@ MVP:
     hearing stuff. This helps if we do
     FOV based on entities
 * Polish
-    * Fix rotation bug 
-    * Optimize FOV 
-        1. optimizing tile polygons
-        2. Parallelize polygon calculations
     * Fix going around corners
         
         
@@ -113,7 +109,32 @@ Dungeon has:
     * LOW: Needs rest when stamina is drained
     * LOW: Stamina drains slower near familiar
     territory. 
+* Populate with features
+  * Forests
+  * Mountains
+  * Plains
+  * Rivers
 * Populate with random sites
+Sites are either friendly or unfriendly.
+
+If a site is friendly, and it has valuable resources near it
+(stuff that was discovered during an adventure) then 
+towns will grow roads towards it. Once the road connects 
+to the site, it get's access to those resources. 
+  * Dungeons
+  * Towns
+    * Roads between towns?
+
+
+#### Future
+Shorter roads lead to more effcient extraction (cheaper markets?)
+
+If a road becomes threatened, then the resource can either disappear
+or become more expensive. 
+
+* Based on resources brought to a town, different goods are available
+to purchase at town
+* Towns have markets by the way! 
 
 
 ### Random Thoughts
@@ -164,3 +185,6 @@ within the collision polygons.
     * Execute above algorithms
     * Field-of-view based on direction
     entity is facing?  
+* Optimize FOV 
+    1. optimizing tile polygons
+    2. Parallelize polygon calculations (UNNECESARRY)
