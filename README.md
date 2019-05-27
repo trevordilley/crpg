@@ -65,8 +65,27 @@ MVP:
     graphical things to happen to symbolize
     hearing stuff. This helps if we do
     FOV based on entities
-* Polish
-    * Fix going around corners
+##### Polish
+  - [ ] Clicking on a PC
+  stamina circle, vulnerability circle, life pips all fade in and scale to correct size.
+  - [ ] Clicking away from a PC (deselecting)
+  stamina circle, vulnerability circle, life pips all fade out and shrink a little
+  - [ ] Clicking for a PC to move
+  line grows along path, on reaching destination a circle grows very quickly beyond target radius and smoothly shrinks to proper radius. Circle appears to be spinning
+  - [ ] Setting PC rotation
+  Draw line from anchor point to mouse, upon release line glows and dissappears
+  - [ ] Clicking on an enemy (PC to attack)
+  Same as other line, but different aggressive color
+  - [ ] PC moving
+  Small dust clouds, maybe tiny distortion representing noise?
+  - [ ] PC and NPC attacking
+  Attack animations, sounds
+  - [ ] PC and NPC getting hit
+  Damage animations, changing color to red, blood splatter
+  - [ ] Camera movement smoothed out
+  Immediately moves when the player pushes a direction, but slows down a little as it reaches the destination.
+  - [ ] Fix going around corners
+
         
         
 ### Demo Battle Sceen
