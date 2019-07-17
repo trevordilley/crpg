@@ -77,6 +77,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         log.info("Revving Engines")
         engine = PooledEngine()
+        engine.addSystem(FovRenderSystem(viewportManager.viewport))
         engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, mapManager
                 , showDebug = false))
         engine.addSystem(battleCommandSystem)

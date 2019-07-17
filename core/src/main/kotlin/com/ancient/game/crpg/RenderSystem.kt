@@ -40,10 +40,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private val movable: ComponentMapper<CMovable> = mapperFor()
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
-    private val fov: ComponentMapper<CFoV> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var spritesToRender = mutableListOf<Entity>()
-    private val earTriangulator: EarClippingTriangulator = EarClippingTriangulator()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entity[spriteRenderMapper]?.let { spritesToRender.add(entity) }
     }
@@ -71,28 +69,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
         shapeRenderer.projectionMatrix = viewport.camera.combined
 
-        //// FOV Render
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        Gdx.gl20.glClearDepthf(1f)
-        Gdx.gl20.glClear(GL20.GL_DEPTH_BUFFER_BIT)
-        Gdx.gl20.glDepthFunc(GL20.GL_LESS)
-        Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
-        Gdx.gl20.glDepthMask(true)
-        Gdx.gl20.glColorMask(false, false, false, false)
-        entities.filter { it.has(fov) }.forEach {
-            shapeRenderer.apply {
-                color = Color.ORANGE
-                it[fov]!!.fovPoly?.let { poly ->
-                    val tris =
-                            earTriangulator.createRenderableFilledPolygonMesh(poly)
-                    tris.forEach { tri ->
-                        triangle(tri)
-                    }
-                }
-            }
-        }
 
-        shapeRenderer.end()
         // Render sprites
         DrawData(
                 FloatArray(entities.size),
