@@ -3,7 +3,6 @@ package com.ancient.game.crpg
 import com.ancient.game.crpg.battle.CFoV
 import com.ancient.game.crpg.battle.CHealth
 import com.ancient.game.crpg.battle.CMovable
-import com.ancient.game.crpg.battle.CSelectable
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
@@ -63,13 +62,11 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             val healthData: Array<Int?>,
             val staminaData: Array<Int?>,
             val maxStaminaData: Array<Int?>,
-            val selected: BooleanArray
+            val selected: Array<Sprite?>
     )
 
 
     private fun draw(entities: List<Entity>) {
-
-
         viewport.camera.update()
 
         shapeRenderer.projectionMatrix = viewport.camera.combined
@@ -85,19 +82,17 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         entities.filter { it.has(fov) }.forEach {
             shapeRenderer.apply {
                 color = Color.ORANGE
-                it[fov]!!.fovPoly?.let {
-                    val tris = earTriangulator.createRenderableFilledPolygonMesh(it)
-                    tris.forEach {
-                        triangle(it)
+                it[fov]!!.fovPoly?.let { poly ->
+                    val tris =
+                            earTriangulator.createRenderableFilledPolygonMesh(poly)
+                    tris.forEach { tri ->
+                        triangle(tri)
                     }
                 }
             }
-
         }
 
         shapeRenderer.end()
-
-
         // Render sprites
         DrawData(
                 FloatArray(entities.size),
@@ -107,7 +102,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
-                BooleanArray(entities.size)
+                arrayOfNulls(entities.size) // THIS IS WHY WE NEED TO REFACTOR THE RENDER SYSTEM, THIS MAKES ALL THESE
+                // PRIMITIVE ARRAYS POINTLESS
         ).apply {
             entities.forEachIndexed { idx, entity ->
                 val position: Vector2 = entity[transform]!!.position
@@ -117,10 +113,18 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 healthData[idx] = entity[healthMapper]?.health
                 staminaData[idx] = entity[healthMapper]?.stamina
                 maxStaminaData[idx] = entity[healthMapper]?.maxStamina
-                selected[idx] = entity[selectableMapper]?.selected ?: false
+                selected[idx] =
+                        entity[selectableMapper]
+                                ?.let {
+                                    if (it.selected) {
+                                        it.selectionCircle[spriteRenderMapper]?.sprite
+                                    } else {
+                                        null
+                                    }
+                                }
+
             }
         }.let { data ->
-
 
             // Entity Renders
             batch.projectionMatrix = viewport.camera.combined
@@ -133,26 +137,48 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 val width = sprite.width * SiUnits.PIXELS_TO_METER
                 val height = sprite.height * SiUnits.PIXELS_TO_METER
 
-
                 val widthOffset = width / 2
                 val heightOffset = height / 2
+                val x =
+                        data.x[index] - widthOffset
+
+                val y =
+                        data.y[index] - heightOffset
+
+                val r =
+                        data.r[index]
                 // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
                 batch.setColor(1f, 1f, 1f, 1f)
                 batch.draw(
                         sprite,
-                        data.x[index] - widthOffset,
-                        data.y[index] - heightOffset,
+                        x,
+                        y,
                         widthOffset,
                         heightOffset,
                         width,
                         height,
                         1f, 1f,
-                        data.r[index]
-
+                        r
                 )
-            }
-            batch.end()
 
+                data.selected[index]?.let {
+                    batch.draw(
+                            it,
+                            x,
+                            y,
+                            widthOffset,
+                            heightOffset,
+                            width,
+                            height,
+                            1f, 1f,
+                            r
+                    )
+
+                }
+
+            }
+
+            batch.end()
 
             // UI Rendering
             val originalMatrix = batch.projectionMatrix.cpy()
@@ -171,12 +197,9 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             }
             font.color = Color.WHITE
 
-
             data.sprites.forEachIndexed { index, sprite ->
                 val width = sprite.width
                 val height = sprite.height
-
-
                 val widthOffset = width / 2
                 val heightOffset = height / 2
                 // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
@@ -197,15 +220,12 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
             debugDraw(showDebug, data)
         }
-
-
     }
 
     private fun debugDraw(displayDebug: Boolean, data: DrawData) {
-
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         data.sprites.forEachIndexed { idx, sprite ->
-            if (data.selected[idx]) {
+            if (data.selected[idx] != null) {
                 shapeRenderer.apply {
                     // Vulnerable
                     color = Color.RED
@@ -255,6 +275,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
         }
+
         if (showDebug) {
             collisionPoints.forEach { v ->
                 shapeRenderer.apply {
@@ -270,29 +291,31 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
 
-            entities.filter { it.has(movable) }.forEach {
-                it[movable]!!.path.toList().let {
-                    var prevPoint = it.firstOrNull()
-                    if (prevPoint != null) {
-                        it.forEach {
-                            shapeRenderer.apply {
-                                color = Color.BLUE
-                                prevPoint?.let { p ->
-                                    line(p.x, p.y, it.x, it.y)
-                                    circle(it.x, it.y, 0.2f)
+            entities
+                    .filter { it.has(movable) }
+                    .forEach { entity ->
+                        entity[movable]!!
+                                .path
+                                .toList()
+                                .let { path ->
+                                    var prevPoint = path.firstOrNull()
+                                    if (prevPoint != null) {
+                                        path.forEach {
+                                            shapeRenderer.apply {
+                                                color = Color.BLUE
+                                                prevPoint?.let { p ->
+                                                    line(p.x, p.y, it.x, it.y)
+                                                    circle(it.x, it.y, 0.2f)
+                                                }
+                                                prevPoint = it
+                                            }
+                                        }
+
+                                    }
                                 }
-                                prevPoint = it
-                            }
-                        }
 
                     }
-                }
-
-            }
         }
-
-
         shapeRenderer.end()
-
     }
 }

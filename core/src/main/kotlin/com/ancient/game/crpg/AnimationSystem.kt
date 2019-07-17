@@ -12,25 +12,37 @@ import ktx.ashley.get
 import ktx.ashley.mapperFor
 import org.slf4j.LoggerFactory
 
-enum class AnimationNames(val animName: String) {
+enum class CombatantAnimationNames(val animName: String) {
     IDLE("Idle"),
     MOVING("walking"),
-    ATTACK("Attack")
+    ATTACK("Attack"),
+}
+
+enum class SelectionCircleAnimationNames(val animName: String) {
+    SELECTED("Selected"),
+    ON_SELECT("OnSelect")
 }
 
 
 sealed class AnimationState(val animation: Animation<TextureRegion>, val looping: Boolean)
 class IdleAnimation(animation: Aseprite) :
-        AnimationState(animation[AnimationNames.IDLE.animName], true)
+        AnimationState(animation[CombatantAnimationNames.IDLE.animName], true)
 
 class AttackAnimation(animation: Aseprite) : AnimationState(
-        animation[AnimationNames.ATTACK.animName], false)
+        animation[CombatantAnimationNames.ATTACK.animName], false)
 
-class MovingAnimation(animation: Aseprite) : AnimationState(animation[AnimationNames.MOVING.animName], true)
+class MovingAnimation(animation: Aseprite) : AnimationState(animation[CombatantAnimationNames.MOVING.animName], true)
+
+class SelectedAnimation(animation: Aseprite) : AnimationState(
+        animation[SelectionCircleAnimationNames.SELECTED.animName], true)
+
+class OnSelectAnimation(animation: Aseprite) : AnimationState(
+        animation[SelectionCircleAnimationNames.ON_SELECT.animName], false)
 
 class CAnimated(var currentAnimationState: AnimationState, val animations: List<AnimationState>) : Component {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private var timePassed: Float = 0f
+
     fun step(dt: Float) {
         timePassed += dt
     }

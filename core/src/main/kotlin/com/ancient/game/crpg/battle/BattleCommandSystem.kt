@@ -16,7 +16,6 @@ import ktx.math.minus
 import java.util.Stack
 
 
-class CSelectable(var selected: Boolean = false) : Component
 object CPlayerControlled : Component
 
 enum class InputMode {
@@ -25,7 +24,8 @@ enum class InputMode {
 }
 
 class BattleCommandSystem(private val viewport: Viewport,
-                          private val mapManager: MapManager) : UserInputListener, IteratingSystem(
+                          private val mapManager: MapManager,
+                          private val selectionSystem: SelectionSystem) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CMovable::class.java, CTransform::class.java)
                 .exclude(CDead::class.java)
                 .get()) {
@@ -37,7 +37,6 @@ class BattleCommandSystem(private val viewport: Viewport,
     private var rotationPivot: Vector2? = null
     private var destinationChanged = false
     private var rotationChanged = false
-    private var currentSelection: MutableSet<CSelectable> = mutableSetOf()
     private var mode: InputMode = InputMode.SELECT
 
     private val movable: ComponentMapper<CMovable> = mapperFor()
@@ -61,11 +60,11 @@ class BattleCommandSystem(private val viewport: Viewport,
                                             pointWithinTransformRadius(worldPos, transform)
                                         } ?: false
                             }
-                            ?.let { select(it[selectable]!!) }
+                            ?.let { selectionSystem.select(it[selectable]!!) }
                             ?: {
                                 entities
                                         .filter { it.has(selectable) && it.has(playerControlled) && it.has(movable) }
-                                        .filter { currentSelection.contains(it[selectable]) }
+                                        .filter { selectionSystem.selection.contains(it[selectable]) }
                                         .forEach {
 
                                             val destination = viewport.unproject(
@@ -117,25 +116,6 @@ class BattleCommandSystem(private val viewport: Viewport,
     }
 
 
-    private fun select(selection: CSelectable) {
-        select(listOf(selection))
-    }
-
-    private fun select(selection: List<CSelectable>) {
-        deselect()
-        selection.forEach {
-            it.selected = true
-        }
-        currentSelection.addAll(selection)
-    }
-
-    private fun deselect() {
-        currentSelection.forEach {
-            it.selected = false
-        }
-        currentSelection.clear()
-    }
-
     private fun pointWithinTransformRadius(point: Vector2,
                                            transform: CTransform) =
             Vector2.dst(point.x, point.y, transform.position.x,
@@ -143,7 +123,7 @@ class BattleCommandSystem(private val viewport: Viewport,
 
 
     private fun resetSelection() {
-        deselect()
+        selectionSystem.deselect()
         mode = InputMode.SELECT
         destination = null
         rotation = null

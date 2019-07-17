@@ -43,7 +43,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val collisionPoints = mapManager.impassableCellPositions()
         mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
 
-        val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager)
+        val selectionCircleAnim: Aseprite = assetManager[AsepriteAsset.SELECTION_CIRCLE.assetName]
+        val selectionSystem = SelectionSystem(selectionCircleAnim)
+
+        val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager, selectionSystem)
 
         inputManager = UserInputManager(listOf(battleCommandSystem, viewportManager))
 
@@ -85,13 +88,15 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
-
+        engine.addSystem(selectionSystem)
         // Player Character
         val playerCharacterTexture: Texture = assetManager[SpriteAsset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
         val createPc = { pos: Vector2 ->
             Entity().apply {
+                val spriteRadius = (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f
+                val rotation = 90f
                 add(CCombatant(Player,
                         Equipment(
                                 MeleeWeapon(
@@ -108,8 +113,17 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         1,
                         1))
                 add(CRenderableSprite(Sprite(playerCharacterAnim.frame(0))))
-                add(CTransform(pos, 90f, (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f))
-                add(CSelectable())
+                add(CTransform(pos, rotation, spriteRadius))
+                add(CSelectable(
+                        Entity().apply {
+                            add(CTransform(pos, rotation, spriteRadius))
+                        }.also {
+                            engine.addEntity(it)
+                        },
+                        SelectedAnimation(selectionCircleAnim),
+                        OnSelectAnimation(selectionCircleAnim)
+                )
+                )
                 add(CFoV(null))
                 add(CPlayerControlled)
                 add(CMovable(2f, null, Stack(), 600f, null))
@@ -144,7 +158,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         1,
                         1))
                 add(CRenderableSprite(orcSprite))
-                //    add(CSelectable()) causes strange selection errors...
                 add(CTransform(pos, 270f, orcSprite.width / 2f))
                 add(CMovable(2f, null, Stack(), 8f, null))
                 add(CAnimated(IdleAnimation(orcAnim), listOf(
@@ -160,32 +173,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addEntity(createPc(Vector2(1.5f, 2f)))
         engine.addEntity(createPc(Vector2(2.5f, 1f)))
         engine.addEntity(createPc(Vector2(2.5f, 2f)))
-        engine.addEntity(createPc(Vector2(3.5f, 1f)))
-        engine.addEntity(createPc(Vector2(3.5f, 2f)))
-        engine.addEntity(createPc(Vector2(4.5f, 1f)))
-        engine.addEntity(createPc(Vector2(4.5f, 2f)))
-        engine.addEntity(createPc(Vector2(5.5f, 1f)))
-        engine.addEntity(createPc(Vector2(5.5f, 2f)))
-        engine.addEntity(createPc(Vector2(6.5f, 1f)))
-        engine.addEntity(createPc(Vector2(6.5f, 2f)))
-        engine.addEntity(createPc(Vector2(7.5f, 1f)))
-        engine.addEntity(createPc(Vector2(7.5f, 2f)))
-        engine.addEntity(createPc(Vector2(1.5f, 3f)))
-        engine.addEntity(createPc(Vector2(1.5f, 4f)))
-        engine.addEntity(createPc(Vector2(2.5f, 3f)))
-        engine.addEntity(createPc(Vector2(2.5f, 4f)))
-        engine.addEntity(createPc(Vector2(3.5f, 3f)))
-        engine.addEntity(createPc(Vector2(3.5f, 4f)))
-        engine.addEntity(createPc(Vector2(4.5f, 3f)))
-        engine.addEntity(createPc(Vector2(4.5f, 4f)))
-        engine.addEntity(createPc(Vector2(5.5f, 3f)))
-        engine.addEntity(createPc(Vector2(5.5f, 4f)))
-        engine.addEntity(createPc(Vector2(6.5f, 3f)))
-        engine.addEntity(createPc(Vector2(6.5f, 4f)))
-        engine.addEntity(createPc(Vector2(7.5f, 3f)))
-        engine.addEntity(createPc(Vector2(7.5f, 4f)))
-//        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-//        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+
         engine.addEntity(createOrc(Vector2(14.5f, 17f)))
         engine.addEntity(createOrc(Vector2(15.5f, 18f)))
 //
