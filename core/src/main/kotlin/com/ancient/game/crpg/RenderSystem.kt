@@ -30,7 +30,7 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float) 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
                    val collisionPoints: Set<Vector2>, val mapManager: MapManager,
-                   val showDebug: Boolean = true) : IteratingSystem(
+                   val showDebug: Boolean = false) : IteratingSystem(
         all(CRenderableSprite::class.java, CTransform::class.java).get()) {
 
     private val log = gameLogger(this::class.java)
@@ -203,11 +203,11 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 val widthOffset = width / 2
                 val heightOffset = height / 2
                 // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
-                val healthLabel = data.healthData[index]?.let { hp -> "Health: $hp" }
+                val healthLabel = data.healthData[index]?.let { hp -> "Health: $hp" } ?: ""
                 val staminaLabel = data.staminaData[index]?.let { stm ->
                     val max = data.maxStaminaData[index]!!
                     "Stamina: $stm/$max"
-                }
+                } ?: ""
                 font.draw(
                         batch,
                         "$staminaLabel  $healthLabel",
@@ -223,6 +223,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     }
 
     private fun debugDraw(displayDebug: Boolean, data: DrawData) {
+        if (!displayDebug) return
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         data.sprites.forEachIndexed { idx, sprite ->
             if (data.selected[idx] != null) {

@@ -24,7 +24,7 @@ enum class SelectionCircleAnimationNames(val animName: String) {
 }
 
 
-sealed class AnimationState(val animation: Animation<TextureRegion>, val looping: Boolean)
+sealed class AnimationState(val animation: Animation<TextureRegion>, val looping: Boolean, val timeDilation: Float = 1f)
 class IdleAnimation(animation: Aseprite) :
         AnimationState(animation[CombatantAnimationNames.IDLE.animName], true)
 
@@ -37,14 +37,14 @@ class SelectedAnimation(animation: Aseprite) : AnimationState(
         animation[SelectionCircleAnimationNames.SELECTED.animName], true)
 
 class OnSelectAnimation(animation: Aseprite) : AnimationState(
-        animation[SelectionCircleAnimationNames.ON_SELECT.animName], false)
+        animation[SelectionCircleAnimationNames.ON_SELECT.animName], false, 2.5f)
 
 class CAnimated(var currentAnimationState: AnimationState, val animations: List<AnimationState>) : Component {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private var timePassed: Float = 0f
 
     fun step(dt: Float) {
-        timePassed += dt
+        timePassed += (dt * currentAnimationState.timeDilation)
     }
 
     // By making this an inline function it can't be made both private and reified
