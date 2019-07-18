@@ -1,6 +1,5 @@
 package com.ancient.game.crpg
 
-import com.ancient.game.crpg.battle.CFoV
 import com.ancient.game.crpg.battle.CHealth
 import com.ancient.game.crpg.battle.CMovable
 import com.ancient.game.crpg.map.MapManager
@@ -16,7 +15,6 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.math.EarClippingTriangulator
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
@@ -39,7 +37,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private val transform: ComponentMapper<CTransform> = mapperFor()
     private val movable: ComponentMapper<CMovable> = mapperFor()
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
-    private val selectableMapper: ComponentMapper<CSelectable> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var spritesToRender = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -59,8 +56,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             val sprites: Array<Sprite>,
             val healthData: Array<Int?>,
             val staminaData: Array<Int?>,
-            val maxStaminaData: Array<Int?>,
-            val selected: Array<Sprite?>
+            val maxStaminaData: Array<Int?>
     )
 
 
@@ -78,9 +74,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 entities.map { it[spriteRenderMapper]!!.sprite }.toTypedArray(),
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
-                arrayOfNulls(entities.size),
-                arrayOfNulls(entities.size) // THIS IS WHY WE NEED TO REFACTOR THE RENDER SYSTEM, THIS MAKES ALL THESE
-                // PRIMITIVE ARRAYS POINTLESS
+                arrayOfNulls(entities.size)
         ).apply {
             entities.forEachIndexed { idx, entity ->
                 val position: Vector2 = entity[transform]!!.position
@@ -90,15 +84,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 healthData[idx] = entity[healthMapper]?.health
                 staminaData[idx] = entity[healthMapper]?.stamina
                 maxStaminaData[idx] = entity[healthMapper]?.maxStamina
-                selected[idx] =
-                        entity[selectableMapper]
-                                ?.let {
-                                    if (it.selected) {
-                                        it.selectionCircle[spriteRenderMapper]?.sprite
-                                    } else {
-                                        null
-                                    }
-                                }
 
             }
         }.let { data ->
@@ -137,24 +122,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                         1f, 1f,
                         r
                 )
-
-                data.selected[index]?.let {
-                    batch.draw(
-                            it,
-                            x,
-                            y,
-                            widthOffset,
-                            heightOffset,
-                            width,
-                            height,
-                            1f, 1f,
-                            r
-                    )
-
-                }
-
             }
-
             batch.end()
 
             // UI Rendering
@@ -172,29 +140,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                         200f
                 )
             }
-            font.color = Color.WHITE
-
-            data.sprites.forEachIndexed { index, sprite ->
-                val width = sprite.width
-                val height = sprite.height
-                val widthOffset = width / 2
-                val heightOffset = height / 2
-                // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
-                val healthLabel = data.healthData[index]?.let { hp -> "Health: $hp" } ?: ""
-                val staminaLabel = data.staminaData[index]?.let { stm ->
-                    val max = data.maxStaminaData[index]!!
-                    "Stamina: $stm/$max"
-                } ?: ""
-                font.draw(
-                        batch,
-                        "$staminaLabel  $healthLabel",
-                        (data.x[index] * SiUnits.UNIT) - widthOffset,
-                        (data.y[index] * SiUnits.UNIT) + heightOffset
-                )
-            }
-            batch.end()
             batch.projectionMatrix = originalMatrix
-
+            batch.end()
             debugDraw(showDebug, data)
         }
     }
@@ -202,57 +149,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private fun debugDraw(displayDebug: Boolean, data: DrawData) {
         if (!displayDebug) return
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        data.sprites.forEachIndexed { idx, sprite ->
-            if (data.selected[idx] != null) {
-                shapeRenderer.apply {
-                    // Vulnerable
-                    color = Color.RED
-                    arc(
-                            data.x[idx],
-                            data.y[idx],
-                            (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
-                            data.r[idx] + 90f,
-                            180f
-                    )
-
-                    // Defensive arc
-                    listOf(1f
-                            , 180f
-                    ).forEach { a ->
-                        color = Color(0f, 0f, (360f - a) / 360f, 1f)
-                        arc(
-                                data.x[idx],
-                                data.y[idx],
-                                (sprite.width * SiUnits.PIXELS_TO_METER) / 2,
-                                data.r[idx] - (a / 2),
-                                a
-                        )
-                    }
-                    if (showDebug) {
-                        (Pair(data.x[idx], data.y[idx]))
-                                .let { (x, y) ->
-                                    Pair(
-                                            x.toInt().toFloat(),
-                                            y.toInt().toFloat()
-                                    )
-                                }
-                                .let { (x, y) ->
-                                    listOf(
-                                            Vector2(x, y),
-                                            Vector2(x + 1, y),
-                                            Vector2(x, y + 1),
-                                            Vector2(x + 1, y + 1)
-
-                                    )
-                                }.forEach { v ->
-                                    color = Color.MAGENTA
-                                    circle(v.x, v.y, 0.2f)
-                                }
-                    }
-
-                }
-            }
-        }
 
         if (showDebug) {
             collisionPoints.forEach { v ->

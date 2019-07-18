@@ -78,8 +78,15 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         log.info("Revving Engines")
         engine = PooledEngine()
         engine.addSystem(FovRenderSystem(viewportManager.viewport))
-        engine.addSystem(RenderSystem(batch, viewportManager.viewport, collisionPoints, mapManager
-                , showDebug = false))
+        engine.addSystem(
+                RenderSystem(
+                        batch,
+                        viewportManager.viewport,
+                        collisionPoints,
+                        mapManager, showDebug = false
+                )
+        )
+        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
@@ -102,8 +109,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         Equipment(
                                 MeleeWeapon(
                                         "Short Sword",
-                                        10,
-                                        1f,
+                                        30,
+                                        3f,
                                         NumberHandsToWield.ONE,
                                         1f),
                                 Shield("Large Shield", 0.7f),
@@ -112,7 +119,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CHealth(250,
                         250,
                         1,
-                        1))
+                        3, 3))
                 add(CRenderableSprite(Sprite(playerCharacterAnim.frame(0))))
                 add(CTransform(pos, rotation, spriteRadius))
                 add(CSelectable(
@@ -146,8 +153,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CCombatant(Enemy(3f),
                         Equipment(
                                 MeleeWeapon("Large Axe",
-                                        120,
-                                        2f,
+                                        20,
+                                        4f,
                                         NumberHandsToWield.TWO,
                                         1f
                                 ),
@@ -157,7 +164,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CHealth(250,
                         250,
                         1,
-                        1))
+                        3, 3))
                 add(CRenderableSprite(orcSprite))
                 add(CTransform(pos, 270f, orcSprite.width / 2f))
                 add(CMovable(2f, null, Stack(), 8f, null))
@@ -175,8 +182,15 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addEntity(createPc(Vector2(2.5f, 1f)))
         engine.addEntity(createPc(Vector2(2.5f, 2f)))
 
-        engine.addEntity(createOrc(Vector2(14.5f, 17f)))
-        engine.addEntity(createOrc(Vector2(15.5f, 18f)))
+
+        engine.addEntity(createOrc(Vector2(3.5f, 4.5f)))
+
+        engine.addEntity(createOrc(Vector2(4.5f, 9f)))
+        engine.addEntity(createOrc(Vector2(12.5f, 1.5f)))
+        engine.addEntity(createOrc(Vector2(5.5f, 12f)))
+        engine.addEntity(createOrc(Vector2(6.5f, 12f)))
+        engine.addEntity(createOrc(Vector2(10.5f, 9.5f)))
+        engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
 //
 //        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
 //        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
@@ -192,7 +206,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         // Render Map
         mapRenderer.setView(viewportManager.viewport.camera as OrthographicCamera)
-
         mapRenderer.render()
 
         // Update systems

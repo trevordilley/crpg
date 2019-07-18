@@ -26,6 +26,7 @@ class CHealth(
         var maxStamina: Int,
         var staminaRechargeRate: Int,
         var health: Int,
+        var maxHealth: Int,
         val damages: MutableList<Damage> = mutableListOf(),
         var staminaNotRechargingForSeconds: Float = 0f) : Component
 
@@ -86,7 +87,7 @@ class HealthSystem : IteratingSystem(
                     if (health.health <= 0) {
                         entity.add(CDead())
                     } else {
-                        health.health -= damage.health
+                        health.health -= 1//damage.health
                     }
                 } else {
                     health.stamina = max(health.stamina - armorAdjustedDamage.stamina, 0)
