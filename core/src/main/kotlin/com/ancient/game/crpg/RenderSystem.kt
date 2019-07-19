@@ -23,7 +23,7 @@ import ktx.ashley.mapperFor
 
 
 class CRenderableSprite(val sprite: Sprite) : Component
-class CTransform(var position: Vector2, var rotation: Float, val radius: Float) : Component
+class CTransform(var position: Vector2, var rotation: Float, val radius: Float, val scale: Float = 1f) : Component
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
@@ -53,6 +53,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             val x: FloatArray,
             val y: FloatArray,
             val r: FloatArray,
+            val s: FloatArray,
             val sprites: Array<Sprite>,
             val healthData: Array<Int?>,
             val staminaData: Array<Int?>,
@@ -71,6 +72,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 FloatArray(entities.size),
                 FloatArray(entities.size),
                 FloatArray(entities.size),
+                FloatArray(entities.size),
                 entities.map { it[spriteRenderMapper]!!.sprite }.toTypedArray(),
                 arrayOfNulls(entities.size),
                 arrayOfNulls(entities.size),
@@ -81,6 +83,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 x[idx] = position.x
                 y[idx] = position.y
                 r[idx] = entity[transform]!!.rotation
+                s[idx] = entity[transform]!!.scale
                 healthData[idx] = entity[healthMapper]?.health
                 staminaData[idx] = entity[healthMapper]?.stamina
                 maxStaminaData[idx] = entity[healthMapper]?.maxStamina
@@ -109,6 +112,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
                 val r =
                         data.r[index]
+
+                val s = data.s[index]
                 // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
                 batch.setColor(1f, 1f, 1f, 1f)
                 batch.draw(
@@ -119,7 +124,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                         heightOffset,
                         width,
                         height,
-                        1f, 1f,
+                        s, s,
                         r
                 )
             }

@@ -101,7 +101,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val playerCharacterTexture: Texture = assetManager[SpriteAsset.SWORD_SHIELD.filePath]
         val playerCharacterSprite = Sprite(playerCharacterTexture)
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
+
+
         val createPc = { pos: Vector2 ->
+
             Entity().apply {
                 val spriteRadius = (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f
                 val rotation = 90f
@@ -176,6 +179,15 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
 
+        // Light Source Test
+        val lightSourceTexture: Texture = assetManager[SpriteAsset.LIGHT_SOURCE.filePath]
+        val lightSourceSprite = Sprite(lightSourceTexture).apply {
+
+        }
+        engine.addEntity(Entity().apply {
+            add(CRenderableSprite(lightSourceSprite))
+            add(CTransform(Vector2(3f, 3f), 0f, lightSourceSprite.height, 5f))
+        })
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
         engine.addEntity(createPc(Vector2(1.5f, 2f)))

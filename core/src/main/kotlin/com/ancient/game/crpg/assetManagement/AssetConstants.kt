@@ -3,7 +3,8 @@ package com.ancient.game.crpg.assetManagement
 
 enum class SpriteAsset(val filePath: String) {
     SWORD_SHIELD("64_rpg_sword_shield.png"),
-    ORC("64_orc.png")
+    ORC("64_orc.png"),
+    LIGHT_SOURCE("64_light_source.png"),
 }
 
 enum class AsepriteAsset(val assetName: String) {

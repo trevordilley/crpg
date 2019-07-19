@@ -85,7 +85,8 @@ MVP:
   - [ ] Camera movement smoothed out
   Immediately moves when the player pushes a direction, but slows down a little as it reaches the destination.
   - [ ] Fix going around corners
-
+  Health arcs don't seem to behave correctly
+  - [ ] Fix health and stamina damage
         
         
 ### Demo Battle Sceen
