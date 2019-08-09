@@ -179,15 +179,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
 
-        // Light Source Test
-        val lightSourceTexture: Texture = assetManager[SpriteAsset.LIGHT_SOURCE.filePath]
-        val lightSourceSprite = Sprite(lightSourceTexture).apply {
 
-        }
-        engine.addEntity(Entity().apply {
-            add(CRenderableSprite(lightSourceSprite))
-            add(CTransform(Vector2(3f, 3f), 0f, lightSourceSprite.height, 5f))
-        })
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
         engine.addEntity(createPc(Vector2(1.5f, 2f)))
