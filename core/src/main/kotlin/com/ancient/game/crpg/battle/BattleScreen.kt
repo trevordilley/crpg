@@ -19,7 +19,6 @@ import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Vector2
-import ktx.app.KtxInputAdapter
 import ktx.app.KtxScreen
 import java.util.Stack
 
@@ -50,27 +49,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         inputManager = UserInputManager(listOf(battleCommandSystem, viewportManager))
 
-        Gdx.input.inputProcessor = object : KtxInputAdapter {
-            override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                inputManager.touchDown(screenX, screenY, pointer, button)
-                return false
-            }
-
-            override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-                inputManager.touchUp(screenX, screenY, pointer, button)
-                return false
-            }
-
-            override fun keyDown(keycode: Int): Boolean {
-                inputManager.keyDown(keycode)
-                return false
-            }
-
-            override fun keyUp(keycode: Int): Boolean {
-                inputManager.keyUp(keycode)
-                return false
-            }
-        }
+        Gdx.input.inputProcessor = inputManager
 
         // Map
 
