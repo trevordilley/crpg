@@ -18,7 +18,33 @@ https://www.mapeditor.org/
 Sprite/Animation management using Aseprite
 https://www.aseprite.org/
 
+## Current Tasks
+- Re-implement the selectable sprites using the kind to sprite mapping mentioned below in
+improvements
+- Implement hauling system. Something being hauled follows behind the hauler. 
+    - Clicking on a hauler, then clicking on something haulable within range will attach
+    the haulable entity to the hauler. Will follow if the hauler moves
+    - Clicking on an attached haulable entity will detach it from the hauler
+    - Things that could be hauled:
+        - Loot
+        - Downed NPCs
+   
+
 ## TODO's by priority 
+
+### Improvements
+
+- Make the Renderable component actually contain a map of key to sprite. Each entry maps a `kind` to an object which
+contains the Sprite data (texture, animation, etc) and it's layer as an int. The Render System will just grab the values and sort by the layer ordinal,
+same with the animation system, but other systems can then add other sprites to the same component (like the selection sprite) easily.
+
+- Create a simple message bus. It's weird having messages being components on Entities, really it just needs to be a List of kinds of messages and the
+thing to do when that message is encountered. For example: When an attacker tries to damage something, it creates a message that contains the attack, victim and damage 
+
+- When an NPC runs out of Hit Points, it's now "DOWN" and has a circular timer start. When the time runs out they
+die for good. Enemies will attack other targets unless that's the only target in range. The downed NPC cannot move
+or do anything else. They become `haulable` though, and when a friendly NPC starts to `haul` the downed character
+the countdown slows dramatically. They will eventually be able to be restored if they are hauled to a healer. 
 
 ### Battle
 
@@ -35,8 +61,10 @@ MVP:
  - As a player I have enemies that are both melee and ranged, fast and slow
  - Entities should not overlap with one another. 
  - As a player I can find loot and must carry it out
+    - Implementation: A "haulable" thing will follow behind the entity carrying it.
+    - Loot near a wagon is added to the wagon and will be carried out, the loot is *claimed* 
  - As a player, the light level in a dungeon or area plays an important tactical role
-
+    
 #### Dungeon
 * UI Layer
     * Fix shapes showing direction of characters
