@@ -44,7 +44,7 @@ class OnSelectAnimation(animation: Aseprite) : AnimationState(
 class AnimationData(var currentAnimationState: AnimationState, val animations: List<AnimationState>,
                     private var active: Boolean, private var timePassed: Float = 0f) {
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private var sprite = Sprite()
+    private var sprite = Sprite(currentAnimationState.animation.getKeyFrame(0f))
     // By making this an inline function it can't be made both private and reified
     // so we need to think of a simpler implementation.
     inline fun <reified T> setAnimation() where T : AnimationState {
@@ -78,7 +78,7 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
 
     fun currentFrame(): Sprite =
             currentAnimationState
-                    .let { it.animation.getKeyFrame(0f, it.looping) }
+                    .let { it.animation.getKeyFrame(timePassed, it.looping) }
                     .let {
                         sprite.apply {
                             setRegion(it)
