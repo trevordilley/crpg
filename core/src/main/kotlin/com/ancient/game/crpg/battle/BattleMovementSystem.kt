@@ -93,7 +93,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                 }
             } else {
                 // set destination to null and clear stack
-                entity[animatedMapper]?.setAnimation<IdleAnimation>()
+                entity[animatedMapper]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
             }
         }
     }

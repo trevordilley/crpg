@@ -63,12 +63,15 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
         Vector2.dst(x, y, tx, ty).let { distance ->
             if (distance <= weapon.range) {
 
-                attacker[animatedMapper]?.setAnimation<AttackAnimation>()
-                attacker[animatedMapper]?.addAction(9) {
+                val atk =
+                        attacker[animatedMapper]!!.anims.values.first()
+
+                atk.setAnimation<AttackAnimation>()
+                atk.addAction(9) {
                     BattleActionEffectSystem.applyEffect(engine,
                             CMeleeEffect(attacker, target, weapon.range, weapon.staminaDamage))
 
-                    attacker[animatedMapper]?.setAnimation<IdleAnimation>()
+                    atk.setAnimation<IdleAnimation>()
                 }
                 attacker[movableMapper]!!.destination = null
             } else {

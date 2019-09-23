@@ -1,6 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.CRenderableSprite
+import com.ancient.game.crpg.CAnimated
 import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.SiUnits
 import com.badlogic.ashley.core.ComponentMapper
@@ -20,12 +20,12 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
         all(
                 CHealth::class.java,
                 CTransform::class.java,
-                CRenderableSprite::class.java
+                CAnimated::class.java
         ).get()) {
 
     private val healthMapper: ComponentMapper<CHealth> = mapperFor()
     private val transformMapper: ComponentMapper<CTransform> = mapperFor()
-    private val spriteMapper: ComponentMapper<CRenderableSprite> = mapperFor()
+    private val animationM: ComponentMapper<CAnimated> = mapperFor()
     private var healthUiToRender = mutableListOf<Entity>()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -44,7 +44,7 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
 
         healthUiToRender.forEach { entity ->
-            val sprite = entity[spriteMapper]!!.sprite
+            val sprite = entity[animationM]!!.anims.values.first().currentFrame()
             val health = entity[healthMapper]!!
 
             val (x, y, r) =

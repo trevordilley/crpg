@@ -72,7 +72,7 @@ class BattleCommandSystem(private val viewport: Viewport,
 
                                             val path = mapManager.findPath(it[transform]!!.position, destination)
 
-                                            it[animated]?.setAnimation<MovingAnimation>()
+                                            it[animated]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
 
                                             it[movable]!!.destination = viewport.unproject(
                                                     Vector2(leftClick.screenX, leftClick.screenY))

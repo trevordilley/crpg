@@ -1,6 +1,5 @@
 package com.ancient.game.crpg
 
-import com.ancient.game.crpg.battle.CHealth
 import com.ancient.game.crpg.battle.CMovable
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
@@ -22,25 +21,28 @@ import ktx.ashley.has
 import ktx.ashley.mapperFor
 
 
-class CRenderableSprite(val sprite: Sprite) : Component
 class CTransform(var position: Vector2, var rotation: Float, val radius: Float, val scale: Float = 1f) : Component
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
                    val collisionPoints: Set<Vector2>, val mapManager: MapManager,
                    val showDebug: Boolean = false) : IteratingSystem(
-        all(CRenderableSprite::class.java, CTransform::class.java).get()) {
+        all(CAnimated::class.java, CTransform::class.java).get()) {
 
-    private val log = gameLogger(this::class.java)
 
-    private val spriteRenderMapper: ComponentMapper<CRenderableSprite> = mapperFor()
-    private val transform: ComponentMapper<CTransform> = mapperFor()
-    private val movable: ComponentMapper<CMovable> = mapperFor()
-    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
+    private val animationM: ComponentMapper<CAnimated> = mapperFor()
+    private val transformM: ComponentMapper<CTransform> = mapperFor()
+    private val movableM: ComponentMapper<CMovable> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
-    private var spritesToRender = mutableListOf<Entity>()
+    private var spritesToRender = mutableListOf<Pair<Sprite, CTransform>>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[spriteRenderMapper]?.let { spritesToRender.add(entity) }
+
+        entity[animationM]
+                ?.anims
+                ?.values
+                ?.filter { it.isActive }
+                ?.map { it.currentFrame() to entity[transformM]!! }
+                ?.forEach { spritesToRender.add(it) }
     }
 
     override fun update(deltaTime: Float) {
@@ -49,109 +51,70 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         spritesToRender.clear()
     }
 
-    private class DrawData(
-            val x: FloatArray,
-            val y: FloatArray,
-            val r: FloatArray,
-            val s: FloatArray,
-            val sprites: Array<Sprite>,
-            val healthData: Array<Int?>,
-            val staminaData: Array<Int?>,
-            val maxStaminaData: Array<Int?>
-    )
 
-
-    private fun draw(entities: List<Entity>) {
+    private fun draw(drawData: List<Pair<Sprite, CTransform>>) {
         viewport.camera.update()
 
         shapeRenderer.projectionMatrix = viewport.camera.combined
 
+        // Entity Renders
+        batch.projectionMatrix = viewport.camera.combined
+        batch.begin()
+        Gdx.gl20.glColorMask(true, true, true, true)
+        Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
+        Gdx.gl20.glDepthFunc(GL20.GL_EQUAL)
 
-        // Render sprites
-        DrawData(
-                FloatArray(entities.size),
-                FloatArray(entities.size),
-                FloatArray(entities.size),
-                FloatArray(entities.size),
-                entities.map { it[spriteRenderMapper]!!.sprite }.toTypedArray(),
-                arrayOfNulls(entities.size),
-                arrayOfNulls(entities.size),
-                arrayOfNulls(entities.size)
-        ).apply {
-            entities.forEachIndexed { idx, entity ->
-                val position: Vector2 = entity[transform]!!.position
-                x[idx] = position.x
-                y[idx] = position.y
-                r[idx] = entity[transform]!!.rotation
-                s[idx] = entity[transform]!!.scale
-                healthData[idx] = entity[healthMapper]?.health
-                staminaData[idx] = entity[healthMapper]?.stamina
-                maxStaminaData[idx] = entity[healthMapper]?.maxStamina
+        drawData.forEach { (sprite, transform) ->
+            val width = sprite.width * SiUnits.PIXELS_TO_METER
+            val height = sprite.height * SiUnits.PIXELS_TO_METER
 
-            }
-        }.let { data ->
+            val widthOffset = width / 2
+            val heightOffset = height / 2
+            val x =
+                    transform.position.x - widthOffset
 
-            // Entity Renders
-            batch.projectionMatrix = viewport.camera.combined
-            batch.begin()
-            Gdx.gl20.glColorMask(true, true, true, true)
-            Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
-            Gdx.gl20.glDepthFunc(GL20.GL_EQUAL)
+            val y =
+                    transform.position.y - heightOffset
 
-            data.sprites.forEachIndexed { index, sprite ->
-                val width = sprite.width * SiUnits.PIXELS_TO_METER
-                val height = sprite.height * SiUnits.PIXELS_TO_METER
-
-                val widthOffset = width / 2
-                val heightOffset = height / 2
-                val x =
-                        data.x[index] - widthOffset
-
-                val y =
-                        data.y[index] - heightOffset
-
-                val r =
-                        data.r[index]
-
-                val s = data.s[index]
-                // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
-                batch.setColor(1f, 1f, 1f, 1f)
-                batch.draw(
-                        sprite,
-                        x,
-                        y,
-                        widthOffset,
-                        heightOffset,
-                        width,
-                        height,
-                        s, s,
-                        r
-                )
-            }
-            batch.end()
-
-            // UI Rendering
-            val originalMatrix = batch.projectionMatrix.cpy()
-            val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
-            batch.projectionMatrix = uiMatrix
-            batch.begin()
-            val font = BitmapFont()
-            if (UserInputManager.isPaused) {
-                font.color = Color.MAGENTA
-                font.draw(
-                        batch,
-                        "PAUSED",
-                        (viewport.worldWidth * SiUnits.UNIT) / 2f,
-                        200f
-                )
-            }
-            batch.projectionMatrix = originalMatrix
-            batch.end()
-            debugDraw(showDebug, data)
+            val r =
+                    transform.rotation
+            val s = transform.scale
+            // https@//gamedev.stackexchange.com/questions/151624/libgdx-orthographic-camera-and-world-units
+            batch.setColor(1f, 1f, 1f, 1f)
+            batch.draw(
+                    sprite,
+                    x,
+                    y,
+                    widthOffset,
+                    heightOffset,
+                    width,
+                    height,
+                    s, s,
+                    r
+            )
         }
+        batch.end()
+        // UI Rendering
+        val originalMatrix = batch.projectionMatrix.cpy()
+        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
+        batch.projectionMatrix = uiMatrix
+        batch.begin()
+        val font = BitmapFont()
+        if (UserInputManager.isPaused) {
+            font.color = Color.MAGENTA
+            font.draw(
+                    batch,
+                    "PAUSED",
+                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
+                    200f
+            )
+        }
+        batch.projectionMatrix = originalMatrix
+        batch.end()
+        debugDraw(showDebug)
     }
 
-    private fun debugDraw(displayDebug: Boolean, data: DrawData) {
+    private fun debugDraw(displayDebug: Boolean) {
         if (!displayDebug) return
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
@@ -171,9 +134,9 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             }
 
             entities
-                    .filter { it.has(movable) }
+                    .filter { it.has(movableM) }
                     .forEach { entity ->
-                        entity[movable]!!
+                        entity[movableM]!!
                                 .path
                                 .toList()
                                 .let { path ->

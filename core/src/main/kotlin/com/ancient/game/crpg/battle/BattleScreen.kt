@@ -43,7 +43,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
 
         val selectionCircleAnim: Aseprite = assetManager[AsepriteAsset.SELECTION_CIRCLE.assetName]
-        val selectionSystem = SelectionSystem(selectionCircleAnim)
+        val selectionSystem = SelectionSystem()
 
         val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager, selectionSystem)
 
@@ -62,7 +62,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         batch,
                         viewportManager.viewport,
                         collisionPoints,
-                        mapManager, showDebug = false
+                        mapManager, showDebug = true
                 )
         )
         engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
@@ -102,29 +102,36 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         250,
                         1,
                         3, 3))
-                add(CRenderableSprite(Sprite(playerCharacterAnim.frame(0))))
                 add(CTransform(pos, rotation, spriteRadius))
-                add(CSelectable(
-                        Entity().apply {
-                            add(CTransform(pos, rotation, spriteRadius))
-                        }.also {
-                            engine.addEntity(it)
-                        },
-                        SelectedAnimation(selectionCircleAnim),
-                        OnSelectAnimation(selectionCircleAnim)
-                )
-                )
+                add(CSelectable())
                 add(CFoV(null))
                 add(CPlayerControlled)
                 add(CMovable(2f, null, Stack(), 600f, null))
-                add(CAnimated(IdleAnimation(playerCharacterAnim), listOf(
-                        IdleAnimation(playerCharacterAnim),
-                        AttackAnimation(playerCharacterAnim),
-                        MovingAnimation(playerCharacterAnim)
-                )))
+                add(
+                        CAnimated(
+                                mapOf(
+                                        AsepriteAsset.SWORD_SHIELD to AnimationData(
+                                                IdleAnimation(playerCharacterAnim),
+                                                listOf(
+                                                        IdleAnimation(playerCharacterAnim),
+                                                        AttackAnimation(playerCharacterAnim),
+                                                        MovingAnimation(playerCharacterAnim)
+                                                ),
+                                                true
+                                        ),
+                                        AsepriteAsset.SELECTION_CIRCLE to AnimationData(
+                                                OnSelectAnimation(selectionCircleAnim),
+                                                listOf(
+                                                        OnSelectAnimation(selectionCircleAnim),
+                                                        SelectedAnimation(selectionCircleAnim)
+                                                ),
+                                                false
+                                        )
+                                )
+                        )
+                )
             }
         }
-
 
         // Orc
         val orcTexture: Texture = assetManager[SpriteAsset.ORC.filePath]
@@ -147,14 +154,21 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         250,
                         1,
                         3, 3))
-                add(CRenderableSprite(orcSprite))
                 add(CTransform(pos, 270f, orcSprite.width / 2f))
                 add(CMovable(2f, null, Stack(), 8f, null))
-                add(CAnimated(IdleAnimation(orcAnim), listOf(
-                        IdleAnimation(orcAnim),
-                        AttackAnimation(orcAnim),
-                        MovingAnimation(orcAnim)
-                )))
+                add(CAnimated(
+                        mapOf(
+                                AsepriteAsset.ORC to AnimationData(
+                                        IdleAnimation(orcAnim),
+                                        listOf(
+                                                IdleAnimation(orcAnim),
+                                                AttackAnimation(orcAnim),
+                                                MovingAnimation(orcAnim)
+                                        ),
+                                        true
+                                )
+                        )
+                ))
             }
         }
 
