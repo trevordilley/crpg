@@ -101,7 +101,7 @@ class BattleCommandSystem(private val viewport: Viewport,
                         rotationPivot = pos
                     } else {
                         rotationChanged = true
-                        (pos - rotationPivot!!).nor()
+                        rotation = (pos - rotationPivot!!).nor().cpy()
                         rotationPivot = null
                     }
                 }

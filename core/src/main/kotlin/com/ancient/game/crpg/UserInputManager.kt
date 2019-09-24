@@ -42,6 +42,8 @@ class UserInputManager(
 
     private var leftButtonAction: MouseButtonAction? = null
     private var rightButtonAction: MouseButtonAction? = null
+    private var lastDown: Int = 0 // for dragging
+
 
     private var up: Boolean = false
     private var down: Boolean = false
@@ -70,7 +72,7 @@ class UserInputManager(
 
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        logger.info("down")
+        lastDown = button
 
         assignMouseButtonAction(
                 button,
@@ -84,7 +86,7 @@ class UserInputManager(
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
         assignMouseButtonAction(
-                pointer,
+                lastDown,
                 MouseButtonDragging(
                         position = Vector2(screenX.toFloat(), screenY.toFloat())
                 )
