@@ -52,7 +52,7 @@ class BattleCommandSystem(private val viewport: Viewport,
         mouseInput.left?.let { leftClick ->
             when (leftClick) {
                 is MouseUp -> {
-                    val worldPos = viewport.unproject(Vector2(leftClick.screenX, leftClick.screenY))
+                    val worldPos = viewport.unproject(leftClick.position.cpy())
                     entities
                             .firstOrNull {
                                 it[selectable] != null &&
@@ -67,15 +67,11 @@ class BattleCommandSystem(private val viewport: Viewport,
                                         .filter { selectionSystem.selection.contains(it[selectable]) }
                                         .forEach {
 
-                                            val destination = viewport.unproject(
-                                                    Vector2(leftClick.screenX, leftClick.screenY))
-
-                                            val path = mapManager.findPath(it[transform]!!.position, destination)
+                                            val path = mapManager.findPath(it[transform]!!.position, worldPos)
 
                                             it[animated]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
 
-                                            it[movable]!!.destination = viewport.unproject(
-                                                    Vector2(leftClick.screenX, leftClick.screenY))
+                                            it[movable]!!.destination = worldPos
                                             it[movable]!!.path = path.let { p ->
                                                 val stack = Stack<Vector2>()
                                                 p.toList().reversed().forEach { tile ->
@@ -95,20 +91,18 @@ class BattleCommandSystem(private val viewport: Viewport,
 
         mouseInput.right?.let { rightClick ->
             when (rightClick) {
-                is MouseDown -> {
-                    rotationPivot = viewport.unproject(Vector2(rightClick.screenX, rightClick.screenY))
+                is MouseUp -> if (rotationPivot == null) {
+                    resetSelection()
                 }
-                is MouseUp -> {
-                    if (rightClick.wasDragging) {
-                        rotation = rotationPivot?.let { pivot ->
-                            rotationChanged = true
-                            val towards = viewport.unproject(Vector2(rightClick.screenX, rightClick.screenY))
-                            rotationPivot = null
-                            (towards - pivot).nor().also {
-                            }
-                        }
+                is MouseButtonDragging -> {
+                    val pos = viewport.unproject(rightClick.position.cpy())
+
+                    if (rotationPivot == null) {
+                        rotationPivot = pos
                     } else {
-                        resetSelection()
+                        rotationChanged = true
+                        (pos - rotationPivot!!).nor()
+                        rotationPivot = null
                     }
                 }
             }

@@ -4,25 +4,16 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxInputAdapter
 
-data class MouseInput(val left: MouseButtonAction?,
-                      val right: MouseButtonAction?)
+
+data class MouseInput(
+        val left: MouseButtonAction?,
+        val right: MouseButtonAction?
+)
 
 sealed class MouseButtonAction
-data class MouseDown(
-        val screenX: Float,
-        val screenY: Float
-) : MouseButtonAction()
-
-data class MouseUp(
-        val screenX: Float,
-        val screenY: Float,
-        val isDoubleClick: Boolean = false,
-        val wasDragging: Boolean = false
-) : MouseButtonAction()
-
-
-internal const val START_DRAGGING_DISTANCE = 5f
-
+data class MouseDown(val position: Vector2) : MouseButtonAction()
+data class MouseButtonDragging(val position: Vector2) : MouseButtonAction()
+data class MouseUp(val position: Vector2) : MouseButtonAction()
 
 interface UserInputListener {
     fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
@@ -34,19 +25,12 @@ class UserInputManager(
         private val listeners: List<UserInputListener>
 ) : KtxInputAdapter {
 
-    /*******
-     *
-     *  HEY
-     *
-     *  DONT FORGET TO UPDATE THE Gdx.input.inputProcessor in BattleScreen.kt, etc!
-     *
-     */
     companion object {
         // TODO: How to make this mutable only from the UserInputManager?
         var isPaused = false
 
         fun deltaTime(dt: Float): Float {
-            return if (UserInputManager.isPaused) {
+            return if (isPaused) {
                 0f
             } else {
                 dt
@@ -56,57 +40,22 @@ class UserInputManager(
 
     private val logger = gameLogger(this::class.java)
 
-    private var timeSinceLastLeftUp = 0f
-    private var timeSinceLastRightUp = 0f
+    private var leftButtonAction: MouseButtonAction? = null
+    private var rightButtonAction: MouseButtonAction? = null
 
-    private data class MouseButton(
-            val down: Vector2,
-            val up: Vector2?,
-            val timePassed: Float = 0f,
-            val isCtrl: Boolean = false
-    ) {
-        constructor(downX: Int, downY: Int, upX: Int? = null, upY: Int? = null,
-                    timePassed: Float = 0f, isCtrl: Boolean = false)
-                : this(Vector2(downX.toFloat(), downY.toFloat()),
-                if (upX != null && upY != null) {
-                    Vector2(upX.toFloat(), upY.toFloat())
-                } else {
-                    null
-                }, timePassed, isCtrl
-        )
-
-        // Unable to maintain the dragging state because mouse moved wasn't being detected
-        // on touchpad for OSX
-        fun wasDragged(): Boolean =
-                up?.let {
-                    Vector2.dst(up.x, up.y, down.x, down.y) >= START_DRAGGING_DISTANCE
-                } ?: false
-
-        fun deriveAction(): MouseButtonAction {
-            return when {
-                up != null -> MouseUp(up.x, up.y, false, wasDragged())
-                else -> MouseDown(down.x, down.y)
-            }
-        }
-
-    }
-
-    private var leftButton: MouseButton? = null
-    private var rightButton: MouseButton? = null
+    private var up: Boolean = false
+    private var down: Boolean = false
+    private var left: Boolean = false
+    private var right: Boolean = false
 
 
-    fun update(dt: Float) {
-        // Update relevant systems
-        leftButton = leftButton?.copy(timePassed = leftButton!!.timePassed + dt)
-        leftButton?.let { timeSinceLastLeftUp += dt }
-        rightButton = rightButton?.copy(timePassed = rightButton!!.timePassed + dt)
-        rightButton?.let { timeSinceLastRightUp += dt }
-
+    fun update() {
+        // Update listening systems
         listeners.forEach { listener ->
             listener.onInput(
                     MouseInput(
-                            leftButton?.deriveAction(),
-                            rightButton?.deriveAction()
+                            leftButtonAction,
+                            rightButtonAction
                     ),
                     left,
                     up,
@@ -115,40 +64,72 @@ class UserInputManager(
             )
         }
 
-        rightButton?.up?.let { rightButton = null }
-        leftButton?.up?.let { leftButton = null }
-
+        rightButtonAction = null
+        leftButtonAction = null
     }
 
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        when (button) {
-            Input.Buttons.LEFT -> leftButton = MouseButton(screenX, screenY)
-            Input.Buttons.RIGHT -> rightButton = MouseButton(screenX, screenY)
-        }
+        logger.info("down")
+
+        assignMouseButtonAction(
+                button,
+                MouseDown(
+                        position = Vector2(screenX.toFloat(), screenY.toFloat())
+                )
+        )
         return false
     }
+
+
+    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        assignMouseButtonAction(
+                pointer,
+                MouseButtonDragging(
+                        position = Vector2(screenX.toFloat(), screenY.toFloat())
+                )
+        )
+        return false
+    }
+
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        when (button) {
-            Input.Buttons.LEFT -> {
-                leftButton = leftButton?.copy(
-                        up = Vector2(screenX.toFloat(), screenY.toFloat())
+        assignMouseButtonAction(
+                button,
+                MouseUp(
+                        position = Vector2(screenX.toFloat(), screenY.toFloat())
                 )
-            }
-            Input.Buttons.RIGHT -> {
-                rightButton = rightButton?.copy(
-                        up = Vector2(screenX.toFloat(), screenY.toFloat())
-                )
-            }
+        )
+        return false
+    }
+
+
+    override fun keyDown(keycode: Int): Boolean {
+        setArrowKeys(keycode, true)
+        when (keycode) {
+            Input.Keys.SPACE -> isPaused = !isPaused
         }
         return false
     }
 
-    private var up: Boolean = false
-    private var down: Boolean = false
-    private var left: Boolean = false
-    private var right: Boolean = false
+
+    override fun keyUp(keycode: Int): Boolean {
+        setArrowKeys(keycode, false)
+        return false
+    }
+
+
+    private fun assignMouseButtonAction(pointer: Int, action: MouseButtonAction) {
+        when (pointer) {
+            Input.Buttons.LEFT -> {
+                leftButtonAction = action
+            }
+            Input.Buttons.RIGHT -> {
+                rightButtonAction = action
+            }
+        }
+    }
+
 
     private fun setArrowKeys(keyCode: Int, isPressed: Boolean) {
         when (keyCode) {
@@ -161,22 +142,5 @@ class UserInputManager(
             Input.Keys.DOWN -> down = isPressed
             Input.Keys.S -> down = isPressed
         }
-
     }
-
-
-    override fun keyDown(keycode: Int): Boolean {
-        setArrowKeys(keycode, true)
-        when (keycode) {
-            Input.Keys.SPACE -> UserInputManager.isPaused = !UserInputManager.isPaused
-        }
-        return false
-    }
-
-    override fun keyUp(keycode: Int): Boolean {
-        setArrowKeys(keycode, false)
-
-        return false
-    }
-
 }

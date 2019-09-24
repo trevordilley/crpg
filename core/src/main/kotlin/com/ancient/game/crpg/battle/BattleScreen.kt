@@ -51,9 +51,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         Gdx.input.inputProcessor = inputManager
 
-        // Map
-
-
         log.info("Revving Engines")
         engine = PooledEngine()
         engine.addSystem(FovRenderSystem(viewportManager.viewport))
@@ -196,7 +193,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
     override fun render(delta: Float) {
         // Receive user input first
-        inputManager.update(delta)
+        inputManager.update()
 
         // Update camera
         viewportManager.update(delta)
