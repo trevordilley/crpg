@@ -24,21 +24,21 @@ class BattleActionEffectSystem : IteratingSystem(one(
         }
     }
 
-    private val meleeMapper: ComponentMapper<CMeleeEffect> = mapperFor()
-    private val transformMapper: ComponentMapper<CTransform> = mapperFor()
-    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
+    private val meleeM: ComponentMapper<CMeleeEffect> = mapperFor()
+    private val transformM: ComponentMapper<CTransform> = mapperFor()
+    private val healthM: ComponentMapper<CHealth> = mapperFor()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         if (!UserInputManager.isPaused) {
-            entity[meleeMapper]?.let { effect -> applyEffect(effect) }
+            entity[meleeM]?.let { effect -> applyEffect(effect) }
             engine.removeEntity(entity)
         }
     }
 
     private fun applyEffect(effect: CMeleeEffect) = effect.let { eff ->
-        eff.target[transformMapper]?.let { tarPos ->
-            eff.target[healthMapper]?.let { health ->
-                eff.attacker[transformMapper]?.let { attackerPos ->
+        eff.target[transformM]?.let { tarPos ->
+            eff.target[healthM]?.let { health ->
+                eff.attacker[transformM]?.let { attackerPos ->
                     val distance =
                             Vector2.dst(
                                     attackerPos.position.x,

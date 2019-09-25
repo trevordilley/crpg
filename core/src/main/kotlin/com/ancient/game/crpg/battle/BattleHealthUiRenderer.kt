@@ -23,13 +23,13 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
                 CAnimated::class.java
         ).get()) {
 
-    private val healthMapper: ComponentMapper<CHealth> = mapperFor()
-    private val transformMapper: ComponentMapper<CTransform> = mapperFor()
+    private val healthM: ComponentMapper<CHealth> = mapperFor()
+    private val transformM: ComponentMapper<CTransform> = mapperFor()
     private val animationM: ComponentMapper<CAnimated> = mapperFor()
     private var healthUiToRender = mutableListOf<Entity>()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[healthMapper]?.let { healthUiToRender.add(entity) }
+        entity[healthM]?.let { healthUiToRender.add(entity) }
     }
 
     override fun update(deltaTime: Float) {
@@ -45,14 +45,16 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
 
         healthUiToRender.forEach { entity ->
             val sprite = entity[animationM]!!.anims.values.first().currentFrame()
-            val health = entity[healthMapper]!!
+            val health = entity[healthM]!!
 
             val (x, y, r) =
-                    entity[transformMapper]!!
+                    entity[transformM]!!
                             .let {
                                 Triple(
                                         it.position.x,
-                                        it.position.y, it.rotation)
+                                        it.position.y,
+                                        it.rotation
+                                )
                             }
             val baseAlpha = 0.05f
             // Show the health as an arc
@@ -84,7 +86,8 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
                                     y,
                                     ((
                                             (sprite.width * stamPct)
-                                                    * SiUnits.PIXELS_TO_METER) / 2)
+                                                    * SiUnits.PIXELS_TO_METER) / 2
+                                            )
                                     ,
                                     r - (deg / 2),
                                     deg,

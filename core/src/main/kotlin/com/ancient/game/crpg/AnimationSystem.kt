@@ -64,6 +64,7 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
         active = false
     }
 
+
     fun activate(reset: Boolean = true) {
         active = true
         if (reset) {
@@ -72,9 +73,11 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
         }
     }
 
+
     fun step(dt: Float) {
         timePassed += (dt * currentAnimationState.timeDilation)
     }
+
 
     fun currentFrame(): Sprite =
             currentAnimationState
@@ -85,6 +88,7 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
                         }
                     }
 
+
     fun invokeAction() =
             currentAnimationState.animation
                     .getKeyFrameIndex(timePassed)
@@ -92,6 +96,7 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
                         actions[idx]?.invoke(this)
                         actions.remove(idx)
                     }
+
 
     fun addAction(frameIdx: Int, action: AnimationData.() -> Unit) {
         if (actions.containsKey(frameIdx)) {

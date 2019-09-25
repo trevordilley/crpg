@@ -17,11 +17,6 @@ class CAction(
     private var duration: Float = 0f
     private var deltaTime: Float = 0f
 
-    // Instead of a boolean, I could eventually see this being a map, list, or stack of effects
-    // that the user could query and pull from. Currently that's outside the
-    // scope of this work.
-
-    var effectApplied: Boolean = false
     fun update(dt: Float): Boolean {
         deltaTime = dt
         duration += dt
@@ -31,11 +26,11 @@ class CAction(
 }
 
 class BattleActionSystem : IteratingSystem(all(CAction::class.java).get()) {
-    private val actionMapper: ComponentMapper<CAction> = mapperFor()
+    private val actionM: ComponentMapper<CAction> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
 
-        entity[actionMapper]!!.update(dt).let { isCompleted ->
+        entity[actionM]!!.update(dt).let { isCompleted ->
             if (isCompleted) {
                 entity.remove<CAction>()
             }

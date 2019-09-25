@@ -18,7 +18,7 @@ class CSelectable(
 
 class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
-    private val selectionMapper = mapperFor<CSelectable>()
+    private val selectionM = mapperFor<CSelectable>()
     private val animationM = mapperFor<CAnimated>()
     private var currentSelection: MutableSet<CSelectable> = mutableSetOf()
     val selection: Set<CSelectable> get() = currentSelection
@@ -27,6 +27,7 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
     fun select(selection: CSelectable) {
         select(listOf(selection))
     }
+
 
     fun select(selection: List<CSelectable>) {
         deselect()
@@ -46,6 +47,7 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
         currentSelection.addAll(selection)
     }
 
+
     fun deselect() {
         currentSelection.forEach {
             it.selected = false
@@ -56,8 +58,9 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        val selected = entity[selectionMapper]!!
-        val animated = entity[animationM]!!.anims.getValue(AsepriteAsset.SELECTION_CIRCLE)
+        val selected = entity[selectionM]!!
+        val animated =
+                entity[animationM]!!.anims.getValue(AsepriteAsset.SELECTION_CIRCLE)
         // Update position
         if (selected.newlySelected) {
             animated
@@ -68,36 +71,9 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
                             setAnimation<SelectedAnimation>()
                         }
                     }
-//            selected
-//                    .selectionCircle
-//                    .apply {
-//                        add(
-//                                CRenderableSprite(
-//                                        Sprite(
-//                                                selectionAnimationState.animation.getKeyFrame(0f)
-//                                        )
-//                                )
-//                        )
-//                        add(
-//                                CAnimated(
-//                                        selected.onSelectAnimation,
-//                                        listOf(selected.selectedAnimation, selected.onSelectAnimation)
-//                                )
-//                                        .apply {
-//                                            setAnimation<OnSelectAnimation>()
-//                                            addAction(5) {
-//                                                setAnimation<SelectedAnimation>()
-//                                            }
-//                                        })
-//
-//                    }
             selected.newlySelected = false
         } else if (selected.newlyDeselected) {
             animated.deactivate()
-//            selected.selectionCircle.apply {
-//                remove(CRenderableSprite::class.java)
-//                remove(CAnimated::class.java)
-//            }
             selected.newlyDeselected = false
             selected.selected = false
         }

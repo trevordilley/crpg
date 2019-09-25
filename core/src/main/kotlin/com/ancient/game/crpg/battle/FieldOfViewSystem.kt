@@ -15,13 +15,17 @@ import ktx.math.minus
 
 class CFoV(var fovPoly: Polygon?) : com.badlogic.ashley.core.Component
 
-class FieldOfViewSystem(private val mapManager: MapManager) : IteratingSystem(
-        all(CFoV::class.java, CTransform::class.java).get()) {
+class FieldOfViewSystem(private val mapManager: MapManager)
+    : IteratingSystem(
+        all(
+                CFoV::class.java,
+                CTransform::class.java
+        ).get()) {
 
-    private val transform: ComponentMapper<CTransform> = mapperFor()
-    private val fov: ComponentMapper<CFoV> = mapperFor()
+    private val transformM: ComponentMapper<CTransform> = mapperFor()
+    private val fovM: ComponentMapper<CFoV> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        val pos = entity[transform]!!.position
+        val pos = entity[transformM]!!.position
 
         val opaqueEdges = mapManager.opaqueEdges
 
@@ -37,7 +41,7 @@ class FieldOfViewSystem(private val mapManager: MapManager) : IteratingSystem(
         }.flatten()
 
         val fovPoly = calculateFoV(pos.x, pos.y, opaqueEdges, angles)
-        entity[fov]!!.fovPoly = fovPoly
+        entity[fovM]!!.fovPoly = fovPoly
     }
 
 
@@ -112,20 +116,28 @@ class FieldOfViewSystem(private val mapManager: MapManager) : IteratingSystem(
 
             // Find CLOSEST intersection
             walls
-                    .mapNotNull { getIntersection(ray, Segment(it.p1.x, it.p1.y, it.p2.x, it.p2.y), angle.toFloat()) }
-                    .sortedBy { it.param }
-                    .firstOrNull()
+                    .mapNotNull {
+                        getIntersection(
+                                ray,
+                                Segment(
+                                        it.p1.x,
+                                        it.p1.y,
+                                        it.p2.x,
+                                        it.p2.y
+                                ),
+                                angle.toFloat())
+                    }
+                    .minBy { it.param }
         }
 
         return uniqueAngles
                 .mapNotNull { intersect(it.toDouble()) }
                 .sortedBy { it.angle }
-                .map {
-                    listOf(it.x, it.y)
-                }
+                .map { listOf(it.x, it.y) }
                 .flatten()
                 .let {
-                    Polygon(it.toFloatArray()).apply { setOrigin(sightX, sightY) }
+                    Polygon(it.toFloatArray())
+                            .apply { setOrigin(sightX, sightY) }
                 }
     }
 

@@ -39,11 +39,11 @@ class BattleCommandSystem(private val viewport: Viewport,
     private var rotationChanged = false
     private var mode: InputMode = InputMode.SELECT
 
-    private val movable: ComponentMapper<CMovable> = mapperFor()
-    private val transform: ComponentMapper<CTransform> = mapperFor()
-    private val playerControlled: ComponentMapper<CPlayerControlled> = mapperFor()
-    private val selectable: ComponentMapper<CSelectable> = mapperFor()
-    private val animated: ComponentMapper<CAnimated> = mapperFor()
+    private val movableM: ComponentMapper<CMovable> = mapperFor()
+    private val transformM: ComponentMapper<CTransform> = mapperFor()
+    private val playerControlledM: ComponentMapper<CPlayerControlled> = mapperFor()
+    private val selectableM: ComponentMapper<CSelectable> = mapperFor()
+    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
 
     override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
@@ -55,24 +55,24 @@ class BattleCommandSystem(private val viewport: Viewport,
                     val worldPos = viewport.unproject(leftClick.position.cpy())
                     entities
                             .firstOrNull {
-                                it[selectable] != null &&
-                                        it[transform]?.let { transform ->
+                                it[selectableM] != null &&
+                                        it[transformM]?.let { transform ->
                                             pointWithinTransformRadius(worldPos, transform)
                                         } ?: false
                             }
-                            ?.let { selectionSystem.select(it[selectable]!!) }
+                            ?.let { selectionSystem.select(it[selectableM]!!) }
                             ?: {
                                 entities
-                                        .filter { it.has(selectable) && it.has(playerControlled) && it.has(movable) }
-                                        .filter { selectionSystem.selection.contains(it[selectable]) }
+                                        .filter { it.has(selectableM) && it.has(playerControlledM) && it.has(movableM) }
+                                        .filter { selectionSystem.selection.contains(it[selectableM]) }
                                         .forEach {
 
-                                            val path = mapManager.findPath(it[transform]!!.position, worldPos)
+                                            val path = mapManager.findPath(it[transformM]!!.position, worldPos)
 
-                                            it[animated]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
+                                            it[animatedM]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
 
-                                            it[movable]!!.destination = worldPos
-                                            it[movable]!!.path = path.let { p ->
+                                            it[movableM]!!.destination = worldPos
+                                            it[movableM]!!.path = path.let { p ->
                                                 val stack = Stack<Vector2>()
                                                 p.toList().reversed().forEach { tile ->
                                                     // Move to middle of the tile
@@ -127,15 +127,15 @@ class BattleCommandSystem(private val viewport: Viewport,
     }
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        if (entity.has(selectable) && entity.has(playerControlled)) {
-            entity[selectable]!!.let {
+        if (entity.has(selectableM) && entity.has(playerControlledM)) {
+            entity[selectableM]!!.let {
                 if (it.selected) {
                     if (destinationChanged) {
-                        entity[movable]?.destination = destination
+                        entity[movableM]?.destination = destination
                         destinationChanged = false
                     }
                     if (rotationChanged) {
-                        entity[movable]?.facingDirection = rotation?.angle()
+                        entity[movableM]?.facingDirection = rotation?.angle()
                         rotationChanged = false
                     }
 

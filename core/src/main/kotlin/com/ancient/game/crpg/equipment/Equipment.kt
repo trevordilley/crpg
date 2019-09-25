@@ -30,5 +30,9 @@ data class Shield(
 
 object Nothing : Wielded()
 
-data class Equipment(val leftHand: Wielded, val rightHand: Wielded, val armor: Armor?)
+data class Equipment(
+        val leftHand: Wielded,
+        val rightHand: Wielded,
+        val armor: Armor?
+)
 

@@ -10,7 +10,13 @@ class ViewportManager(val viewport: Viewport) : UserInputListener {
     private var left: Boolean = false
     private var right: Boolean = false
 
-    override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean, right: Boolean, down: Boolean) {
+    override fun onInput(
+            mouseInput: MouseInput,
+            left: Boolean,
+            up: Boolean,
+            right: Boolean,
+            down: Boolean
+    ) {
         this.left = left
         this.right = right
         this.up = up
@@ -23,13 +29,9 @@ class ViewportManager(val viewport: Viewport) : UserInputListener {
 
         val cameraMoveSpeed = 20 * dt
 
-        //log.debug("$left, $right, $up, $down")
-        when {
-            left -> viewport.camera.position.x -= cameraMoveSpeed
-            right -> viewport.camera.position.x += cameraMoveSpeed
-            up -> viewport.camera.position.y += cameraMoveSpeed
-            down -> viewport.camera.position.y -= cameraMoveSpeed
-        }
-
+        if (left) viewport.camera.position.x -= cameraMoveSpeed
+        if (right) viewport.camera.position.x += cameraMoveSpeed
+        if (up) viewport.camera.position.y += cameraMoveSpeed
+        if (down) viewport.camera.position.y -= cameraMoveSpeed
     }
 }

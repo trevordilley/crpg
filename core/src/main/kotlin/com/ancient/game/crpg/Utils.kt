@@ -3,29 +3,17 @@ package com.ancient.game.crpg
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.EarClippingTriangulator
 import com.badlogic.gdx.math.Polygon
-import com.badlogic.gdx.math.Vector2
-import ktx.math.minus
-import ktx.math.plus
 import kotlin.math.min
 
 
-fun <T, R> T.letIf(predicate: Boolean, block: (T) -> R): R? {
-    return if (predicate) {
-        block(this)
-    } else {
-        null
-    }
-}
-
-
-
-
 data class TriangleShapeData(val x1: Float, val y1: Float, val x2: Float, val y2: Float, val x3: Float, val y3: Float)
+
 
 fun ShapeRenderer.triangle(data: TriangleShapeData) {
 
     this.triangle(data.x1, data.y1, data.x2, data.y2, data.x3, data.y3)
 }
+
 
 fun EarClippingTriangulator.createRenderableFilledPolygonMesh(polygon: Polygon): List<TriangleShapeData> {
     val vertices = polygon.transformedVertices
@@ -63,10 +51,12 @@ fun angleWithinArc(rotation: Float, angle: Float, arc: Float): Boolean {
     return (withinPositiveArc || withinNegativeShieldArc)
 }
 
+
 //TODO: I'm sure rotation is sub-optimal...
 fun rotationStep(speed: Float, currentRotation: Float) = normalizeDeg(currentRotation + speed).let {
     Math.floor(it.toDouble())
 }.toFloat()
+
 
 fun determineRotationDistance(targetRotation: Float, currentRotation: Float): Float {
     // Example: cur 348, target 5, distance is 17
@@ -74,6 +64,7 @@ fun determineRotationDistance(targetRotation: Float, currentRotation: Float): Fl
     val d2 = Math.abs((FULL_ROTATION_DEGREES - currentRotation + targetRotation))
     return min(d1, d2)
 }
+
 
 fun rotate(currentRotation: Float, targetRotation: Float, rotationSpeed: Float): Float {
     val rotDelta = determineRotationDistance(targetRotation, currentRotation)
@@ -97,17 +88,3 @@ fun rotate(currentRotation: Float, targetRotation: Float, rotationSpeed: Float):
         }
     }
 }
-
-fun linearCurve(p1: Vector2, p2: Vector2, t: Float): Vector2 = p1 + (p2 - p1).scl(t)
-
-fun quadraticBezier(p1: Vector2, p2: Vector2, p3: Vector2, t: Float): Vector2 {
-    val u = 1.0f - t
-    val a = u * u
-    val b = 2.0f * t * u
-    val c = t * t
-    return (p1.scl(a) + p2.scl(b) + p3.scl(c))
-}
-
-
-
-
