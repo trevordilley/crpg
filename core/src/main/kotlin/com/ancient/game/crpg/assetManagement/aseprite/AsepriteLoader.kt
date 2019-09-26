@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.utils.Array
+import ktx.collections.toGdxArray
 
 class AnimationSlice(
         val frameDuration: Float,
@@ -132,17 +133,21 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
 
     private val animationCache: Map<String, Animation<TextureRegion>>
     private val slicesCache: Map<String, AnimationSlices>
+    private val tagsCache: Array<Set<String>>
 
     init {
         animationCache = toAnimation()
         slicesCache = toSlices()
+        tagsCache = toFrameTags()
     }
 
     operator fun get(key: String): Animation<TextureRegion> = animationCache[key] ?: TODO(
             "Wrong animation name: $key. Expected: ${animationCache.keys.joinToString(",")}"
     )
 
-
+    fun tags(frame: Int) = tagsCache[frame]
+    fun hasTag(frame: Int, tag: String) = tagsCache[frame].contains(tag)
+   
     fun slices(name: String) = animatedSlices(name).slice
 
     fun animatedSlices(name: String) = slicesCache[name] ?: invalidSlice(name)
@@ -206,6 +211,24 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
             it.name to animation
         }.toMap()
     }
+
+    private fun toFrameTags(): Array<Set<String>> =
+            mutableListOf<MutableSet<String>>()
+                    .apply {
+                        json.frames.forEach { add(mutableSetOf()) }
+                        json.meta.frameTags.forEach { tag ->
+                            val from = tag.from
+                            val to = tag.to
+                            for (i in from..to) {
+                                get(i).add(tag.name)
+                            }
+                        }
+                    }
+                    .run {
+                        map { it.toSet() }
+                    }
+                    .toGdxArray()
+
 
     fun splitedIndex(index: Int, splitted: kotlin.Array<kotlin.Array<TextureRegion>>): Pair<Int, Int> {
         val x = ((index - index % splitted[0].size) / splitted[0].size)

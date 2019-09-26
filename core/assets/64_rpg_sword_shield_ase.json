@@ -171,13 +171,14 @@
  "meta": {
   "app": "http://www.aseprite.org/",
   "version": "1.3-dev",
-  "image": "/Users/trevordilley/Ancient/Software/kotlin-projects/crpg/core/raw/64_rpg_sword_shield_ase.png",
+  "image": "/Users/trevordilley/trevor.dilley.dev/crpg/core/assets/64_rpg_sword_shield_ase.png",
   "format": "RGBA8888",
   "size": { "w": 1344, "h": 64 },
   "scale": "1",
   "frameTags": [
    { "name": "Idle", "from": 0, "to": 3, "direction": "forward" },
    { "name": "Attack", "from": 4, "to": 13, "direction": "forward" },
+   { "name": "Damage", "from": 9, "to": 9, "direction": "forward" },
    { "name": "walking", "from": 14, "to": 20, "direction": "forward" }
   ],
   "layers": [
