@@ -2,7 +2,6 @@ package com.ancient.game.crpg
 
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
-import com.ancient.game.crpg.assetManagement.SpriteAsset
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJson
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJsonLoader
@@ -13,7 +12,6 @@ import com.badlogic.gdx.Screen
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.maps.tiled.TiledMap
@@ -58,10 +56,6 @@ class Application : KtxGame<Screen>() {
         val viewportManager = ViewportManager(viewport)
 
         log.info("Loading Assets")
-        SpriteAsset.values().forEach {
-            log.info("Loading ${it.filePath}")
-            assetManager.load(it.filePath, Texture::class.java)
-        }
 
         assetManager.setLoader(Aseprite::class.java, AsepriteLoader(InternalFileHandleResolver()))
         assetManager.setLoader(AsepriteJson::class.java, AsepriteJsonLoader(InternalFileHandleResolver()))

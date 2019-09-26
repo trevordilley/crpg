@@ -32,14 +32,14 @@ improvements
 
 ## TODO's by priority 
 
+### BUGS 
+
+- Smoother Camera movement. When using the WASD or arrow keys to move the camera, move a _support point_ rather than 
+the camera's position itself. Instead have the camera _chase the support point_, speeding up the farther away it is from
+the support point and smoothly slowing down as it gets closer. 
+
 ### Improvements
 
-- Make the Renderable component actually contain a map of key to sprite. Each entry maps a `kind` to an object which
-contains the Sprite data (texture, animation, etc) and it's layer as an int. The Render System will just grab the values and sort by the layer ordinal,
-same with the animation system, but other systems can then add other sprites to the same component (like the selection sprite) easily.
-
-- Create a simple message bus. It's weird having messages being components on Entities, really it just needs to be a List of kinds of messages and the
-thing to do when that message is encountered. For example: When an attacker tries to damage something, it creates a message that contains the attack, victim and damage 
 
 - When an NPC runs out of Hit Points, it's now "DOWN" and has a circular timer start. When the time runs out they
 die for good. Enemies will attack other targets unless that's the only target in range. The downed NPC cannot move

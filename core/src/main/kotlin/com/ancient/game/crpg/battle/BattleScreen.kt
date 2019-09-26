@@ -3,7 +3,6 @@ package com.ancient.game.crpg.battle
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
-import com.ancient.game.crpg.assetManagement.SpriteAsset
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
@@ -13,9 +12,7 @@ import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
-import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Vector2
@@ -59,7 +56,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         batch,
                         viewportManager.viewport,
                         collisionPoints,
-                        mapManager, showDebug = true
+                        mapManager,
+                        showDebug = true
                 )
         )
         engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
@@ -74,15 +72,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(AnimationSystem())
         engine.addSystem(selectionSystem)
         // Player Character
-        val playerCharacterTexture: Texture = assetManager[SpriteAsset.SWORD_SHIELD.filePath]
-        val playerCharacterSprite = Sprite(playerCharacterTexture)
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
-
 
         val createPc = { pos: Vector2 ->
 
             Entity().apply {
-                val spriteRadius = (playerCharacterSprite.width * SiUnits.PIXELS_TO_METER) / 2f
+                val spriteRadius = (playerCharacterAnim.width * SiUnits.PIXELS_TO_METER) / 2f
                 val rotation = 90f
                 add(CCombatant(Player,
                         Equipment(
@@ -131,8 +126,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         }
 
         // Orc
-        val orcTexture: Texture = assetManager[SpriteAsset.ORC.filePath]
-        val orcSprite = Sprite(orcTexture)
         val orcAnim: Aseprite = assetManager[AsepriteAsset.ORC.assetName]
         val createOrc = { pos: Vector2 ->
             Entity().apply {
@@ -147,11 +140,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                 Nothing,
                                 Armor("Shirt", 0, 0f))
                 ))
-                add(CHealth(250,
+                add(CHealth(
+                        250,
                         250,
                         1,
-                        3, 3))
-                add(CTransform(pos, 270f, orcSprite.width / 2f))
+                        3,
+                        3)
+                )
+                add(CTransform(pos, 270f, orcAnim.width / 2f))
                 add(CMovable(2f, null, Stack(), 8f, null))
                 add(CAnimated(
                         mapOf(

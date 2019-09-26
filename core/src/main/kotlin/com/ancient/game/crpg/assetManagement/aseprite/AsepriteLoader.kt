@@ -224,6 +224,8 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
     }
 
     fun animationNames() = animationCache.map { it.key }
+
+    val width: Int get() = frame(0).regionWidth
 }
 
 
