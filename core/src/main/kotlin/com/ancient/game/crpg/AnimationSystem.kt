@@ -3,13 +3,12 @@ package com.ancient.game.crpg
 
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
+import com.ancient.game.crpg.assetManagement.aseprite.AsepriteAnimation
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
-import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.graphics.g2d.TextureRegion
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 import org.slf4j.LoggerFactory
@@ -26,7 +25,7 @@ enum class SelectionCircleAnimationNames(val animName: String) {
 }
 
 
-sealed class AnimationState(val animation: Animation<TextureRegion>, val looping: Boolean, val timeDilation: Float = 1f)
+sealed class AnimationState(val animation: AsepriteAnimation, val looping: Boolean, val timeDilation: Float = 1f)
 class IdleAnimation(animation: Aseprite) :
         AnimationState(animation[CombatantAnimationNames.IDLE.animName], true)
 
@@ -41,10 +40,14 @@ class SelectedAnimation(animation: Aseprite) : AnimationState(
 class OnSelectAnimation(animation: Aseprite) : AnimationState(
         animation[SelectionCircleAnimationNames.ON_SELECT.animName], false, 2.5f)
 
-class AnimationData(var currentAnimationState: AnimationState, val animations: List<AnimationState>,
-                    private var active: Boolean, private var timePassed: Float = 0f) {
+class AnimationData(
+        var currentAnimationState: AnimationState,
+        val animations: List<AnimationState>,
+        private var active: Boolean,
+        private var timePassed: Float = 0f
+) {
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private var sprite = Sprite(currentAnimationState.animation.getKeyFrame(0f))
+    private var sprite = Sprite(currentAnimationState.animation.frame(0f))
     // By making this an inline function it can't be made both private and reified
     // so we need to think of a simpler implementation.
     inline fun <reified T> setAnimation() where T : AnimationState {
@@ -81,7 +84,7 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
 
     fun currentFrame(): Sprite =
             currentAnimationState
-                    .let { it.animation.getKeyFrame(timePassed, it.looping) }
+                    .let { it.animation.frame(timePassed, it.looping) }
                     .let {
                         sprite.apply {
                             setRegion(it)
@@ -91,7 +94,7 @@ class AnimationData(var currentAnimationState: AnimationState, val animations: L
 
     fun invokeAction() =
             currentAnimationState.animation
-                    .getKeyFrameIndex(timePassed)
+                    .frameIndex(timePassed)
                     .let { idx ->
                         actions[idx]?.invoke(this)
                         actions.remove(idx)

@@ -56,7 +56,7 @@ operator fun AsepriteSourceSize.component2() = this.h
 
 class AnimationSlices(parent: Aseprite, val slice: AsepriteSlices) {
 
-    var animations = emptyMap<String, AnimationSlice>()
+    private var animations = emptyMap<String, AnimationSlice>()
 
     companion object {
         val emptyBound = AsepriteBound(0, 0, 0, 0)
@@ -88,7 +88,7 @@ class AnimationSlices(parent: Aseprite, val slice: AsepriteSlices) {
             }
         }
         for (name in animationNames) {
-            val anim = parent[name]
+            val anim = parent[name].animation
             val nbFrame = anim.keyFrames.size
             val slices = Array<AsepriteBound>(nbFrame)
 
@@ -115,11 +115,11 @@ class AnimationSlices(parent: Aseprite, val slice: AsepriteSlices) {
                 }
             }
 
-            animations += name to AnimationSlice(
+            animations = animations + (name to AnimationSlice(
                     anim.frameDuration,
                     slices,
                     anim.playMode
-            )
+            ))
         }
 
     }
@@ -129,25 +129,37 @@ class AnimationSlices(parent: Aseprite, val slice: AsepriteSlices) {
 
 }
 
+class AsepriteAnimation(val animation: Animation<TextureRegion>, val frameTags: Array<Set<String>>) {
+    private val allTags = frameTags.flatten().toSet()
+    fun hasTag(tag: String): Boolean = allTags.contains(tag)
+    fun hasTag(tag: String, frame: Int) = frameTags[frame].contains(tag)
+
+    fun frame(elapsed: Float, looping: Boolean = false) = animation.getKeyFrame(elapsed, looping)
+    fun frameIndex(elapsed: Float, looping: Boolean = false) = animation.getKeyFrameIndex(elapsed)
+    fun frame(index: Int) = animation.keyFrames[index]
+    fun tags(elapsed: Float) = animation.getKeyFrameIndex(elapsed).let { idx -> this.tags(idx) }
+    fun tags(frame: Int) = frameTags[frame]
+}
+
 class Aseprite(private val texture: Texture, val json: AsepriteJson) {
 
-    private val animationCache: Map<String, Animation<TextureRegion>>
+    private val animationCache: Map<String, AsepriteAnimation>
     private val slicesCache: Map<String, AnimationSlices>
-    private val tagsCache: Array<Set<String>>
+    private val frameTagsCache: Array<Set<String>>
+    private val tagsCache: Set<String>
 
     init {
+        frameTagsCache = toFrameTags()
         animationCache = toAnimation()
         slicesCache = toSlices()
-        tagsCache = toFrameTags()
+        tagsCache = frameTagsCache.flatten().toSet()
     }
 
-    operator fun get(key: String): Animation<TextureRegion> = animationCache[key] ?: TODO(
+    operator fun get(key: String): AsepriteAnimation = animationCache[key] ?: TODO(
             "Wrong animation name: $key. Expected: ${animationCache.keys.joinToString(",")}"
     )
 
-    fun tags(frame: Int) = tagsCache[frame]
-    fun hasTag(frame: Int, tag: String) = tagsCache[frame].contains(tag)
-   
+
     fun slices(name: String) = animatedSlices(name).slice
 
     fun animatedSlices(name: String) = slicesCache[name] ?: invalidSlice(name)
@@ -162,7 +174,7 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
                 .toMap()
     }
 
-    private fun toAnimation(): Map<String, Animation<TextureRegion>> {
+    private fun toAnimation(): Map<String, AsepriteAnimation> {
 
         val spriteDef: AsepriteJson = json
         val texture: Texture = texture
@@ -189,12 +201,14 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
 
             // sum des durations / denominateur = nb image
             val tmp = com.badlogic.gdx.utils.Array<TextureRegion>(allDurations.sum() / denominateur)
+            val tags = Array<Set<String>>((it.to - it.from) + 1)
             for (index in it.from..it.to) {
                 val duration = frameData[index]?.duration ?: 0
-                val (x, y) = splitedIndex(index, splitted)
+                val (x, y) = splittedIndex(index, splitted)
                 for (nbCopie in 1..duration / denominateur) {
                     tmp.add(splitted[x][y])
                 }
+                tags.add(frameTagsCache[index])
             }
             val direction = when (it.direction) {
                 "forward" -> {
@@ -207,7 +221,9 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
                 "pingpong" -> Animation.PlayMode.LOOP_PINGPONG
                 else -> TODO("compute other play mode")
             }
-            val animation = Animation(denominateur / 1000f, tmp, direction)
+            val animation =
+                    AsepriteAnimation(
+                            Animation(denominateur / 1000f, tmp, direction), tags)
             it.name to animation
         }.toMap()
     }
@@ -217,9 +233,7 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
                     .apply {
                         json.frames.forEach { add(mutableSetOf()) }
                         json.meta.frameTags.forEach { tag ->
-                            val from = tag.from
-                            val to = tag.to
-                            for (i in from..to) {
+                            for (i in tag.from..tag.to) {
                                 get(i).add(tag.name)
                             }
                         }
@@ -230,7 +244,7 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
                     .toGdxArray()
 
 
-    fun splitedIndex(index: Int, splitted: kotlin.Array<kotlin.Array<TextureRegion>>): Pair<Int, Int> {
+    fun splittedIndex(index: Int, splitted: kotlin.Array<kotlin.Array<TextureRegion>>): Pair<Int, Int> {
         val x = ((index - index % splitted[0].size) / splitted[0].size)
         val y = index % splitted[0].size
         return Pair(x, y)
@@ -242,7 +256,7 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
                 .first()
 
         val splitted = TextureRegion.split(texture, size.w, size.h)
-        val (x, y) = splitedIndex(i, splitted)
+        val (x, y) = splittedIndex(i, splitted)
         return splitted[x][y]
     }
 
@@ -254,7 +268,7 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
 
 class AsepriteParameter : AssetLoaderParameters<Aseprite>()
 
-class AsepriteLoader(resoler: FileHandleResolver) : AsynchronousAssetLoader<Aseprite, AsepriteParameter>(resoler) {
+class AsepriteLoader(resolver: FileHandleResolver) : AsynchronousAssetLoader<Aseprite, AsepriteParameter>(resolver) {
 
     private var data: Aseprite? = null
 
