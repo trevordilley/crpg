@@ -129,8 +129,9 @@ class AnimationSlices(parent: Aseprite, val slice: AsepriteSlices) {
 
 }
 
-class AsepriteAnimation(val animation: Animation<TextureRegion>, val frameTags: Array<Set<String>>) {
+class AsepriteAnimation(val name: String, val animation: Animation<TextureRegion>, val frameTags: Array<Set<String>>) {
     private val allTags = frameTags.flatten().toSet()
+    val numFrames = animation.keyFrames.size
     fun hasTag(tag: String): Boolean = allTags.contains(tag)
     fun hasTag(tag: String, frame: Int) = frameTags[frame].contains(tag)
 
@@ -223,7 +224,10 @@ class Aseprite(private val texture: Texture, val json: AsepriteJson) {
             }
             val animation =
                     AsepriteAnimation(
-                            Animation(denominateur / 1000f, tmp, direction), tags)
+                            it.name,
+                            Animation(denominateur / 1000f, tmp, direction),
+                            tags
+                    )
             it.name to animation
         }.toMap()
     }

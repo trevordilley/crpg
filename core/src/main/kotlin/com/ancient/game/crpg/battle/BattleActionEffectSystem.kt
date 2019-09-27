@@ -8,11 +8,12 @@ import com.badlogic.ashley.core.Engine
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.one
 import com.badlogic.ashley.systems.IteratingSystem
-import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
-sealed class CActionEffect : Component
+sealed class CActionEffect() : Component {
+}
+
 class CMeleeEffect(val attacker: Entity, val target: Entity, val range: Float, val staminaDamage: Int) : CActionEffect()
 
 class BattleActionEffectSystem : IteratingSystem(one(
@@ -35,21 +36,9 @@ class BattleActionEffectSystem : IteratingSystem(one(
         }
     }
 
-    private fun applyEffect(effect: CMeleeEffect) = effect.let { eff ->
-        eff.target[transformM]?.let { tarPos ->
-            eff.target[healthM]?.let { health ->
-                eff.attacker[transformM]?.let { attackerPos ->
-                    val distance =
-                            Vector2.dst(
-                                    attackerPos.position.x,
-                                    attackerPos.position.y,
-                                    tarPos.position.x,
-                                    tarPos.position.y
-                            )
-                    if (distance <= eff.range) {
-                        health.damages.add(Damage(eff.staminaDamage, attackerPos.position))
-                    }
-                }
+    private fun applyEffect(effect: CActionEffect) = effect.let { eff ->
+        when (eff) {
+            is CMeleeEffect -> {
             }
         }
     }

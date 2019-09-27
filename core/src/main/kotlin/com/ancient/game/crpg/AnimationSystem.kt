@@ -40,42 +40,42 @@ class SelectedAnimation(animation: Aseprite) : AnimationState(
 class OnSelectAnimation(animation: Aseprite) : AnimationState(
         animation[SelectionCircleAnimationNames.ON_SELECT.animName], false, 2.5f)
 
+
+sealed class AnimationActionTriggers
+class OnIndex(val index: Int) : AnimationActionTriggers()
+class OnTag(val tag: String) : AnimationActionTriggers()
+object OnAnimationEnd : AnimationActionTriggers()
+
 class AnimationData(
         var currentAnimationState: AnimationState,
         val animations: List<AnimationState>,
-        private var active: Boolean,
-        private var timePassed: Float = 0f
+        var isActive: Boolean = true,
+        var timePassed: Float = 0f
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private var sprite = Sprite(currentAnimationState.animation.frame(0f))
     // By making this an inline function it can't be made both private and reified
     // so we need to think of a simpler implementation.
-    inline fun <reified T> setAnimation() where T : AnimationState {
+    inline fun <reified T> setAnimation(vararg actions: Pair<AnimationActionTriggers, () -> Unit>, reset: Boolean = false) where T : AnimationState {
+        if (currentAnimationState is T && !reset) {
+            return
+        }
+
+        if (reset) {
+            isActive = true
+            timePassed = 0f
+        }
+
         animations
                 .filterIsInstance<T>()
                 .firstOrNull()
                 ?.let {
-                    if (currentAnimationState !is T) {
+                    if (currentAnimationState !is T || reset) {
                         currentAnimationState = it
+                        actions.forEach { (trigger, action) -> addAction(trigger, action) }
                     }
                 }
     }
-
-    val isActive get() = active
-
-    fun deactivate() {
-        active = false
-    }
-
-
-    fun activate(reset: Boolean = true) {
-        active = true
-        if (reset) {
-            timePassed = 0f
-            actions.clear()
-        }
-    }
-
 
     fun step(dt: Float) {
         timePassed += (dt * currentAnimationState.timeDilation)
@@ -93,22 +93,45 @@ class AnimationData(
 
 
     fun invokeAction() =
-            currentAnimationState.animation
+            currentAnimationState
+                    .animation
                     .frameIndex(timePassed)
                     .let { idx ->
-                        actions[idx]?.invoke(this)
-                        actions.remove(idx)
+                        val before = actions.size
+                        actions[idx]?.invoke()
+                        actions.clear()
+                        val after = actions.size
+                        if (before > 0) {
+                            println("${currentAnimationState.animation.name}  Before/After $before -- $after")
+                        }
                     }
 
 
-    fun addAction(frameIdx: Int, action: AnimationData.() -> Unit) {
-        if (actions.containsKey(frameIdx)) {
-            logger.warn("CAnimated already has action for index $frameIdx!!!")
-        }
+    private fun onFrame(frameIdx: Int, action: () -> Unit) {
         actions[frameIdx] = action
     }
 
-    private var actions: MutableMap<Int, AnimationData.() -> Unit> = mutableMapOf()
+    private fun onTag(tag: String, action: () -> Unit) {
+        val idx = currentAnimationState.animation.frameTags.indexOfFirst { it.contains(tag) }
+        if (idx == -1) throw RuntimeException("Tag $tag does not exist on ${currentAnimationState.animation.name}")
+        onFrame(currentAnimationState.animation.frameTags.indexOfFirst { it.contains(tag) }, action)
+    }
+
+    private fun onEnd(action: () -> Unit) {
+        println(currentAnimationState.animation.numFrames)
+        onFrame(currentAnimationState.animation.numFrames - 1, action)
+    }
+
+
+    fun addAction(trigger: AnimationActionTriggers, action: () -> Unit) {
+        when (trigger) {
+            is OnIndex -> onFrame(trigger.index, action)
+            is OnTag -> onTag(trigger.tag, action)
+            is OnAnimationEnd -> onEnd(action)
+        }
+    }
+
+    private var actions: MutableMap<Int, () -> Unit> = mutableMapOf()
 }
 
 class CAnimated(val anims: Map<AsepriteAsset, AnimationData>) : Component

@@ -108,16 +108,16 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                                         IdleAnimation(playerCharacterAnim),
                                                         AttackAnimation(playerCharacterAnim),
                                                         MovingAnimation(playerCharacterAnim)
-                                                ),
-                                                true
+                                                )
+
                                         ),
                                         AsepriteAsset.SELECTION_CIRCLE to AnimationData(
                                                 OnSelectAnimation(selectionCircleAnim),
                                                 listOf(
                                                         OnSelectAnimation(selectionCircleAnim),
                                                         SelectedAnimation(selectionCircleAnim)
-                                                ),
-                                                false
+                                                ), false
+
                                         )
                                 )
                         )
@@ -157,8 +157,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                                 IdleAnimation(orcAnim),
                                                 AttackAnimation(orcAnim),
                                                 MovingAnimation(orcAnim)
-                                        ),
-                                        true
+                                        )
                                 )
                         )
                 ))

@@ -30,7 +30,8 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
 
     fun select(selection: List<CSelectable>) {
-        deselect()
+        val toDeselect = currentSelection.subtract(selection)
+        deselect(toDeselect)
         selection
                 .partition { it.selected }
                 .let { (alreadySelected, newlySelected) ->
@@ -39,7 +40,6 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
                         it.newlyDeselected = false
                     }
                     newlySelected.forEach {
-                        println("Newly selected")
                         it.selected = true
                         it.newlySelected = true
                     }
@@ -47,11 +47,20 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
         currentSelection.addAll(selection)
     }
 
+    fun deselect(selectable: CSelectable) {
+        selectable.selected = false
+        selectable.newlyDeselected = true
+    }
 
-    fun deselect() {
+    fun deselect(selectables: Iterable<CSelectable>) {
+        selectables.forEach {
+            deselect(it)
+        }
+    }
+
+    fun deselectAll() {
         currentSelection.forEach {
-            it.selected = false
-            it.newlyDeselected = true
+            deselect(it)
         }
         currentSelection.clear()
     }
@@ -65,15 +74,13 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
         if (selected.newlySelected) {
             animated
                     .apply {
-                        activate()
-                        setAnimation<OnSelectAnimation>()
-                        addAction(5) {
+                        setAnimation<OnSelectAnimation>(OnAnimationEnd to {
                             setAnimation<SelectedAnimation>()
-                        }
+                        }, reset = true)
                     }
             selected.newlySelected = false
         } else if (selected.newlyDeselected) {
-            animated.deactivate()
+            animated.isActive = false
             selected.newlyDeselected = false
             selected.selected = false
         }

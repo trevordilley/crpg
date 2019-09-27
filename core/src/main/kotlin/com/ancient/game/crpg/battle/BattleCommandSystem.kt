@@ -117,7 +117,7 @@ class BattleCommandSystem(private val viewport: Viewport,
 
 
     private fun resetSelection() {
-        selectionSystem.deselect()
+        selectionSystem.deselectAll()
         mode = InputMode.SELECT
         destination = null
         rotation = null
