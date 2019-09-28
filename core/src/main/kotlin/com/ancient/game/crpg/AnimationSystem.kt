@@ -99,8 +99,6 @@ class AnimationData(
                     .let { idx ->
                         val before = actions[idx]?.first
                         actions[idx]?.let { (triggered, action) ->
-                            println("During invoke $triggered")
-                            println("${System.currentTimeMillis()}")
                             if (!triggered) action.invoke()
                             actions[idx] = true to action
                         }

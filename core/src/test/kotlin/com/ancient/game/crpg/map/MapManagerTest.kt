@@ -1,6 +1,5 @@
 package com.ancient.game.crpg.map
 
-import com.ancient.game.crpg.map.MapManager.Companion.dedupeEdges
 import com.ancient.game.crpg.map.MapManager.Companion.getCornersFromVertCounts
 import com.ancient.game.crpg.map.MapManager.Companion.getEdgesFromCornersAndVerts
 import com.ancient.game.crpg.map.MapManager.Companion.getVertCounts
@@ -45,7 +44,6 @@ internal class MapManagerTest {
         MapManager
                 .getTilesInAdjacentGroups(tiles.values.flatten())
                 .map { it.map { t -> Pair(t.pos.x, t.pos.y) } }
-                .forEach { println(it) }
     }
 
     @Test
@@ -61,7 +59,6 @@ internal class MapManagerTest {
                 .map { getVertsForTilePos(it) }
                 .flatten()
                 .let { verts -> getVertCounts(verts) }
-                .also { println(it) }
     }
 
     @Test
@@ -70,7 +67,6 @@ internal class MapManagerTest {
                 Edge(Vector2(0f, 0f), Vector2(2f, 2f)),
                 Edge(Vector2(2f, 2f), Vector2(0f, 0f))
         )
-        println(dedupeEdges(edges))
     }
 
 
@@ -86,7 +82,7 @@ internal class MapManagerTest {
                     val counts = getVertCounts(overlappedVerts)
                     val corners = getCornersFromVertCounts(counts)
                     val verts = counts.keys
-                    getEdgesFromCornersAndVerts(corners, verts).also { println(it) }
+                    getEdgesFromCornersAndVerts(corners, verts)
                 }
     }
 

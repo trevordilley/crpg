@@ -89,7 +89,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
                                                             )
                                                     if (dist <= weapon.range) {
                                                         health.damages.add(Damage(weapon.staminaDamage, attackerPos.position))
-                                                        println("Applying ${health.damages.size} damages for a total of ${health.damages.sumBy { it.stamina }} damage against target with health of ${health.stamina}")
                                                     }
                                                 }
                                             }
