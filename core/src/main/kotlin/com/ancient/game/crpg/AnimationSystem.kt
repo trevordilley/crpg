@@ -56,7 +56,7 @@ class AnimationData(
     private var sprite = Sprite(currentAnimationState.animation.frame(0f))
     // By making this an inline function it can't be made both private and reified
     // so we need to think of a simpler implementation.
-    inline fun <reified T> setAnimation(vararg actions: Pair<AnimationActionTriggers, () -> Unit>, reset: Boolean = false) where T : AnimationState {
+    inline fun <reified T> setAnimation(vararg actions: Pair<AnimationActionTriggers, () -> Unit?>, reset: Boolean = false) where T : AnimationState {
         if (currentAnimationState is T && !reset) {
             return
         }
@@ -108,23 +108,22 @@ class AnimationData(
                     }
 
 
-    private fun onFrame(frameIdx: Int, action: () -> Unit) {
+    private fun onFrame(frameIdx: Int, action: () -> Unit?) {
         actions[frameIdx] = false to action
     }
 
-    private fun onTag(tag: String, action: () -> Unit) {
+    private fun onTag(tag: String, action: () -> Unit?) {
         val idx = currentAnimationState.animation.frameTags.indexOfFirst { it.contains(tag) }
         if (idx == -1) throw RuntimeException("Tag $tag does not exist on ${currentAnimationState.animation.name}")
         onFrame(currentAnimationState.animation.frameTags.indexOfFirst { it.contains(tag) }, action)
     }
 
-    private fun onEnd(action: () -> Unit) {
-        println(currentAnimationState.animation.numFrames)
+    private fun onEnd(action: () -> Unit?) {
         onFrame(currentAnimationState.animation.numFrames - 1, action)
     }
 
 
-    fun addAction(trigger: AnimationActionTriggers, action: () -> Unit) {
+    fun addAction(trigger: AnimationActionTriggers, action: () -> Unit?) {
         when (trigger) {
             is OnIndex -> onFrame(trigger.index, action)
             is OnTag -> onTag(trigger.tag, action)
@@ -132,7 +131,7 @@ class AnimationData(
         }
     }
 
-    private var actions: MutableMap<Int, Pair<Boolean, () -> Unit>> = mutableMapOf()
+    private var actions: MutableMap<Int, Pair<Boolean, () -> Unit?>> = mutableMapOf()
 }
 
 class CAnimated(val anims: Map<AsepriteAsset, AnimationData>) : Component

@@ -132,7 +132,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CCombatant(Enemy(3f),
                         Equipment(
                                 MeleeWeapon("Large Axe",
-                                        20,
+                                        300,
                                         4f,
                                         NumberHandsToWield.TWO,
                                         1f
@@ -171,18 +171,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addEntity(createPc(Vector2(2.5f, 1f)))
         engine.addEntity(createPc(Vector2(2.5f, 2f)))
 
-
-        engine.addEntity(createOrc(Vector2(3.5f, 4.5f)))
-
         engine.addEntity(createOrc(Vector2(4.5f, 9f)))
-        engine.addEntity(createOrc(Vector2(12.5f, 1.5f)))
         engine.addEntity(createOrc(Vector2(5.5f, 12f)))
-        engine.addEntity(createOrc(Vector2(6.5f, 12f)))
         engine.addEntity(createOrc(Vector2(10.5f, 9.5f)))
         engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
-//
-//        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
-//        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
+        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
+        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
     }
 
 

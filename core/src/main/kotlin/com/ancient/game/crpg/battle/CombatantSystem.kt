@@ -18,7 +18,7 @@ sealed class Combatant
 object Player : Combatant()
 data class Enemy(val aggroRange: Float) : Combatant()
 
-class CCombatant(val combatant: Combatant, val equipment: Equipment, var curCooldown: Float = 0f, val maxCooldown: Float = 1f) : Component
+class CCombatant(val combatant: Combatant, val equipment: Equipment) : Component
 
 class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     private val transformM: ComponentMapper<CTransform> = mapperFor()
@@ -43,8 +43,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             return
         }
 
-        entitiesToProcess.forEach { it[combatantM]!!.curCooldown += dt }
-
         players.forEach { attackNearby(it, enemies) }
         enemies.forEach { attackNearby(it, players) }
 
@@ -54,7 +52,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
 
 
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
-        println(attacker[combatantM]!!.curCooldown)
         val (x, y) = attacker[transformM]!!.position
         val target =
                 targets.minBy {
@@ -97,7 +94,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
                                                 }
                                             }
                                         }
-                                        attacker[combatantM]!!.curCooldown = 0f
                                     },
                                     OnAnimationEnd to {
                                         atk.setAnimation<IdleAnimation>()

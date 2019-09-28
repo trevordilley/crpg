@@ -30,8 +30,11 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
 
     fun select(selection: List<CSelectable>) {
-        val toDeselect = currentSelection.subtract(selection)
-        deselect(toDeselect)
+        currentSelection
+                .filter { !selection.contains(it) }
+                .toMutableSet()
+                .let { deselect(it) }
+        currentSelection = selection.toMutableSet()
         selection
                 .partition { it.selected }
                 .let { (alreadySelected, newlySelected) ->
