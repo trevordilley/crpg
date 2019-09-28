@@ -97,18 +97,19 @@ class AnimationData(
                     .animation
                     .frameIndex(timePassed)
                     .let { idx ->
-                        val before = actions.size
-                        actions[idx]?.invoke()
-                        actions.clear()
-                        val after = actions.size
-                        if (before > 0) {
-                            println("${currentAnimationState.animation.name}  Before/After $before -- $after")
+                        val before = actions[idx]?.first
+                        actions[idx]?.let { (triggered, action) ->
+                            println("During invoke $triggered")
+                            println("${System.currentTimeMillis()}")
+                            if (!triggered) action.invoke()
+                            actions[idx] = true to action
                         }
+                        val after = actions[idx]?.first
                     }
 
 
     private fun onFrame(frameIdx: Int, action: () -> Unit) {
-        actions[frameIdx] = action
+        actions[frameIdx] = false to action
     }
 
     private fun onTag(tag: String, action: () -> Unit) {
@@ -131,7 +132,7 @@ class AnimationData(
         }
     }
 
-    private var actions: MutableMap<Int, () -> Unit> = mutableMapOf()
+    private var actions: MutableMap<Int, Pair<Boolean, () -> Unit>> = mutableMapOf()
 }
 
 class CAnimated(val anims: Map<AsepriteAsset, AnimationData>) : Component

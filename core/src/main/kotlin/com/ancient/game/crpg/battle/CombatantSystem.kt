@@ -18,7 +18,7 @@ sealed class Combatant
 object Player : Combatant()
 data class Enemy(val aggroRange: Float) : Combatant()
 
-class CCombatant(val combatant: Combatant, val equipment: Equipment) : Component
+class CCombatant(val combatant: Combatant, val equipment: Equipment, var curCooldown: Float = 0f, val maxCooldown: Float = 1f) : Component
 
 class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     private val transformM: ComponentMapper<CTransform> = mapperFor()
@@ -27,6 +27,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
     private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val healthM: ComponentMapper<CHealth> = mapperFor()
     private val entitiesToProcess = mutableListOf<Entity>()
+
     override fun processEntity(entity: Entity, deltaTime: Float) {
         entitiesToProcess.add(entity)
     }
@@ -34,7 +35,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
 
     override fun update(deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
-
         val (players, enemies) =
                 entities.partition { it[combatantM]!!.combatant is Player }
 
@@ -42,6 +42,8 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
             entitiesToProcess.clear()
             return
         }
+
+        entitiesToProcess.forEach { it[combatantM]!!.curCooldown += dt }
 
         players.forEach { attackNearby(it, enemies) }
         enemies.forEach { attackNearby(it, players) }
@@ -52,6 +54,10 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
 
 
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
+        println(attacker[combatantM]!!.curCooldown)
+        if (attacker[combatantM]!!.curCooldown < attacker[combatantM]!!.maxCooldown) {
+            return
+        }
         val (x, y) = attacker[transformM]!!.position
         val target =
                 targets.minBy {
@@ -74,27 +80,33 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
                     if (distance <= weapon.range) {
                         val atk =
                                 attacker[animatedM]!!.anims.values.first()
-
-                        atk.setAnimation<AttackAnimation>(OnTag("Damage") to {
-                            target[transformM]?.let { tarPos ->
-                                target[healthM]?.let { health ->
-                                    attacker[transformM]?.let { attackerPos ->
-                                        val dist =
-                                                Vector2.dst(
-                                                        attackerPos.position.x,
-                                                        attackerPos.position.y,
-                                                        tarPos.position.x,
-                                                        tarPos.position.y
-                                                )
-                                        if (dist <= weapon.range) {
-                                            health.damages.add(Damage(weapon.staminaDamage, attackerPos.position))
-                                            println("Applying ${health.damages.size} damages for a total of ${health.damages.sumBy { it.stamina }} damage against target with health of ${health.stamina}")
+                        if (atk.currentAnimationState !is AttackAnimation) {
+                            atk.setAnimation<AttackAnimation>(
+                                    OnTag("Damage") to {
+                                        target[transformM]?.let { tarPos ->
+                                            target[healthM]?.let { health ->
+                                                attacker[transformM]?.let { attackerPos ->
+                                                    val dist =
+                                                            Vector2.dst(
+                                                                    attackerPos.position.x,
+                                                                    attackerPos.position.y,
+                                                                    tarPos.position.x,
+                                                                    tarPos.position.y
+                                                            )
+                                                    if (dist <= weapon.range) {
+                                                        health.damages.add(Damage(weapon.staminaDamage, attackerPos.position))
+                                                        println("Applying ${health.damages.size} damages for a total of ${health.damages.sumBy { it.stamina }} damage against target with health of ${health.stamina}")
+                                                    }
+                                                }
+                                            }
                                         }
+                                        attacker[combatantM]!!.curCooldown = 0f
+                                    },
+                                    OnAnimationEnd to {
+                                        atk.setAnimation<IdleAnimation>()
                                     }
-                                }
-                            }
-                            atk.setAnimation<IdleAnimation>()
-                        })
+                            )
+                        }
                         attacker[movableM]!!.destination = null
                     } else {
                         when (combatant) {
