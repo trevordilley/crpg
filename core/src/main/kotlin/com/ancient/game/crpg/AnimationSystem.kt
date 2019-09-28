@@ -139,7 +139,8 @@ class CAnimated(val anims: Map<AsepriteAsset, AnimationData>) : Component
 
 class AnimationSystem : IteratingSystem(all(CAnimated::class.java).get()) {
     private val animatedM = mapperFor<CAnimated>()
-    override fun processEntity(entity: Entity, dt: Float) {
+    override fun processEntity(entity: Entity, deltaTime: Float) {
+        val dt = UserInputManager.deltaTime(deltaTime)
         entity[animatedM]!!
                 .anims
                 .values
