@@ -4,6 +4,8 @@ import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
+import com.ancient.game.crpg.battle.hauling.CHaulable
+import com.ancient.game.crpg.battle.hauling.HaulableSystem
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
 import com.ancient.game.crpg.map.MapManager
@@ -70,6 +72,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
+        engine.addSystem(HaulableSystem())
         engine.addSystem(selectionSystem)
         // Player Character
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
@@ -164,7 +167,21 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
 
-
+        val treasureAnim: Aseprite = assetManager[AsepriteAsset.TREASURE.assetName]
+        val hauler = createPc(Vector2(6f, 6f))
+        engine.addEntity(hauler)
+        engine.addEntity(Entity().apply {
+            add(CTransform(Vector2(10f, 7f), 0f, 1f))
+            add(CHaulable(hauler))
+            add(CAnimated(
+                    mapOf(
+                            AsepriteAsset.TREASURE to AnimationData(
+                                    IdleAnimation(treasureAnim),
+                                    listOf(IdleAnimation(treasureAnim))
+                            )
+                    )
+            ))
+        })
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
         engine.addEntity(createPc(Vector2(1.5f, 2f)))
