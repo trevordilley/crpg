@@ -19,8 +19,14 @@ Sprite/Animation management using Aseprite
 https://www.aseprite.org/
 
 ## Current Tasks
-- Re-implement the selectable sprites using the kind to sprite mapping mentioned below in
-improvements
+- On-Hit effect (flash white, something a character is damaged.)
+- Smoother camera movement
+- Multi-select rectangle when dragging mouse. 
+- Sound effects, background music.
+- Ranged attacks
+- fix character rotation, sometimes they take the long way
+- Enemy AI is FoV based
+- Pretty things like dust clouds
 - Implement hauling system. Something being hauled follows behind the hauler. 
     - Clicking on a hauler, then clicking on something haulable within range will attach
     the haulable entity to the hauler. Will follow if the hauler moves
@@ -28,6 +34,10 @@ improvements
     - Things that could be hauled:
         - Loot
         - Downed NPCs
+- *Requires Hauling Implemented* When an NPC runs out of Hit Points, it's now "DOWN" and has a circular timer start. When the time runs out they
+die for good. Enemies will attack other targets unless that's the only target in range. The downed NPC cannot move
+or do anything else. They become `haulable` though, and when a friendly NPC starts to `haul` the downed character
+the countdown slows dramatically. They will eventually be able to be restored if they are hauled to a healer. 
    
 
 ## TODO's by priority 
@@ -40,20 +50,14 @@ the support point and smoothly slowing down as it gets closer.
 
 ### Improvements
 
-
-- When an NPC runs out of Hit Points, it's now "DOWN" and has a circular timer start. When the time runs out they
-die for good. Enemies will attack other targets unless that's the only target in range. The downed NPC cannot move
-or do anything else. They become `haulable` though, and when a friendly NPC starts to `haul` the downed character
-the countdown slows dramatically. They will eventually be able to be restored if they are hauled to a healer. 
-
 ### Battle
 
 MVP:
- - Combat is based on stamina, position, rotation, and speed
- - As a player entities with shields are dramatically more durable when their shields are up, but they move slower
- - As a player I can pause the game at any time and command my entities
- - As a player my entities can find their way intelligently through a dungeon
- - As a player I should be rewarded for taking advantage of bottle necks in dungeon, placing entities behind columns to avoid
+ x Combat is based on stamina, position, rotation, and speed
+ x As a player entities with shields are dramatically more durable when their shields are up, but they move slower
+ x As a player I can pause the game at any time and command my entities
+ x As a player my entities can find their way intelligently through a dungeon
+ x As a player I should be rewarded for taking advantage of bottle necks in dungeon, placing entities behind columns to avoid
  ranged attacks and Line of Site
  - As a player I should have entities that are faster or slower than others based on their gear and skills
  - As a player I should have melee and ranged weapons
@@ -113,8 +117,6 @@ MVP:
   - [ ] Camera movement smoothed out
   Immediately moves when the player pushes a direction, but slows down a little as it reaches the destination.
   - [ ] Fix going around corners
-  Health arcs don't seem to behave correctly
-  - [ ] Fix health and stamina damage
         
         
 ### Demo Battle Sceen
@@ -187,13 +189,6 @@ to purchase at town
 
 ### Random Thoughts
 
-#### Arbitrary Polyigonal Dungeons/Environments
-* Create dungeons using marching cubes + perlin noise + other prng
-* Use voronoi + delaunay to determine pathing maps. More dense amounts
-of nodes will create denser maps which should allow pathing through arbitrary
-dungeons. Create a delaunay triangulation to connect the nodes,  walk each node and 
-mark them as within or outside collision polygons, and deconnect all nodes
-within the collision polygons. 
 
 ## Future
 * Magic
