@@ -55,9 +55,6 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
 
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
         println(attacker[combatantM]!!.curCooldown)
-        if (attacker[combatantM]!!.curCooldown < attacker[combatantM]!!.maxCooldown) {
-            return
-        }
         val (x, y) = attacker[transformM]!!.position
         val target =
                 targets.minBy {
