@@ -24,6 +24,10 @@ enum class SelectionCircleAnimationNames(val animName: String) {
     ON_SELECT("OnSelect")
 }
 
+enum class DropZoneAnimationNames(val animName: String) {
+    ON_DROP("OnDrop")
+}
+
 
 sealed class AnimationState(val animation: AsepriteAnimation, val looping: Boolean, val timeDilation: Float = 1f)
 class IdleAnimation(animation: Aseprite) :
@@ -40,6 +44,8 @@ class SelectedAnimation(animation: Aseprite) : AnimationState(
 class OnSelectAnimation(animation: Aseprite) : AnimationState(
         animation[SelectionCircleAnimationNames.ON_SELECT.animName], false, 2.5f)
 
+class OnDropAnimation(animation: Aseprite) :
+        AnimationState(animation[DropZoneAnimationNames.ON_DROP.animName], false)
 
 sealed class AnimationActionTriggers
 class OnIndex(val index: Int) : AnimationActionTriggers()

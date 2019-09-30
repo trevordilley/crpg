@@ -4,7 +4,9 @@ import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
+import com.ancient.game.crpg.battle.hauling.CDropZone
 import com.ancient.game.crpg.battle.hauling.CHaulable
+import com.ancient.game.crpg.battle.hauling.DropZoneSystem
 import com.ancient.game.crpg.battle.hauling.HaulableSystem
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
@@ -17,6 +19,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxScreen
 import java.util.Stack
@@ -73,6 +76,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
         engine.addSystem(HaulableSystem())
+        engine.addSystem(DropZoneSystem())
         engine.addSystem(selectionSystem)
         // Player Character
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
@@ -167,9 +171,49 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
 
+        // DropZones have to come before other entities in render order!
+        val dropZoneAnim: Aseprite = assetManager[AsepriteAsset.DROP_ZONE.assetName]
+        engine.addEntity(Entity().apply {
+            val transform = CTransform(Vector2(2f, 2f), 0f, 1f)
+            add(transform)
+            val width = dropZoneAnim.frame(0).regionWidth.toFloat()
+            val normedW = width * SiUnits.PIXELS_TO_METER
+            val height = dropZoneAnim.frame(0).regionHeight.toFloat()
+            val normedH = height * SiUnits.PIXELS_TO_METER
+            val dropZoneRect =
+                    Rectangle(
+                            transform.position.x / 2,
+                            transform.position.y / 2,
+                            normedW,
+                            normedH
+                    )
+            add(
+                    CDropZone(dropZoneRect) { (ent, haulable) ->
+                        println("Claimed a haulable!!!")
+                        ent.remove(CHaulable::class.java)
+                        engine.removeEntity(ent)
+                    }
+
+
+            )
+            add(CAnimated(
+                    mapOf(
+                            AsepriteAsset.DROP_ZONE to AnimationData(
+                                    IdleAnimation(dropZoneAnim),
+                                    listOf(IdleAnimation(dropZoneAnim),
+                                            OnDropAnimation(dropZoneAnim)
+                                    )
+                            )
+                    )
+            ))
+
+        })
+
         val treasureAnim: Aseprite = assetManager[AsepriteAsset.TREASURE.assetName]
         val hauler = createPc(Vector2(6f, 6f))
         engine.addEntity(hauler)
+
+        // Treasure
         engine.addEntity(Entity().apply {
             add(CTransform(Vector2(10f, 7f), 0f, 1f))
             add(CHaulable(hauler))
@@ -182,6 +226,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                     )
             ))
         })
+
 
         engine.addEntity(createPc(Vector2(1.5f, 1f)))
         engine.addEntity(createPc(Vector2(1.5f, 2f)))
