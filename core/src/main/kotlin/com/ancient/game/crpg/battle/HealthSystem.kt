@@ -35,7 +35,6 @@ class CHealth(
         var staminaNotRechargingForSeconds: Float = 0f
 ) : Component
 
-class CDead : Component
 class HealthSystem : IteratingSystem(
         all(
                 CHealth::class.java,

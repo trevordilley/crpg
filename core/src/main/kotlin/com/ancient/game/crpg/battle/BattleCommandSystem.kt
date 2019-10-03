@@ -34,7 +34,6 @@ class BattleCommandSystem(private val viewport: Viewport,
                           private val selectionSystem: SelectionSystem,
                           private val haulingSystem: HaulableSystem) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CTransform::class.java)
-                .exclude(CDead::class.java)
                 .get()) {
 
     private val log = gameLogger(this::class.java)
@@ -71,10 +70,10 @@ class BattleCommandSystem(private val viewport: Viewport,
                                     }
                                     ?.let { target ->
                                         if (target.has(selectableM)) {
-                                            if (target.has(playerControlledM)) {
-                                                CharacterClick(target)
-                                            } else if (target.has(haulableM)) {
+                                            if (target.has(haulableM)) { // TODO: Must come before playerControlled for dead CharacterSelect
                                                 HaulableClick(target)
+                                            } else if (target.has(playerControlledM)) {
+                                                CharacterClick(target)
                                             } else {
                                                 println("Should not have fallend into this case! $target")
                                                 PositionClick(worldPos)

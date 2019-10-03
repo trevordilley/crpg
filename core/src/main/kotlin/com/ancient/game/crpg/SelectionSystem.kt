@@ -18,7 +18,7 @@ sealed class SelectableKind
 class CharacterSelect(val allegiance: Allegiance) : SelectableKind()
 object HaulableSelect : SelectableKind()
 class CSelectable(
-        val kind: SelectableKind,
+        var kind: SelectableKind,
         var selected: Boolean = false,
         var newlySelected: Boolean = false,
         var newlyDeselected: Boolean = false

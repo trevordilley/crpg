@@ -20,7 +20,7 @@ data class Enemy(val aggroRange: Float) : Combatant()
 
 class CCombatant(val combatant: Combatant, val equipment: Equipment) : Component
 
-class CombatantSystem : IteratingSystem(all(CCombatant::class.java).get()) {
+class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDead::class.java).get()) {
     private val transformM: ComponentMapper<CTransform> = mapperFor()
     private val movableM: ComponentMapper<CMovable> = mapperFor()
     private val combatantM: ComponentMapper<CCombatant> = mapperFor()

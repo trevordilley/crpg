@@ -2,6 +2,7 @@ package com.ancient.game.crpg.battle.hauling
 
 
 import com.ancient.game.crpg.*
+import com.ancient.game.crpg.battle.CDead
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.one
@@ -10,14 +11,23 @@ import com.badlogic.gdx.math.Rectangle
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
-class CDropZone(val bounds: Rectangle,
-                val onDrop: (Pair<Entity, CHaulable>) -> Unit) : Component
+sealed class DropZoneKind()
+object TreasureKind : DropZoneKind()
+object HealingKind : DropZoneKind()
 
-class DropZoneSystem() : IteratingSystem(one(CDropZone::class.java, CHaulable::class.java).get()) {
+class CDropZone(
+        val kind: DropZoneKind,
+        val bounds: Rectangle
+) : Component
+
+class DropZoneSystem(private val selectionSystem: SelectionSystem) : IteratingSystem(one(CDropZone::class.java, CHaulable::class.java).get()) {
     private val dropZoneM = mapperFor<CDropZone>()
     private val animatedM = mapperFor<CAnimated>()
     private val haulableM = mapperFor<CHaulable>()
     private val transformM = mapperFor<CTransform>()
+    private val treasureM = mapperFor<CTreasure>()
+    private val deadM = mapperFor<CDead>()
+
     private val dropZones = mutableListOf<Entity>()
     private val haulables = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -33,11 +43,25 @@ class DropZoneSystem() : IteratingSystem(one(CDropZone::class.java, CHaulable::c
             dropZones.forEach { dzEnt ->
                 val dz = dzEnt[dropZoneM]!!
                 if (dz.bounds.contains(pos)) {
-                    val anim = dzEnt[animatedM]!!.anims.values.first()
-                    anim.setAnimation<OnDropAnimation>(OnAnimationEnd to {
-                        anim.setAnimation<IdleAnimation>()
-                    })
-                    dz.onDrop(h to h[haulableM]!!)
+                    when (dz.kind) {
+                        is TreasureKind -> {
+                            h[treasureM]?.let {
+                                val anim = dzEnt[animatedM]!!.anims.values.first()
+                                anim.setAnimation<OnDropAnimation>(OnAnimationEnd to {
+                                    anim.setAnimation<IdleAnimation>()
+                                })
+
+                                selectionSystem.deselect(h)
+                                this.engine.removeEntity(h)
+                                println("Claimed some loot worth ${it.value}!!!")
+                            }
+                        }
+                        is HealingKind -> {
+                            h[deadM]?.let {
+                                it.beingHealed = true
+                            }
+                        }
+                    }
                 }
             }
         }

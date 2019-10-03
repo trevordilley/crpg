@@ -4,10 +4,7 @@ import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
-import com.ancient.game.crpg.battle.hauling.CDropZone
-import com.ancient.game.crpg.battle.hauling.CHaulable
-import com.ancient.game.crpg.battle.hauling.DropZoneSystem
-import com.ancient.game.crpg.battle.hauling.HaulableSystem
+import com.ancient.game.crpg.battle.hauling.*
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
 import com.ancient.game.crpg.map.MapManager
@@ -73,13 +70,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
-        engine.addSystem(DeadSystem())
+        engine.addSystem(DeadSystem(haulableSystem))
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
-        engine.addSystem(DropZoneSystem())
+        engine.addSystem(DropZoneSystem(selectionSystem))
         engine.addSystem(selectionSystem)
         // Player Character
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
@@ -176,13 +173,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         // DropZones have to come before other entities in render order!
         val dropZoneAnim: Aseprite = assetManager[AsepriteAsset.DROP_ZONE.assetName]
+        val width = dropZoneAnim.frame(0).regionWidth.toFloat()
+        val normedW = width * SiUnits.PIXELS_TO_METER
+        val height = dropZoneAnim.frame(0).regionHeight.toFloat()
+        val normedH = height * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
             val transform = CTransform(Vector2(2f, 2f), 0f, 1f)
             add(transform)
-            val width = dropZoneAnim.frame(0).regionWidth.toFloat()
-            val normedW = width * SiUnits.PIXELS_TO_METER
-            val height = dropZoneAnim.frame(0).regionHeight.toFloat()
-            val normedH = height * SiUnits.PIXELS_TO_METER
             val dropZoneRect =
                     Rectangle(
                             transform.position.x / 2,
@@ -191,13 +188,34 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                             normedH
                     )
             add(
-                    CDropZone(dropZoneRect) { (ent, haulable) ->
-                        println("Claimed a haulable!!!")
-                        ent.remove(CHaulable::class.java)
-                        engine.removeEntity(ent)
-                    }
+                    CDropZone(TreasureKind, dropZoneRect)
+            )
+            add(CAnimated(
+                    mapOf(
+                            AsepriteAsset.DROP_ZONE to AnimationData(
+                                    IdleAnimation(dropZoneAnim),
+                                    listOf(IdleAnimation(dropZoneAnim),
+                                            OnDropAnimation(dropZoneAnim)
+                                    )
+                            )
+                    )
+            ))
 
+        })
 
+        // Healing DropZone
+        engine.addEntity(Entity().apply {
+            val transform = CTransform(Vector2(4f, 2f), 0f, 1f)
+            add(transform)
+            val dropZoneRect =
+                    Rectangle(
+                            transform.position.x / 2,
+                            transform.position.y / 2,
+                            normedW,
+                            normedH
+                    )
+            add(
+                    CDropZone(HealingKind, dropZoneRect)
             )
             add(CAnimated(
                     mapOf(
@@ -220,6 +238,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
             add(CTransform(Vector2(1.5f, 7f), 0f, spriteRadius))
             add(CHaulable())
+            add(CTreasure(100))
             add(CSelectable(kind = HaulableSelect))
             add(CAnimated(
                     mapOf(

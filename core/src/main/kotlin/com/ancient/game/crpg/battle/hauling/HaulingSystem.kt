@@ -11,6 +11,9 @@ import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
+// TODO: Move into treasure system
+class CTreasure(val value: Int): Component
+
 
 class CHaulable(var hauler: Entity? = null) : Component
 
