@@ -1,6 +1,8 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
+import com.ancient.game.crpg.battle.hauling.CHaulable
+import com.ancient.game.crpg.battle.hauling.HaulableSystem
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
@@ -23,9 +25,14 @@ enum class InputMode {
     DIRECT
 }
 
+sealed class LeftClickKind()
+class PositionClick(val worldPos: Vector2) : LeftClickKind()
+class HaulableClick(val entity: Entity) : LeftClickKind()
+class CharacterClick(val entity: Entity) : LeftClickKind()
 class BattleCommandSystem(private val viewport: Viewport,
                           private val mapManager: MapManager,
-                          private val selectionSystem: SelectionSystem) : UserInputListener, IteratingSystem(
+                          private val selectionSystem: SelectionSystem,
+                          private val haulingSystem: HaulableSystem) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CTransform::class.java)
                 .exclude(CDead::class.java)
                 .get()) {
@@ -44,6 +51,7 @@ class BattleCommandSystem(private val viewport: Viewport,
     private val playerControlledM: ComponentMapper<CPlayerControlled> = mapperFor()
     private val selectableM: ComponentMapper<CSelectable> = mapperFor()
     private val animatedM: ComponentMapper<CAnimated> = mapperFor()
+    private val haulableM: ComponentMapper<CHaulable> = mapperFor()
 
     override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
@@ -53,35 +61,78 @@ class BattleCommandSystem(private val viewport: Viewport,
             when (leftClick) {
                 is MouseUp -> {
                     val worldPos = viewport.unproject(leftClick.position.cpy())
-                    entities
-                            .firstOrNull {
-                                it[selectableM] != null &&
-                                        it[transformM]?.let { transform ->
-                                            pointWithinTransformRadius(worldPos, transform)
-                                        } ?: false
-                            }
-                            ?.let { selectionSystem.select(it[selectableM]!!) }
-                            ?: {
-                                entities
-                                        .filter { it.has(selectableM) && it.has(playerControlledM) && it.has(movableM) }
-                                        .filter { selectionSystem.selection.contains(it[selectableM]) }
-                                        .forEach {
-
-                                            val path = mapManager.findPath(it[transformM]!!.position, worldPos)
-
-                                            it[animatedM]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
-
-                                            it[movableM]!!.destination = worldPos
-                                            it[movableM]!!.path = path.let { p ->
-                                                val stack = Stack<Vector2>()
-                                                p.toList().reversed().forEach { tile ->
-                                                    // Move to middle of the tile
-                                                    stack.push(Vector2(tile.pos.x + 0.5f, tile.pos.y + 0.5f))
-                                                }
-                                                stack
+                    val click =
+                            entities
+                                    .firstOrNull {
+                                        it[selectableM] != null &&
+                                                it[transformM]?.let { transform ->
+                                                    pointWithinTransformRadius(worldPos, transform)
+                                                } ?: false
+                                    }
+                                    ?.let { target ->
+                                        if (target.has(selectableM)) {
+                                            if (target.has(playerControlledM)) {
+                                                CharacterClick(target)
+                                            } else if (target.has(haulableM)) {
+                                                HaulableClick(target)
+                                            } else {
+                                                println("Should not have fallend into this case! $target")
+                                                PositionClick(worldPos)
                                             }
+                                        } else PositionClick(worldPos)
+                                    }
+                                    ?: PositionClick(worldPos)
+
+                    // Selection
+                    val (destPos, onArrival) = when (click) {
+                        is CharacterClick -> {
+                            selectionSystem.select(click.entity)
+                            null to null // clicked on a character, so probably just reselecting
+                        }
+                        is HaulableClick -> {
+                            selectionSystem.select(click.entity)
+                            val haulable = click.entity[haulableM]!!
+                            if (haulable.hauler != null) {
+                                haulingSystem.drop(haulable)
+                            }
+                            click.entity[transformM]!!.position to {
+                                selectionSystem.selection.firstOrNull()?.let { ent ->
+                                    haulingSystem.attemptToPickUp(ent, click.entity)
+                                }
+                            }
+
+                        }
+                        is PositionClick -> {
+                            click.worldPos to null
+                        }
+                    }
+
+
+                    // Movement
+                    destPos?.let { dest ->
+                        entities
+                                .filter { it.has(selectableM) && it.has(playerControlledM) && it.has(movableM) }
+                                .filter { selectionSystem.selection.contains(it) }
+                                .forEach {
+
+                                    val path = mapManager.findPath(it[transformM]!!.position, worldPos)
+
+                                    it[animatedM]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
+
+                                    it[movableM]!!.destination = dest
+                                    it[movableM]!!.onArrival = onArrival
+                                    it[movableM]!!.path = path.let { p ->
+                                        val stack = Stack<Vector2>()
+                                        p.toList().reversed().forEach { tile ->
+                                            // Move to middle of the tile
+                                            stack.push(Vector2(tile.pos.x + 0.5f, tile.pos.y + 0.5f))
                                         }
-                            }.invoke()
+                                        stack
+                                    }
+                                }
+
+                    }
+
 
                 }
                 else -> {

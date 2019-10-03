@@ -41,9 +41,6 @@ class DropZoneSystem() : IteratingSystem(one(CDropZone::class.java, CHaulable::c
                 }
             }
         }
-        // Get DropZone bounds
-        // Check if any haulables intersect
-        // Act on intersection
 
         // TODO: DropZones accept different kinds of haulables with
         // different actions based on Kind (Loot, NeedsHealing, etc)

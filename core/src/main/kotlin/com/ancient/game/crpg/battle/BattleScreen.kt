@@ -47,7 +47,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val selectionCircleAnim: Aseprite = assetManager[AsepriteAsset.SELECTION_CIRCLE.assetName]
         val selectionSystem = SelectionSystem()
 
-        val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager, selectionSystem)
+
+        val haulableSystem = HaulableSystem()
+
+        val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager, selectionSystem, haulableSystem)
 
         inputManager = UserInputManager(listOf(battleCommandSystem, viewportManager))
 
@@ -66,6 +69,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 )
         )
         engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
+        engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
         engine.addSystem(HealthSystem())
@@ -75,7 +79,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
-        engine.addSystem(HaulableSystem())
         engine.addSystem(DropZoneSystem())
         engine.addSystem(selectionSystem)
         // Player Character

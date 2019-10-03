@@ -7,11 +7,12 @@ import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
 
-class CHaulable(val hauler: Entity? = null) : Component
+class CHaulable(var hauler: Entity? = null) : Component
 
 
 class HaulableSystem() : IteratingSystem(all(
@@ -41,5 +42,20 @@ class HaulableSystem() : IteratingSystem(all(
                 transform.position.add(step)
             }
         }
+    }
+
+    fun drop(haulable: CHaulable) {
+        haulable.hauler = null
+    }
+
+    fun attemptToPickUp(entity: Entity, haulableE: Entity) {
+        val haulable = haulableE[haulableM]!!
+        val haulablePosition = haulableE[transformM]!!.position
+        entity[transformM]?.let {transform ->
+            if(transform.position.dst(haulablePosition) <= followDistance) {
+                haulable.hauler = entity
+            }
+        } ?: {println("Entity $entity has no transform?")}.invoke()
+
     }
 }

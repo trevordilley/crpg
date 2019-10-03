@@ -20,7 +20,8 @@ data class CMovable(
         var destination: Vector2?, // Where are you finally going
         var path: Stack<Vector2>,
         val rotationSpeed: Float, // How fast can we turn
-        var facingDirection: Float? = null // Where are you looking while you move?
+        var facingDirection: Float? = null, // Where are you looking while you move?
+        var onArrival: (() -> Unit?)? = null // Do something when we get there?
 ) : Component
 
 
@@ -52,6 +53,8 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
         // Rotation
         val rotationSpeed = entity[movableM]!!.rotationSpeed * dt
         val facingDirection = entity[movableM]!!.facingDirection
+
+        val onArrival = entity[movableM]!!.onArrival
 
         if (facingDirection != null) {
             // IMPORTANT: All assets that have a direction must
@@ -118,6 +121,11 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                 }
             } else {
                 // set destination to null and clear stack
+                onArrival
+                        ?.invoke()
+                        ?.also { println(" invoking an onArrival") }
+                entity[movableM]!!.onArrival = null
+                entity[movableM]!!.destination = null
                 entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
             }
         }
