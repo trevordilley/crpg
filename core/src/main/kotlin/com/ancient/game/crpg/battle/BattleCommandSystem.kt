@@ -26,7 +26,7 @@ enum class InputMode {
 class BattleCommandSystem(private val viewport: Viewport,
                           private val mapManager: MapManager,
                           private val selectionSystem: SelectionSystem) : UserInputListener, IteratingSystem(
-        all(CSelectable::class.java, CMovable::class.java, CTransform::class.java)
+        all(CSelectable::class.java, CTransform::class.java)
                 .exclude(CDead::class.java)
                 .get()) {
 

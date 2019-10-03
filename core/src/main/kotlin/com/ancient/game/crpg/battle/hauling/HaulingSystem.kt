@@ -11,7 +11,7 @@ import ktx.ashley.get
 import ktx.ashley.mapperFor
 
 
-class CHaulable(val hauler: Entity?) : Component
+class CHaulable(val hauler: Entity? = null) : Component
 
 
 class HaulableSystem() : IteratingSystem(all(

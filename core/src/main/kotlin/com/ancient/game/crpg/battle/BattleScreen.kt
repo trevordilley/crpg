@@ -102,7 +102,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         1,
                         3, 3))
                 add(CTransform(pos, rotation, spriteRadius))
-                add(CSelectable())
+                add(CSelectable(kind = CharacterSelect(Allegiance.PLAYER)))
                 add(CFoV(null))
                 add(CPlayerControlled)
                 add(CMovable(2f, null, Stack(), 600f, null))
@@ -210,18 +210,27 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         })
 
         val treasureAnim: Aseprite = assetManager[AsepriteAsset.TREASURE.assetName]
-        val hauler = createPc(Vector2(6f, 6f))
-        engine.addEntity(hauler)
 
         // Treasure
         engine.addEntity(Entity().apply {
-            add(CTransform(Vector2(10f, 7f), 0f, 1f))
-            add(CHaulable(hauler))
+
+            val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
+            add(CTransform(Vector2(1.5f, 7f), 0f, spriteRadius))
+            add(CHaulable())
+            add(CSelectable(kind = HaulableSelect))
             add(CAnimated(
                     mapOf(
                             AsepriteAsset.TREASURE to AnimationData(
                                     IdleAnimation(treasureAnim),
                                     listOf(IdleAnimation(treasureAnim))
+                            ),
+                            AsepriteAsset.SELECTION_CIRCLE to AnimationData(
+                                    OnSelectAnimation(selectionCircleAnim),
+                                    listOf(
+                                            OnSelectAnimation(selectionCircleAnim),
+                                            SelectedAnimation(selectionCircleAnim)
+                                    ), false
+
                             )
                     )
             ))

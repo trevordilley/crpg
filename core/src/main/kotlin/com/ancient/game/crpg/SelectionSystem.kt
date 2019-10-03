@@ -9,7 +9,16 @@ import com.badlogic.ashley.systems.IteratingSystem
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 
+enum class Allegiance {
+    PLAYER,
+    ENEMY
+}
+
+sealed class SelectableKind
+class CharacterSelect(val allegiance: Allegiance) : SelectableKind()
+object HaulableSelect : SelectableKind()
 class CSelectable(
+        val kind: SelectableKind,
         var selected: Boolean = false,
         var newlySelected: Boolean = false,
         var newlyDeselected: Boolean = false
@@ -25,29 +34,35 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
 
     fun select(selection: CSelectable) {
+        println("Selecting ${selection.kind}")
         select(listOf(selection))
     }
 
 
     fun select(selection: List<CSelectable>) {
-        currentSelection
-                .filter { !selection.contains(it) }
-                .toMutableSet()
-                .let { deselect(it) }
-        currentSelection = selection.toMutableSet()
-        selection
-                .partition { it.selected }
-                .let { (alreadySelected, newlySelected) ->
-                    alreadySelected.forEach {
-                        it.selected = true
-                        it.newlyDeselected = false
+
+        if (selection.isNotEmpty()) {
+            currentSelection
+                    .filter { !selection.contains(it) }
+                    .toMutableSet()
+                    .let { deselect(it) }
+            currentSelection = selection.toMutableSet()
+            selection
+                    .partition { it.selected }
+                    .let { (alreadySelected, newlySelected) ->
+                        alreadySelected.forEach {
+                            it.selected = true
+                            it.newlyDeselected = false
+                        }
+                        newlySelected.forEach {
+                            it.selected = true
+                            it.newlySelected = true
+                        }
                     }
-                    newlySelected.forEach {
-                        it.selected = true
-                        it.newlySelected = true
-                    }
-                }
-        currentSelection.addAll(selection)
+            currentSelection.addAll(selection)
+
+        }
+
     }
 
     fun deselect(selectable: CSelectable) {
