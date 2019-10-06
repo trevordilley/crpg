@@ -1,4 +1,4 @@
-package com.ancient.game.crpg.battle.hauling
+package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.UserInputManager
@@ -7,7 +7,6 @@ import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
-import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
 

@@ -4,7 +4,6 @@ import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
-import com.ancient.game.crpg.battle.hauling.*
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
 import com.ancient.game.crpg.map.MapManager
@@ -239,6 +238,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
             add(CTransform(Vector2(1.5f, 7f), 0f, spriteRadius))
             add(CHaulable())
+            add(CDiscovery("An impressive pile of gold coin. A cumbersome load to carry, but certainly worthwhile!"))
             add(CTreasure(100))
             add(CSelectable(kind = HaulableSelect))
             add(CAnimated(

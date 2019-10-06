@@ -1,8 +1,6 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
-import com.ancient.game.crpg.battle.hauling.CHaulable
-import com.ancient.game.crpg.battle.hauling.HaulableSystem
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
@@ -20,6 +18,8 @@ import java.util.Stack
 
 object CPlayerControlled : Component
 
+class CDiscovery(val description: String) : Component
+
 enum class InputMode {
     SELECT,
     DIRECT
@@ -27,7 +27,7 @@ enum class InputMode {
 
 sealed class LeftClickKind()
 class PositionClick(val worldPos: Vector2) : LeftClickKind()
-class HaulableClick(val entity: Entity) : LeftClickKind()
+class InteractableClick(val entity: Entity) : LeftClickKind()
 class CharacterClick(val entity: Entity) : LeftClickKind()
 class BattleCommandSystem(private val viewport: Viewport,
                           private val mapManager: MapManager,
@@ -51,6 +51,7 @@ class BattleCommandSystem(private val viewport: Viewport,
     private val selectableM: ComponentMapper<CSelectable> = mapperFor()
     private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val haulableM: ComponentMapper<CHaulable> = mapperFor()
+    private val discoverableM: ComponentMapper<CDiscovery> = mapperFor()
     private val deadM: ComponentMapper<CDead> = mapperFor()
     override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
@@ -70,8 +71,9 @@ class BattleCommandSystem(private val viewport: Viewport,
                                     }
                                     ?.let { target ->
                                         if (target.has(selectableM)) {
-                                            if (target.has(haulableM)) { // TODO: Must come before playerControlled for dead CharacterSelect
-                                                HaulableClick(target)
+                                            if (target.has(haulableM) || target.has(
+                                                            discoverableM)) { // TODO: Must come before playerControlled for dead CharacterSelect
+                                                InteractableClick(target)
                                             } else if (target.has(playerControlledM)) {
                                                 CharacterClick(target)
                                             } else {
@@ -88,22 +90,29 @@ class BattleCommandSystem(private val viewport: Viewport,
                             selectionSystem.select(click.entity)
                             null to null // clicked on a character, so probably just reselecting
                         }
-                        is HaulableClick -> {
+                        is InteractableClick -> {
                             selectionSystem.select(click.entity)
-                            val haulable = click.entity[haulableM]!!
-                            if (haulable.hauler != null) {
+                            val haulable = click.entity[haulableM]
+                            if (haulable?.hauler != null) {
                                 haulingSystem.drop(haulable)
                             }
+
+                            val discoverable = click.entity[discoverableM]
+
                             click.entity[transformM]!!.position to {
-                                selectionSystem.selection.firstOrNull()?.let { ent ->
-                                    haulingSystem.attemptToPickUp(ent, click.entity)
-                                    selectionSystem.deselect(click.entity)
-                                    click.entity[animatedM]?.anims?.values?.first()?.setAnimation<OnHaulAnimation>(
-                                            OnAnimationEnd to { click.entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>() }
-                                    )
+                                if (haulable != null) {
+                                    selectionSystem.selection.firstOrNull()?.let { ent ->
+                                        haulingSystem.attemptToPickUp(ent, click.entity)
+                                        selectionSystem.deselect(click.entity)
+                                        click.entity[animatedM]?.anims?.values?.first()?.setAnimation<OnHaulAnimation>(
+                                                OnAnimationEnd to { click.entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>() }
+                                        )
+                                    }
+                                }
+                                if (discoverable != null) {
+                                    println(discoverable.description)
                                 }
                             }
-
                         }
                         is PositionClick -> {
                             click.worldPos to null

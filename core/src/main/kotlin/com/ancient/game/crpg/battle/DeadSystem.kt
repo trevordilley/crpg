@@ -1,8 +1,6 @@
 package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
-import com.ancient.game.crpg.battle.hauling.CHaulable
-import com.ancient.game.crpg.battle.hauling.HaulableSystem
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity

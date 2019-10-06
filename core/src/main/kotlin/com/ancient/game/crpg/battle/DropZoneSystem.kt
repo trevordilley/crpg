@@ -1,8 +1,7 @@
-package com.ancient.game.crpg.battle.hauling
+package com.ancient.game.crpg.battle
 
 
 import com.ancient.game.crpg.*
-import com.ancient.game.crpg.battle.CDead
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.one
@@ -20,7 +19,8 @@ class CDropZone(
         val bounds: Rectangle
 ) : Component
 
-class DropZoneSystem(private val selectionSystem: SelectionSystem) : IteratingSystem(one(CDropZone::class.java, CHaulable::class.java).get()) {
+class DropZoneSystem(private val selectionSystem: SelectionSystem) : IteratingSystem(one(
+        CDropZone::class.java, CHaulable::class.java).get()) {
     private val dropZoneM = mapperFor<CDropZone>()
     private val animatedM = mapperFor<CAnimated>()
     private val haulableM = mapperFor<CHaulable>()
