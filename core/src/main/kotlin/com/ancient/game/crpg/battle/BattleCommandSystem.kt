@@ -97,6 +97,10 @@ class BattleCommandSystem(private val viewport: Viewport,
                             click.entity[transformM]!!.position to {
                                 selectionSystem.selection.firstOrNull()?.let { ent ->
                                     haulingSystem.attemptToPickUp(ent, click.entity)
+                                    selectionSystem.deselect(click.entity)
+                                    click.entity[animatedM]?.anims?.values?.first()?.setAnimation<OnHaulAnimation>(
+                                            OnAnimationEnd to { click.entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>() }
+                                    )
                                 }
                             }
 

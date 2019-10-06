@@ -28,6 +28,9 @@ enum class DropZoneAnimationNames(val animName: String) {
     ON_DROP("OnDrop")
 }
 
+enum class HaulableAnimationNames(val animName: String) {
+    ON_HAUL("OnHaul")
+}
 
 sealed class AnimationState(val animation: AsepriteAnimation, val looping: Boolean, val timeDilation: Float = 1f)
 class IdleAnimation(animation: Aseprite) :
@@ -46,6 +49,9 @@ class OnSelectAnimation(animation: Aseprite) : AnimationState(
 
 class OnDropAnimation(animation: Aseprite) :
         AnimationState(animation[DropZoneAnimationNames.ON_DROP.animName], false)
+
+class OnHaulAnimation(animation: Aseprite) : AnimationState(
+        animation[HaulableAnimationNames.ON_HAUL.animName], false)
 
 sealed class AnimationActionTriggers
 class OnIndex(val index: Int) : AnimationActionTriggers()

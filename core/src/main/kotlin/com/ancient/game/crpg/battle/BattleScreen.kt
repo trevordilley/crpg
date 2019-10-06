@@ -244,7 +244,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                     mapOf(
                             AsepriteAsset.TREASURE to AnimationData(
                                     IdleAnimation(treasureAnim),
-                                    listOf(IdleAnimation(treasureAnim))
+                                    listOf(
+                                            IdleAnimation(treasureAnim),
+                                            OnHaulAnimation(treasureAnim)
+                                    )
                             ),
                             AsepriteAsset.SELECTION_CIRCLE to AnimationData(
                                     OnSelectAnimation(selectionCircleAnim),
