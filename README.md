@@ -27,17 +27,6 @@ https://www.aseprite.org/
 - fix character rotation, sometimes they take the long way
 - Enemy AI is FoV based
 - Pretty things like dust clouds
-- Implement hauling system. Something being hauled follows behind the hauler. 
-    - Clicking on a hauler, then clicking on something haulable within range will attach
-    the haulable entity to the hauler. Will follow if the hauler moves
-    - Clicking on an attached haulable entity will detach it from the hauler
-    - Things that could be hauled:
-        - Loot
-        - Downed NPCs
-- *Requires Hauling Implemented* When an NPC runs out of Hit Points, it's now "DOWN" and has a circular timer start. When the time runs out they
-die for good. Enemies will attack other targets unless that's the only target in range. The downed NPC cannot move
-or do anything else. They become `haulable` though, and when a friendly NPC starts to `haul` the downed character
-the countdown slows dramatically. They will eventually be able to be restored if they are hauled to a healer. 
    
 
 ## TODO's by priority 
@@ -65,7 +54,7 @@ MVP:
  - As a player I have enemies that are both melee and ranged, fast and slow
  - Entities should not overlap with one another. 
  - As a player I can find loot and must carry it out
-    - Implementation: A "haulable" thing will follow behind the entity carrying it.
+    x Implementation: A "haulable" thing will follow behind the entity carrying it.
     - Loot near a wagon is added to the wagon and will be carried out, the loot is *claimed* 
  - As a player, the light level in a dungeon or area plays an important tactical role
     
@@ -74,19 +63,9 @@ MVP:
     * Fix shapes showing direction of characters
     * Fix pathing line
     * Mouse over character shows their data (Gear with numbers) 
-    * Flavor text messages (like in Nox, nice white floating text that disappears)
+    * Flavor text messages (like in Nox, nice white floating text that disappears. AKA Toasts)
 * Ranged attacks
 * Enemy AI based on FOV  
-* Loot & "Mules"
-    * Mules are characters that are non-combatants which
-    move fast and can carry loot. Could also be player
-    characters. 
-    * Loot will be a selectable object that PC's can pick up
-    * To "earn/claim" the loot, must be brought back to "camp"
-    * Some loot isn't actual materials. Characters can also find 
-    "things of interest" such as veins of ore, fresh springs of water, arcane
-    writings, and scrolls/maps to other locations and knowledge. 
-    `for demo this can just be flavor text`
 * Health pips on character
 * Make entities collide
 * Attacks are determined by clicking on another entity
@@ -217,6 +196,32 @@ to purchase at town
 
 ## DONE
 
+#### Loot
+* Loot & "Mules"
+    * Mules are characters that are non-combatants which
+    move fast and can carry loot. Could also be player
+    characters. 
+    * Loot will be a selectable object that PC's can pick up
+    * To "earn/claim" the loot, must be brought back to "camp"
+    * Some loot isn't actual materials. Characters can also find 
+    "things of interest" such as veins of ore, fresh springs of water, arcane
+    writings, and scrolls/maps to other locations and knowledge. 
+    `for demo this can just be flavor text`
+
+#### Hauling 
+[x] Implement hauling system. Something being hauled follows behind the hauler. 
+    - Clicking on a hauler, then clicking on something haulable within range will attach
+    the haulable entity to the hauler. Will follow if the hauler moves
+    - Clicking on an attached haulable entity will detach it from the hauler
+    - Things that could be hauled:
+        - Loot
+        - Downed NPCs
+[x] *Requires Hauling Implemented* When an NPC runs out of Hit Points, it's now "DOWN" and has a circular timer start. When the time runs out they
+die for good. Enemies will attack other targets unless that's the only target in range. The downed NPC cannot move
+or do anything else. They become `haulable` though, and when a friendly NPC starts to `haul` the downed character
+the countdown slows dramatically. They will eventually be able to be restored if they are hauled to a healer. 
+
+#### FoV
 * Line of Sight
     * References
         * https://www.redblobgames.com/articles/visibility/
