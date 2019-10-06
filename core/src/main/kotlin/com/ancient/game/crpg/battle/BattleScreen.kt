@@ -69,7 +69,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
-        engine.addSystem(HealthSystem())
+        engine.addSystem(HealthSystem(selectionSystem))
         engine.addSystem(DeadSystem(haulableSystem))
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
@@ -114,7 +114,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                                 listOf(
                                                         IdleAnimation(playerCharacterAnim),
                                                         AttackAnimation(playerCharacterAnim),
-                                                        MovingAnimation(playerCharacterAnim)
+                                                        MovingAnimation(playerCharacterAnim),
+                                                        DieingAnimation(playerCharacterAnim)
                                                 )
 
                                         ),

@@ -166,6 +166,54 @@
     "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
     "sourceSize": { "w": 64, "h": 64 },
     "duration": 100
+   },
+   "64_rpg_sword_shield_ase 21.ase": {
+    "frame": { "x": 1344, "y": 0, "w": 64, "h": 64 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+    "sourceSize": { "w": 64, "h": 64 },
+    "duration": 100
+   },
+   "64_rpg_sword_shield_ase 22.ase": {
+    "frame": { "x": 1408, "y": 0, "w": 64, "h": 64 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+    "sourceSize": { "w": 64, "h": 64 },
+    "duration": 100
+   },
+   "64_rpg_sword_shield_ase 23.ase": {
+    "frame": { "x": 1472, "y": 0, "w": 64, "h": 64 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+    "sourceSize": { "w": 64, "h": 64 },
+    "duration": 100
+   },
+   "64_rpg_sword_shield_ase 24.ase": {
+    "frame": { "x": 1536, "y": 0, "w": 64, "h": 64 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+    "sourceSize": { "w": 64, "h": 64 },
+    "duration": 100
+   },
+   "64_rpg_sword_shield_ase 25.ase": {
+    "frame": { "x": 1600, "y": 0, "w": 64, "h": 64 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+    "sourceSize": { "w": 64, "h": 64 },
+    "duration": 100
+   },
+   "64_rpg_sword_shield_ase 26.ase": {
+    "frame": { "x": 1664, "y": 0, "w": 64, "h": 64 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+    "sourceSize": { "w": 64, "h": 64 },
+    "duration": 100
    }
  },
  "meta": {
@@ -173,13 +221,14 @@
   "version": "1.3-dev",
   "image": "/Users/trevordilley/trevor.dilley.dev/crpg/core/assets/64_rpg_sword_shield_ase.png",
   "format": "RGBA8888",
-  "size": { "w": 1344, "h": 64 },
+  "size": { "w": 1728, "h": 64 },
   "scale": "1",
   "frameTags": [
    { "name": "Idle", "from": 0, "to": 3, "direction": "forward" },
    { "name": "Attack", "from": 4, "to": 13, "direction": "forward" },
    { "name": "Damage", "from": 9, "to": 9, "direction": "forward" },
-   { "name": "walking", "from": 14, "to": 20, "direction": "forward" }
+   { "name": "walking", "from": 14, "to": 20, "direction": "forward" },
+   { "name": "Dieing", "from": 21, "to": 26, "direction": "forward" }
   ],
   "layers": [
    { "name": "Arm", "opacity": 255, "blendMode": "normal" },

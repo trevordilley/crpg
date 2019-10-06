@@ -51,7 +51,7 @@ class BattleCommandSystem(private val viewport: Viewport,
     private val selectableM: ComponentMapper<CSelectable> = mapperFor()
     private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val haulableM: ComponentMapper<CHaulable> = mapperFor()
-
+    private val deadM: ComponentMapper<CDead> = mapperFor()
     override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
 
@@ -115,6 +115,7 @@ class BattleCommandSystem(private val viewport: Viewport,
                     destPos?.let { dest ->
                         entities
                                 .filter { it.has(selectableM) && it.has(playerControlledM) && it.has(movableM) }
+                                .filter { it[deadM] == null }
                                 .filter { selectionSystem.selection.contains(it) }
                                 .forEach {
 

@@ -70,8 +70,8 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
     }
 
     fun deselect(selectable: Entity) {
-        selectable[selectionM]!!.selected = false
-        selectable[selectionM]!!.newlyDeselected = true
+        selectable[selectionM]?.selected = false
+        selectable[selectionM]?.newlyDeselected = true
     }
 
     fun deselect(selectables: Iterable<Entity>) {

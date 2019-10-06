@@ -23,6 +23,7 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
     private val deadM: ComponentMapper<CDead> = mapperFor()
     private val haulableM: ComponentMapper<CHaulable> = mapperFor()
     private val healthM: ComponentMapper<CHealth> = mapperFor()
+    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val selectionM: ComponentMapper<CSelectable> = mapperFor()
     private val playerControlledM: ComponentMapper<CPlayerControlled> = mapperFor()
 
@@ -58,6 +59,7 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
             if (dead.healedFor >= timeTillRessurection) {
                 entity.remove(CDead::class.java)
                 entity.remove(CHaulable::class.java)
+                entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
                 entity[selectionM]?.let {
                     it.kind = CharacterSelect(if (entity.has(playerControlledM)) {
                         Allegiance.PLAYER
@@ -71,8 +73,5 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
 
             }
         }
-
-
     }
-
 }

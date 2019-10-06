@@ -1,8 +1,6 @@
 package com.ancient.game.crpg.battle
 
-import com.ancient.game.crpg.CTransform
-import com.ancient.game.crpg.UserInputManager
-import com.ancient.game.crpg.angleWithinArc
+import com.ancient.game.crpg.*
 import com.ancient.game.crpg.equipment.Shield
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
@@ -35,7 +33,7 @@ class CHealth(
         var staminaNotRechargingForSeconds: Float = 0f
 ) : Component
 
-class HealthSystem : IteratingSystem(
+class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSystem(
         all(
                 CHealth::class.java,
                 CTransform::class.java,
@@ -48,6 +46,7 @@ class HealthSystem : IteratingSystem(
 
     private var curTimeTillRecharge = 0f
     private val healthM: ComponentMapper<CHealth> = mapperFor()
+    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val transformM: ComponentMapper<CTransform> = mapperFor()
     private val combatantM: ComponentMapper<CCombatant> = mapperFor()
 
@@ -110,7 +109,16 @@ class HealthSystem : IteratingSystem(
 
                 if (health.stamina == 0 || !damageFromFront) {
                     if (health.health <= 0) {
+                        health.stamina = 0
+                        selectionSystem.deselect(entity)
                         entity.add(CDead())
+                        entity[animatedM]?.anims?.values
+                                ?.firstOrNull()
+                                ?.let { anim ->
+                                    if (anim.animations.find { it is DieingAnimation } != null) {
+                                        anim.setAnimation<DieingAnimation>()
+                                    }
+                                }
                     } else {
                         health.health -= 1//damage.health
                     }

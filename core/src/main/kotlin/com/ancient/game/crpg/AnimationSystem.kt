@@ -17,6 +17,7 @@ enum class CombatantAnimationNames(val animName: String) {
     IDLE("Idle"),
     MOVING("walking"),
     ATTACK("Attack"),
+    DIEING("Dieing")
 }
 
 enum class SelectionCircleAnimationNames(val animName: String) {
@@ -35,6 +36,9 @@ enum class HaulableAnimationNames(val animName: String) {
 sealed class AnimationState(val animation: AsepriteAnimation, val looping: Boolean, val timeDilation: Float = 1f)
 class IdleAnimation(animation: Aseprite) :
         AnimationState(animation[CombatantAnimationNames.IDLE.animName], true)
+
+class DieingAnimation(animation: Aseprite) :
+        AnimationState(animation[CombatantAnimationNames.DIEING.animName], true)
 
 class AttackAnimation(animation: Aseprite) : AnimationState(
         animation[CombatantAnimationNames.ATTACK.animName], false)
