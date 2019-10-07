@@ -183,10 +183,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(transform)
             val dropZoneRect =
                     Rectangle(
-                            transform.position.x / 2,
-                            transform.position.y / 2,
-                            normedW,
-                            normedH
+                            0f,
+                            0f,
+                            2f,
+                            4f
                     )
             add(
                     CDropZone(TreasureKind, dropZoneRect)
@@ -215,8 +215,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(transform)
             val dropZoneRect =
                     Rectangle(
-                            4f,
                             2f,
+                            0f,
                             2f,
                             4f
                     )
