@@ -172,13 +172,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         }
 
         // DropZones have to come before other entities in render order!
-        val dropZoneAnim: Aseprite = assetManager[AsepriteAsset.DROP_ZONE.assetName]
-        val width = dropZoneAnim.frame(0).regionWidth.toFloat()
-        val normedW = width * SiUnits.PIXELS_TO_METER
-        val height = dropZoneAnim.frame(0).regionHeight.toFloat()
+        val lootDropZoneAnim: Aseprite = assetManager[AsepriteAsset.LOOT_DROP_ZONE.assetName]
+        // OOps, I mixed up the way the cart if facing, so it's width and height are mixed up
+        val height = lootDropZoneAnim.frame(0).regionWidth.toFloat()
         val normedH = height * SiUnits.PIXELS_TO_METER
+        val width = lootDropZoneAnim.frame(0).regionHeight.toFloat()
+        val normedW = width * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(2f, 2f), 0f, 1f)
+            val transform = CTransform(Vector2(2f, 2f), 270f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
@@ -192,10 +193,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             )
             add(CAnimated(
                     mapOf(
-                            AsepriteAsset.DROP_ZONE to AnimationData(
-                                    IdleAnimation(dropZoneAnim),
-                                    listOf(IdleAnimation(dropZoneAnim),
-                                            OnDropAnimation(dropZoneAnim)
+                            AsepriteAsset.LOOT_DROP_ZONE to AnimationData(
+                                    IdleAnimation(lootDropZoneAnim),
+                                    listOf(IdleAnimation(lootDropZoneAnim),
+                                            OnDropAnimation(lootDropZoneAnim)
                                     )
                             )
                     )
@@ -204,6 +205,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         })
 
         // Healing DropZone
+        val healingDropZoneAnim: Aseprite = assetManager[AsepriteAsset.HEALING_DROP_ZONE.assetName]
+        val healingWidth = healingDropZoneAnim.frame(0).regionWidth.toFloat()
+        val healingNormedW = healingWidth * SiUnits.PIXELS_TO_METER
+        val healingHeight = healingDropZoneAnim.frame(0).regionHeight.toFloat()
+        val healingNormedH = healingHeight * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
             val transform = CTransform(Vector2(4f, 2f), 0f, 1f)
             add(transform)
@@ -211,18 +217,18 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                     Rectangle(
                             transform.position.x / 2,
                             transform.position.y / 2,
-                            normedW,
-                            normedH
+                            healingNormedW,
+                            healingNormedH
                     )
             add(
                     CDropZone(HealingKind, dropZoneRect)
             )
             add(CAnimated(
                     mapOf(
-                            AsepriteAsset.DROP_ZONE to AnimationData(
-                                    IdleAnimation(dropZoneAnim),
-                                    listOf(IdleAnimation(dropZoneAnim),
-                                            OnDropAnimation(dropZoneAnim)
+                            AsepriteAsset.HEALING_DROP_ZONE to AnimationData(
+                                    IdleAnimation(healingDropZoneAnim),
+                                    listOf(IdleAnimation(healingDropZoneAnim),
+                                            OnDropAnimation(healingDropZoneAnim)
                                     )
                             )
                     )

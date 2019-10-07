@@ -6,7 +6,8 @@ enum class AsepriteAsset(val assetName: String) {
     ORC("orc"),
     SELECTION_CIRCLE("selection_circle"),
     TREASURE("treasure"),
-    DROP_ZONE("dropzone")
+    HEALING_DROP_ZONE("dropzone"),
+    LOOT_DROP_ZONE("cart")
 }
 
 const val MAP_FILEPATH = "64-dungeon-30x30.tmx"
