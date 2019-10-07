@@ -215,10 +215,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(transform)
             val dropZoneRect =
                     Rectangle(
-                            transform.position.x / 2,
-                            transform.position.y / 2,
-                            healingNormedW,
-                            healingNormedH
+                            4f,
+                            2f,
+                            2f,
+                            4f
                     )
             add(
                     CDropZone(HealingKind, dropZoneRect)

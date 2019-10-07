@@ -1,0 +1,28 @@
+{ "frames": {
+   "healing_dropzone.ase": {
+    "frame": { "x": 0, "y": 0, "w": 128, "h": 256 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 128, "h": 256 },
+    "sourceSize": { "w": 128, "h": 256 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.3-dev",
+  "image": "/Users/trevordilley/trevor.dilley.dev/crpg/core/assets/healing_dropzone.png",
+  "format": "RGBA8888",
+  "size": { "w": 128, "h": 256 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "Idle", "from": 0, "to": 0, "direction": "forward" },
+   { "name": "OnDrop", "from": 0, "to": 0, "direction": "forward" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

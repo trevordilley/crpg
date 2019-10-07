@@ -6,7 +6,7 @@ enum class AsepriteAsset(val assetName: String) {
     ORC("orc"),
     SELECTION_CIRCLE("selection_circle"),
     TREASURE("treasure"),
-    HEALING_DROP_ZONE("dropzone"),
+    HEALING_DROP_ZONE("healing_dropzone"),
     LOOT_DROP_ZONE("cart")
 }
 
