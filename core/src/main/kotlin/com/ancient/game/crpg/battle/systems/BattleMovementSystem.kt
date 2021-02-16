@@ -1,8 +1,10 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
 import com.ancient.game.crpg.*
+import com.ancient.game.crpg.systems.CAnimated
+import com.ancient.game.crpg.systems.CTransform
+import com.ancient.game.crpg.systems.IdleAnimation
 import com.badlogic.ashley.core.Component
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -36,9 +38,6 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
         )
                 .exclude(CDead::class.java)
                 .get()) {
-    private val movableM: ComponentMapper<CMovable> = mapperFor()
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val arrivalDistance = 0.2f
     private val positionUpdatesThisFrame: MutableMap<Entity, Vector2> = mutableMapOf()
 
@@ -47,25 +46,25 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
 
 
         // Pathfinding
-        val path = entity[movableM]!!.path
+        val path = entity[CMovable.m()]!!.path
 
         // Position
-        val destination = entity[movableM]!!.destination
-        val speed = entity[movableM]!!.movementSpeed
-        val position = entity[transformM]!!.position
+        val destination = entity[CMovable.m()]!!.destination
+        val speed = entity[CMovable.m()]!!.movementSpeed
+        val position = entity[CTransform.m()]!!.position
 
         // Rotation
-        val rotationSpeed = entity[movableM]!!.rotationSpeed * dt
-        val facingDirection = entity[movableM]!!.facingDirection
+        val rotationSpeed = entity[CMovable.m()]!!.rotationSpeed * dt
+        val facingDirection = entity[CMovable.m()]!!.facingDirection
 
-        val onArrival = entity[movableM]!!.onArrival
+        val onArrival = entity[CMovable.m()]!!.onArrival
 
         if (facingDirection != null) {
             // IMPORTANT: All assets that have a direction must
             // be facing RIGHT!!!
-            entity[transformM]!!.rotation =
+            entity[CTransform.m()]!!.rotation =
                     rotate(
-                            entity[transformM]!!.rotation,
+                            entity[CTransform.m()]!!.rotation,
                             facingDirection,
                             rotationSpeed
                     )
@@ -116,9 +115,9 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                 if (targetAngle != null) {
                     // IMPORTANT: All assets that have a direction must
                     // be facing RIGHT!!!
-                    entity[transformM]!!.rotation =
+                    entity[CTransform.m()]!!.rotation =
                             rotate(
-                                    entity[transformM]!!.rotation,
+                                    entity[CTransform.m()]!!.rotation,
                                     targetAngle,
                                     rotationSpeed
                             )
@@ -128,9 +127,9 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                 onArrival
                         ?.invoke()
                         ?.also { println(" invoking an onArrival") }
-                entity[movableM]!!.onArrival = null
-                entity[movableM]!!.destination = null
-                entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
+                entity[CMovable.m()]!!.onArrival = null
+                entity[CMovable.m()]!!.destination = null
+                entity[CAnimated.m()]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
             }
         }
     }
@@ -142,7 +141,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
         val dt = UserInputManager.deltaTime(deltaTime)
 
         positionUpdatesThisFrame
-                .forEach { entity, newPosition ->
+                .forEach { (entity, newPosition) ->
                     val (x, y) = newPosition
                             .let { (x, y) ->
                                 Pair(
@@ -154,22 +153,22 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                         // do some collision correction, move them slightly closer to the center of their
                         // containing cell
                         val centerOfTheirCell =
-                                entity[transformM]!!.position
+                                entity[CTransform.m()]!!.position
                                         .let {
                                             Vector2(
                                                     it.x.toInt().toFloat() + 0.5f,
                                                     it.y.toInt().toFloat() + 0.5f
                                             )
                                         }
-                        entity[transformM]!!.position =
+                        entity[CTransform.m()]!!.position =
                                 position(
-                                        entity[transformM]!!.position,
+                                        entity[CTransform.m()]!!.position,
                                         centerOfTheirCell,
                                         3f,
                                         dt
                                 )
                     } else {
-                        entity[transformM]!!.position = newPosition
+                        entity[CTransform.m()]!!.position = newPosition
                     }
                 }
         positionUpdatesThisFrame.clear()

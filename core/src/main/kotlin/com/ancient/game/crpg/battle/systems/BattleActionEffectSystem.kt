@@ -1,9 +1,7 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
-import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.UserInputManager
 import com.badlogic.ashley.core.Component
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Engine
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.one

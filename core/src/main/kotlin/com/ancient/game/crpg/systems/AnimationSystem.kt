@@ -1,6 +1,7 @@
-package com.ancient.game.crpg
+package com.ancient.game.crpg.systems
 
 
+import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteAnimation
@@ -63,10 +64,10 @@ class OnTag(val tag: String) : AnimationActionTriggers()
 object OnAnimationEnd : AnimationActionTriggers()
 
 class AnimationData(
-        var currentAnimationState: AnimationState,
-        val animations: List<AnimationState>,
-        var isActive: Boolean = true,
-        var timePassed: Float = 0f
+    var currentAnimationState: AnimationState,
+    val animations: List<AnimationState>,
+    var isActive: Boolean = true,
+    var timePassed: Float = 0f
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private var sprite = Sprite(currentAnimationState.animation.frame(0f))

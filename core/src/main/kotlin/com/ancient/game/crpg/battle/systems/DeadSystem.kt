@@ -1,6 +1,7 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
 import com.ancient.game.crpg.*
+import com.ancient.game.crpg.systems.*
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all

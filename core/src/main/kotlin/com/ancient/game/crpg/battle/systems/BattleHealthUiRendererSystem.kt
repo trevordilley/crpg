@@ -1,9 +1,8 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
-import com.ancient.game.crpg.CAnimated
-import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.systems.CAnimated
+import com.ancient.game.crpg.systems.CTransform
 import com.ancient.game.crpg.SiUnits
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -13,10 +12,9 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
-import ktx.ashley.mapperFor
 
 
-class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
+class BattleHealthUiRendererSystem(private val viewport: Viewport) : IteratingSystem(
         all(
                 CHealth::class.java,
                 CTransform::class.java,

@@ -1,9 +1,10 @@
-package com.ancient.game.crpg
+package com.ancient.game.crpg.systems
 
-import com.ancient.game.crpg.battle.CMovable
+import com.ancient.game.crpg.SiUnits
+import com.ancient.game.crpg.UserInputManager
+import com.ancient.game.crpg.battle.systems.CMovable
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -118,7 +119,6 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
     private fun debugDraw(displayDebug: Boolean) {
         if (!displayDebug) return
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-
         if (showDebug) {
             collisionPoints.forEach { v ->
                 shapeRenderer.apply {
@@ -148,7 +148,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                                                 color = Color.BLUE
                                                 prevPoint?.let { p ->
                                                     line(p.x, p.y, it.x, it.y)
-                                                    circle(it.x, it.y, 0.2f)
+                                                    circle(it.x, it.y, 0.2f, 40)
                                                 }
                                                 prevPoint = it
                                             }

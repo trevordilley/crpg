@@ -111,17 +111,16 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
         return mutableListOf<TileCellConnection>().apply {
             val neighbors = { cell: TileCell ->
                 val (x, y) = cell.pos
-                listOf(
-                        positions[Vector2(x + 1, y)],
-                        positions[Vector2(x + 1, y + 1)],
-                        positions[Vector2(x + 1, y - 1)],
-                        positions[Vector2(x, y + 1)],
-                        positions[Vector2(x - 1, y)],
-                        positions[Vector2(x - 1, y + 1)],
-                        positions[Vector2(x - 1, y - 1)],
-                        positions[Vector2(x, y - 1)]
+                listOfNotNull(
+                    positions[Vector2(x + 1, y)],
+                    positions[Vector2(x + 1, y + 1)],
+                    positions[Vector2(x + 1, y - 1)],
+                    positions[Vector2(x, y + 1)],
+                    positions[Vector2(x - 1, y)],
+                    positions[Vector2(x - 1, y + 1)],
+                    positions[Vector2(x - 1, y - 1)],
+                    positions[Vector2(x, y - 1)]
                 )
-                        .filterNotNull()
                         .filter { c ->
                             !isImpassableCell(c)
                         }

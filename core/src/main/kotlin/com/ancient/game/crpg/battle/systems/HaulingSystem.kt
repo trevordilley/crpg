@@ -1,6 +1,6 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
-import com.ancient.game.crpg.CTransform
+import com.ancient.game.crpg.systems.CTransform
 import com.ancient.game.crpg.UserInputManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper

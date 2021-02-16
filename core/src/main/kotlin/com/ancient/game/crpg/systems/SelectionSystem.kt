@@ -1,4 +1,4 @@
-package com.ancient.game.crpg
+package com.ancient.game.crpg.systems
 
 
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
@@ -18,10 +18,10 @@ sealed class SelectableKind
 class CharacterSelect(val allegiance: Allegiance) : SelectableKind()
 object HaulableSelect : SelectableKind()
 class CSelectable(
-        var kind: SelectableKind,
-        var selected: Boolean = false,
-        var newlySelected: Boolean = false,
-        var newlyDeselected: Boolean = false
+    var kind: SelectableKind,
+    var selected: Boolean = false,
+    var newlySelected: Boolean = false,
+    var newlyDeselected: Boolean = false
 ) : Component {
     companion object {
         fun m() = mapperFor<CSelectable>()

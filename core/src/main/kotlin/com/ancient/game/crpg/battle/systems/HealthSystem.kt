@@ -1,7 +1,11 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.equipment.Shield
+import com.ancient.game.crpg.systems.CAnimated
+import com.ancient.game.crpg.systems.CTransform
+import com.ancient.game.crpg.systems.DieingAnimation
+import com.ancient.game.crpg.systems.SelectionSystem
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -24,13 +28,13 @@ data class Damage(
 )
 
 class CHealth(
-        var stamina: Int,
-        var maxStamina: Int,
-        var staminaRechargeRate: Int,
-        var health: Int,
-        var maxHealth: Int,
-        val damages: MutableList<Damage> = mutableListOf(),
-        var staminaNotRechargingForSeconds: Float = 0f
+    var stamina: Int,
+    var maxStamina: Int,
+    var staminaRechargeRate: Int,
+    var health: Int,
+    var maxHealth: Int,
+    val damages: MutableList<Damage> = mutableListOf(),
+    var staminaNotRechargingForSeconds: Float = 0f
 ) : Component {
     companion object {
         fun m()  = mapperFor<CHealth>()

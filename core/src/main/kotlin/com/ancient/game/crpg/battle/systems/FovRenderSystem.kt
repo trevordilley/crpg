@@ -1,8 +1,7 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
 import com.ancient.game.crpg.createRenderableFilledPolygonMesh
 import com.ancient.game.crpg.triangle
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -13,7 +12,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.EarClippingTriangulator
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
-import ktx.ashley.mapperFor
 
 
 class FovRenderSystem(val viewport: Viewport)

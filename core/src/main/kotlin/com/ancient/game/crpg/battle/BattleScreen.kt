@@ -4,9 +4,11 @@ import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
 import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
+import com.ancient.game.crpg.battle.systems.*
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
 import com.ancient.game.crpg.map.MapManager
+import com.ancient.game.crpg.systems.*
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
@@ -64,7 +66,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         showDebug = true
                 )
         )
-        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
+        engine.addSystem(BattleHealthUiRendererSystem(viewportManager.viewport))
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
@@ -85,7 +87,9 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             Entity().apply {
                 val spriteRadius = (playerCharacterAnim.width * SiUnits.PIXELS_TO_METER) / 2f
                 val rotation = 90f
-                add(CCombatant(Player,
+                add(
+                    CCombatant(
+                        Player,
                         Equipment(
                                 MeleeWeapon(
                                         "Short Sword",
@@ -95,11 +99,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                         1f),
                                 Shield("Large Shield", 0.7f),
                                 Armor("Plate Mail", 20, 30f))
-                ))
-                add(CHealth(250,
+                )
+                )
+                add(
+                    CHealth(250,
                         250,
                         1,
-                        3, 3))
+                        3, 3)
+                )
                 add(CTransform(pos, rotation, spriteRadius))
                 add(CSelectable(kind = CharacterSelect(Allegiance.PLAYER)))
                 add(CFoV(null))
@@ -136,7 +143,9 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val orcAnim: Aseprite = assetManager[AsepriteAsset.ORC.assetName]
         val createOrc = { pos: Vector2 ->
             Entity().apply {
-                add(CCombatant(Enemy(3f),
+                add(
+                    CCombatant(
+                        Enemy(3f),
                         Equipment(
                                 MeleeWeapon("Large Axe",
                                         300,
@@ -146,8 +155,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                 ),
                                 Nothing,
                                 Armor("Shirt", 0, 0f))
-                ))
-                add(CHealth(
+                )
+                )
+                add(
+                    CHealth(
                         250,
                         250,
                         1,
@@ -156,7 +167,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 )
                 add(CTransform(pos, 270f, orcAnim.width / 2f))
                 add(CMovable(2f, null, Stack(), 8f, null))
-                add(CAnimated(
+                add(
+                    CAnimated(
                         mapOf(
                                 AsepriteAsset.ORC to AnimationData(
                                         IdleAnimation(orcAnim),
@@ -167,7 +179,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                         )
                                 )
                         )
-                ))
+                )
+                )
             }
         }
 
@@ -191,16 +204,19 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(
                     CDropZone(TreasureKind, dropZoneRect)
             )
-            add(CAnimated(
+            add(
+                CAnimated(
                     mapOf(
                             AsepriteAsset.LOOT_DROP_ZONE to AnimationData(
                                     IdleAnimation(lootDropZoneAnim),
-                                    listOf(IdleAnimation(lootDropZoneAnim),
+                                    listOf(
+                                        IdleAnimation(lootDropZoneAnim),
                                             OnDropAnimation(lootDropZoneAnim)
                                     )
                             )
                     )
-            ))
+            )
+            )
 
         })
 
@@ -223,16 +239,19 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(
                     CDropZone(HealingKind, dropZoneRect)
             )
-            add(CAnimated(
+            add(
+                CAnimated(
                     mapOf(
                             AsepriteAsset.HEALING_DROP_ZONE to AnimationData(
                                     IdleAnimation(healingDropZoneAnim),
-                                    listOf(IdleAnimation(healingDropZoneAnim),
+                                    listOf(
+                                        IdleAnimation(healingDropZoneAnim),
                                             OnDropAnimation(healingDropZoneAnim)
                                     )
                             )
                     )
-            ))
+            )
+            )
 
         })
 
@@ -247,7 +266,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(CDiscovery("An impressive pile of gold coin. A cumbersome load to carry, but certainly worthwhile!"))
             add(CTreasure(100))
             add(CSelectable(kind = HaulableSelect))
-            add(CAnimated(
+            add(
+                CAnimated(
                     mapOf(
                             AsepriteAsset.TREASURE to AnimationData(
                                     IdleAnimation(treasureAnim),
@@ -265,7 +285,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
                             )
                     )
-            ))
+            )
+            )
         })
 
 

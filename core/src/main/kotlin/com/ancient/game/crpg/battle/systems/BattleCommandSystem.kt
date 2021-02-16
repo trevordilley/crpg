@@ -1,9 +1,9 @@
-package com.ancient.game.crpg.battle
+package com.ancient.game.crpg.battle.systems
 
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.map.MapManager
+import com.ancient.game.crpg.systems.*
 import com.badlogic.ashley.core.Component
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -38,7 +38,8 @@ class CharacterClick(val entity: Entity) : LeftClickKind()
 class BattleCommandSystem(private val viewport: Viewport,
                           private val mapManager: MapManager,
                           private val selectionSystem: SelectionSystem,
-                          private val haulingSystem: HaulableSystem) : UserInputListener, IteratingSystem(
+                          private val haulingSystem: HaulableSystem
+) : UserInputListener, IteratingSystem(
         all(CSelectable::class.java, CTransform::class.java)
                 .get()) {
 
@@ -70,7 +71,8 @@ class BattleCommandSystem(private val viewport: Viewport,
                                     ?.let { target ->
                                         if (target.has(CSelectable.m())) {
                                             if (target.has(CHaulable.m()) || target.has(
-                                                            CDiscovery.m())) { // TODO: Must come before playerControlled for dead CharacterSelect
+                                                    CDiscovery.m()
+                                                )) { // TODO: Must come before playerControlled for dead CharacterSelect
                                                 InteractableClick(target)
                                             } else if (target.has(CPlayerControlled.m())) {
                                                 CharacterClick(target)
@@ -173,7 +175,8 @@ class BattleCommandSystem(private val viewport: Viewport,
 
 
     private fun pointWithinTransformRadius(point: Vector2,
-                                           transform: CTransform) =
+                                           transform: CTransform
+    ) =
             Vector2.dst(point.x, point.y, transform.position.x,
                     transform.position.y) <= transform.radius
 
