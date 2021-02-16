@@ -16,9 +16,15 @@ import ktx.math.minus
 import java.util.Stack
 
 
-object CPlayerControlled : Component
+object CPlayerControlled : Component {
+    fun m() = mapperFor<CPlayerControlled>()
+}
 
-class CDiscovery(val description: String) : Component
+class CDiscovery(val description: String) : Component {
+    companion object {
+        fun m() = mapperFor<CDiscovery>()
+    }
+}
 
 enum class InputMode {
     SELECT,
@@ -45,14 +51,6 @@ class BattleCommandSystem(private val viewport: Viewport,
     private var rotationChanged = false
     private var mode: InputMode = InputMode.SELECT
 
-    private val movableM: ComponentMapper<CMovable> = mapperFor()
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val playerControlledM: ComponentMapper<CPlayerControlled> = mapperFor()
-    private val selectableM: ComponentMapper<CSelectable> = mapperFor()
-    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
-    private val haulableM: ComponentMapper<CHaulable> = mapperFor()
-    private val discoverableM: ComponentMapper<CDiscovery> = mapperFor()
-    private val deadM: ComponentMapper<CDead> = mapperFor()
     override fun onInput(mouseInput: MouseInput, left: Boolean, up: Boolean,
                          right: Boolean, down: Boolean) {
 
@@ -64,17 +62,17 @@ class BattleCommandSystem(private val viewport: Viewport,
                     val click =
                             entities
                                     .firstOrNull {
-                                        it[selectableM] != null &&
-                                                it[transformM]?.let { transform ->
+                                        it[CSelectable.m()] != null &&
+                                                it[CTransform.m()]?.let { transform ->
                                                     pointWithinTransformRadius(worldPos, transform)
                                                 } ?: false
                                     }
                                     ?.let { target ->
-                                        if (target.has(selectableM)) {
-                                            if (target.has(haulableM) || target.has(
-                                                            discoverableM)) { // TODO: Must come before playerControlled for dead CharacterSelect
+                                        if (target.has(CSelectable.m())) {
+                                            if (target.has(CHaulable.m()) || target.has(
+                                                            CDiscovery.m())) { // TODO: Must come before playerControlled for dead CharacterSelect
                                                 InteractableClick(target)
-                                            } else if (target.has(playerControlledM)) {
+                                            } else if (target.has(CPlayerControlled.m())) {
                                                 CharacterClick(target)
                                             } else {
                                                 println("Should not have fallend into this case! $target")
@@ -92,20 +90,20 @@ class BattleCommandSystem(private val viewport: Viewport,
                         }
                         is InteractableClick -> {
                             selectionSystem.select(click.entity)
-                            val haulable = click.entity[haulableM]
+                            val haulable = click.entity[CHaulable.m()]
                             if (haulable?.hauler != null) {
                                 haulingSystem.drop(haulable)
                             }
 
-                            val discoverable = click.entity[discoverableM]
+                            val discoverable = click.entity[CDiscovery.m()]
 
-                            click.entity[transformM]!!.position to {
+                            click.entity[CTransform.m()]!!.position to {
                                 if (haulable != null) {
                                     selectionSystem.selection.firstOrNull()?.let { ent ->
                                         haulingSystem.attemptToPickUp(ent, click.entity)
                                         selectionSystem.deselect(click.entity)
-                                        click.entity[animatedM]?.anims?.values?.first()?.setAnimation<OnHaulAnimation>(
-                                                OnAnimationEnd to { click.entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>() }
+                                        click.entity[CAnimated.m()]?.anims?.values?.first()?.setAnimation<OnHaulAnimation>(
+                                                OnAnimationEnd to { click.entity[CAnimated.m()]?.anims?.values?.first()?.setAnimation<IdleAnimation>() }
                                         )
                                     }
                                 }
@@ -123,18 +121,18 @@ class BattleCommandSystem(private val viewport: Viewport,
                     // Movement
                     destPos?.let { dest ->
                         entities
-                                .filter { it.has(selectableM) && it.has(playerControlledM) && it.has(movableM) }
-                                .filter { it[deadM] == null }
+                                .filter { it.has(CSelectable.m()) && it.has(CPlayerControlled.m()) && it.has(CMovable.m()) }
+                                .filter { it[CDead.m()] == null }
                                 .filter { selectionSystem.selection.contains(it) }
                                 .forEach {
 
-                                    val path = mapManager.findPath(it[transformM]!!.position, worldPos)
+                                    val path = mapManager.findPath(it[CTransform.m()]!!.position, worldPos)
 
-                                    it[animatedM]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
+                                    it[CAnimated.m()]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
 
-                                    it[movableM]!!.destination = dest
-                                    it[movableM]!!.onArrival = onArrival
-                                    it[movableM]!!.path = path.let { p ->
+                                    it[CMovable.m()]!!.destination = dest
+                                    it[CMovable.m()]!!.onArrival = onArrival
+                                    it[CMovable.m()]!!.path = path.let { p ->
                                         val stack = Stack<Vector2>()
                                         p.toList().reversed().forEach { tile ->
                                             // Move to middle of the tile
@@ -191,15 +189,15 @@ class BattleCommandSystem(private val viewport: Viewport,
     }
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        if (entity.has(selectableM) && entity.has(playerControlledM)) {
-            entity[selectableM]!!.let {
+        if (entity.has(CSelectable.m()) && entity.has(CPlayerControlled.m())) {
+            entity[CSelectable.m()]!!.let {
                 if (it.selected) {
                     if (destinationChanged) {
-                        entity[movableM]?.destination = destination
+                        entity[CMovable.m()]?.destination = destination
                         destinationChanged = false
                     }
                     if (rotationChanged) {
-                        entity[movableM]?.facingDirection = rotation?.angle()
+                        entity[CMovable.m()]?.facingDirection = rotation?.angle()
                         rotationChanged = false
                     }
 

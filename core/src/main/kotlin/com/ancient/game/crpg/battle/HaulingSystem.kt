@@ -11,10 +11,18 @@ import ktx.ashley.get
 import ktx.ashley.mapperFor
 
 // TODO: Move into treasure system
-class CTreasure(val value: Int): Component
+class CTreasure(val value: Int): Component {
+    companion object {
+        fun m() = mapperFor<CTreasure>()
+    }
+}
 
 
-class CHaulable(var hauler: Entity? = null) : Component
+class CHaulable(var hauler: Entity? = null) : Component {
+    companion object {
+        fun m() = mapperFor<CHaulable>()
+    }
+}
 
 
 class HaulableSystem() : IteratingSystem(all(

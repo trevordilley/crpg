@@ -19,14 +19,13 @@ import ktx.ashley.mapperFor
 class FovRenderSystem(val viewport: Viewport)
     : IteratingSystem(all(CFoV::class.java).get()) {
 
-    private val fovM: ComponentMapper<CFoV> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var fovToRender = mutableListOf<CFoV>()
     private val earTriangulator: EarClippingTriangulator = EarClippingTriangulator()
 
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        fovToRender.add(entity[fovM]!!)
+        fovToRender.add(entity[CFoV.m()]!!)
     }
 
 

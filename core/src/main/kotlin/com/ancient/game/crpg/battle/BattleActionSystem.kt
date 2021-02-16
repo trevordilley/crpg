@@ -17,6 +17,9 @@ class CAction(
     private var duration: Float = 0f
     private var deltaTime: Float = 0f
 
+    companion object {
+        fun m() = mapperFor<CAction>()
+    }
     fun update(dt: Float): Boolean {
         deltaTime = dt
         duration += dt
@@ -26,11 +29,10 @@ class CAction(
 }
 
 class BattleActionSystem : IteratingSystem(all(CAction::class.java).get()) {
-    private val actionM: ComponentMapper<CAction> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
 
-        entity[actionM]!!.update(dt).let { isCompleted ->
+        entity[CAction.m()]!!.update(dt).let { isCompleted ->
             if (isCompleted) {
                 entity.remove<CAction>()
             }

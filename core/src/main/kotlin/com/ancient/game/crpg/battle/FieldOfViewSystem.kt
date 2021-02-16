@@ -3,6 +3,7 @@ package com.ancient.game.crpg.battle
 import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.map.Edge
 import com.ancient.game.crpg.map.MapManager
+import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
@@ -13,7 +14,11 @@ import ktx.ashley.get
 import ktx.ashley.mapperFor
 import ktx.math.minus
 
-class CFoV(var fovPoly: Polygon?) : com.badlogic.ashley.core.Component
+class CFoV(var fovPoly: Polygon?) : Component {
+   companion object {
+       fun m() = mapperFor<CFoV>()
+   }
+}
 
 class FieldOfViewSystem(private val mapManager: MapManager)
     : IteratingSystem(
@@ -22,10 +27,8 @@ class FieldOfViewSystem(private val mapManager: MapManager)
                 CTransform::class.java
         ).get()) {
 
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val fovM: ComponentMapper<CFoV> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        val pos = entity[transformM]!!.position
+        val pos = entity[CTransform.m()]!!.position
 
         val opaqueEdges = mapManager.opaqueEdges
 
@@ -41,7 +44,7 @@ class FieldOfViewSystem(private val mapManager: MapManager)
         }.flatten()
 
         val fovPoly = calculateFoV(pos.x, pos.y, opaqueEdges, angles)
-        entity[fovM]!!.fovPoly = fovPoly
+        entity[CFoV.m()]!!.fovPoly = fovPoly
     }
 
 

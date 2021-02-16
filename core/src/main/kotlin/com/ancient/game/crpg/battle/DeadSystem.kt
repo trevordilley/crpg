@@ -2,7 +2,6 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
 import com.badlogic.ashley.core.Component
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -11,34 +10,37 @@ import ktx.ashley.has
 import ktx.ashley.mapperFor
 import ktx.log.info
 
-class CDead(var deadFor: Double = 0.0, var beingHealed: Boolean = false, var healedFor: Double = 0.0) : Component
+class CDead(
+    var deadFor: Double = 0.0,
+    var beingHealed: Boolean = false,
+    var healedFor: Double = 0.0
+) : Component {
+    companion object {
+        fun m() = mapperFor<CDead>()
+    }
+}
+
 class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead::class.java).get()) {
     private val log = gameLogger(this::class.java)
 
     private val timeTillPermaDeath = 20.0f
     private val timeTillRessurection = 5.0f
 
-    private val deadM: ComponentMapper<CDead> = mapperFor()
-    private val haulableM: ComponentMapper<CHaulable> = mapperFor()
-    private val healthM: ComponentMapper<CHealth> = mapperFor()
-    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
-    private val selectionM: ComponentMapper<CSelectable> = mapperFor()
-    private val playerControlledM: ComponentMapper<CPlayerControlled> = mapperFor()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
-        val dead = entity[deadM]!!
+        val dead = entity[CDead.m()]!!
 
         // They juuuuuuuuust died
         if (dead.deadFor == 0.0) {
-            entity[selectionM]?.let {
+            entity[CSelectable.m()]?.let {
                 entity.add(CHaulable()) // They can now be moved
-                entity[selectionM]!!.kind = HaulableSelect
+                entity[CSelectable.m()]!!.kind = HaulableSelect
             }
         }
         dead.deadFor += dt
 
-        if (entity[playerControlledM] == null) {
+        if (entity[CPlayerControlled.m()] == null) {
             engine.removeEntity(entity).also {
                 info { "Removing enemy immediately $entity." }
             }
@@ -46,7 +48,7 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
         }
 
         if (dead.deadFor >= timeTillPermaDeath && !dead.beingHealed) {
-            entity[haulableM]?.let { haulingSystem.drop(it) }
+            entity[CHaulable.m()]?.let { haulingSystem.drop(it) }
             engine.removeEntity(entity).also {
                 info { "Removing dead critter $entity." }
             }
@@ -57,17 +59,19 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
             if (dead.healedFor >= timeTillRessurection) {
                 entity.remove(CDead::class.java)
                 entity.remove(CHaulable::class.java)
-                entity[animatedM]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
-                entity[selectionM]?.let {
-                    it.kind = CharacterSelect(if (entity.has(playerControlledM)) {
-                        Allegiance.PLAYER
-                    } else {
-                        Allegiance.ENEMY
-                    })
+                entity[CAnimated.m()]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
+                entity[CSelectable.m()]?.let {
+                    it.kind = CharacterSelect(
+                        if (entity.has(CPlayerControlled.m())) {
+                            Allegiance.PLAYER
+                        } else {
+                            Allegiance.ENEMY
+                        }
+                    )
                 }
-                entity[healthM]!!.health = entity[healthM]!!.maxHealth
-                entity[healthM]!!.stamina = (entity[healthM]!!.maxStamina.toDouble() * 0.25).toInt()
-                println("$entity is back in action with ${entity[healthM]!!.stamina} stamina!")
+                entity[CHealth.m()]!!.health = entity[CHealth.m()]!!.maxHealth
+                entity[CHealth.m()]!!.stamina = (entity[CHealth.m()]!!.maxStamina.toDouble() * 0.25).toInt()
+                println("$entity is back in action with ${entity[CHealth.m()]!!.stamina} stamina!")
 
             }
         }

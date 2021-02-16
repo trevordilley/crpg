@@ -22,19 +22,21 @@ class CSelectable(
         var selected: Boolean = false,
         var newlySelected: Boolean = false,
         var newlyDeselected: Boolean = false
-) : Component
+) : Component {
+    companion object {
+        fun m() = mapperFor<CSelectable>()
+    }
+}
 
 
 class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
-    private val selectionM = mapperFor<CSelectable>()
-    private val animationM = mapperFor<CAnimated>()
     private var characterSelection: MutableList<Entity> = mutableListOf()
     private var targetSelection: Entity? = null
     val selection: List<Entity> get() = characterSelection
 
     fun select(selection: Entity) {
-        selection[selectionM]!!.let { selected ->
+        selection[CSelectable.m()]!!.let { selected ->
             if (selected.kind is HaulableSelect) {
                 targetSelection = select(listOf(selection), targetSelection?.let { listOf(it) } ?: listOf()).firstOrNull()
             } else {
@@ -52,15 +54,15 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
                     .toMutableSet()
                     .let { deselect(it) }
             selection
-                    .partition { it[selectionM]!!.selected }
+                    .partition { it[CSelectable.m()]!!.selected }
                     .let { (alreadySelected, newlySelected) ->
                         alreadySelected.forEach {
-                            it[selectionM]!!.selected = true
-                            it[selectionM]!!.newlyDeselected = false
+                            it[CSelectable.m()]!!.selected = true
+                            it[CSelectable.m()]!!.newlyDeselected = false
                         }
                         newlySelected.forEach {
-                            it[selectionM]!!.selected = true
-                            it[selectionM]!!.newlySelected = true
+                            it[CSelectable.m()]!!.selected = true
+                            it[CSelectable.m()]!!.newlySelected = true
                         }
                     }
             return selection.toList()
@@ -70,8 +72,8 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
     }
 
     fun deselect(selectable: Entity) {
-        selectable[selectionM]?.selected = false
-        selectable[selectionM]?.newlyDeselected = true
+        selectable[CSelectable.m()]?.selected = false
+        selectable[CSelectable.m()]?.newlyDeselected = true
     }
 
     fun deselect(selectables: Iterable<Entity>) {
@@ -91,9 +93,9 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
 
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        val selected = entity[selectionM]!!
+        val selected = entity[CSelectable.m()]!!
         val animated =
-                entity[animationM]!!.anims.getValue(AsepriteAsset.SELECTION_CIRCLE)
+                entity[CAnimated.m()]!!.anims.getValue(AsepriteAsset.SELECTION_CIRCLE)
 
 
         // Update position

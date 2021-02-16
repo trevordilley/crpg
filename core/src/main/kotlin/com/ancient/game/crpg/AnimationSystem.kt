@@ -148,7 +148,11 @@ class AnimationData(
     private var actions: MutableMap<Int, Pair<Boolean, () -> Unit?>> = mutableMapOf()
 }
 
-class CAnimated(val anims: Map<AsepriteAsset, AnimationData>) : Component
+class CAnimated(val anims: Map<AsepriteAsset, AnimationData>) : Component {
+    companion object {
+        fun m() = mapperFor<CAnimated>()
+    }
+}
 
 
 class AnimationSystem : IteratingSystem(all(CAnimated::class.java).get()) {

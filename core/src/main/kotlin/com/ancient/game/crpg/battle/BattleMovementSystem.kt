@@ -22,7 +22,11 @@ data class CMovable(
         val rotationSpeed: Float, // How fast can we turn
         var facingDirection: Float? = null, // Where are you looking while you move?
         var onArrival: (() -> Unit?)? = null // Do something when we get there?
-) : Component
+) : Component {
+    companion object {
+        fun m() = mapperFor<CMovable>()
+    }
+}
 
 
 class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : IteratingSystem(

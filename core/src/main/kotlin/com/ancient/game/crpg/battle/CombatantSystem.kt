@@ -18,14 +18,13 @@ sealed class Combatant
 object Player : Combatant()
 data class Enemy(val aggroRange: Float) : Combatant()
 
-class CCombatant(val combatant: Combatant, val equipment: Equipment) : Component
+class CCombatant(val combatant: Combatant, val equipment: Equipment) : Component {
+    companion object {
+        fun m() = mapperFor<CCombatant>()
+    }
+}
 
 class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDead::class.java).get()) {
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val movableM: ComponentMapper<CMovable> = mapperFor()
-    private val combatantM: ComponentMapper<CCombatant> = mapperFor()
-    private val animatedM: ComponentMapper<CAnimated> = mapperFor()
-    private val healthM: ComponentMapper<CHealth> = mapperFor()
     private val entitiesToProcess = mutableListOf<Entity>()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -36,7 +35,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
     override fun update(deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
         val (players, enemies) =
-                entities.partition { it[combatantM]!!.combatant is Player }
+                entities.partition { it[CCombatant.m()]!!.combatant is Player }
 
         if (players.isEmpty()) {
             entitiesToProcess.clear()
@@ -52,16 +51,16 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
 
 
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
-        val (x, y) = attacker[transformM]!!.position
+        val (x, y) = attacker[CTransform.m()]!!.position
         val target =
                 targets.minBy {
-                    val (tx, ty) = it[transformM]!!.position
+                    val (tx, ty) = it[CTransform.m()]!!.position
                     Vector2.dst(x, y, tx, ty)
                 } ?: return
 
-        val (tx, ty) = target[transformM]!!.position
-        val combatant = attacker[combatantM]!!.combatant
-        val gear = attacker[combatantM]!!.equipment
+        val (tx, ty) = target[CTransform.m()]!!.position
+        val combatant = attacker[CCombatant.m()]!!.combatant
+        val gear = attacker[CCombatant.m()]!!.equipment
         val weapon: MeleeWeapon =
                 listOf(
                         gear.rightHand,
@@ -73,13 +72,13 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
                 .let { distance ->
                     if (distance <= weapon.range) {
                         val atk =
-                                attacker[animatedM]!!.anims.values.first()
+                                attacker[CAnimated.m()]!!.anims.values.first()
                         if (atk.currentAnimationState !is AttackAnimation) {
                             atk.setAnimation<AttackAnimation>(
                                     OnTag("Damage") to {
-                                        target[transformM]?.let { tarPos ->
-                                            target[healthM]?.let { health ->
-                                                attacker[transformM]?.let { attackerPos ->
+                                        target[CTransform.m()]?.let { tarPos ->
+                                            target[CHealth.m()]?.let { health ->
+                                                attacker[CTransform.m()]?.let { attackerPos ->
                                                     val dist =
                                                             Vector2.dst(
                                                                     attackerPos.position.x,
@@ -99,12 +98,12 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
                                     }
                             )
                         }
-                        attacker[movableM]!!.destination = null
+                        attacker[CMovable.m()]!!.destination = null
                     } else {
                         when (combatant) {
                             is Enemy -> {
                                 if (distance <= combatant.aggroRange) {
-                                    attacker[movableM]!!.destination = Vector2(tx, ty)
+                                    attacker[CMovable.m()]!!.destination = Vector2(tx, ty)
                                 }
                             }
                         }

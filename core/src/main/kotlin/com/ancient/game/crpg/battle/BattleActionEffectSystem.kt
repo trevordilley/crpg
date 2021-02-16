@@ -14,7 +14,11 @@ import ktx.ashley.mapperFor
 sealed class CActionEffect() : Component {
 }
 
-class CMeleeEffect(val attacker: Entity, val target: Entity, val range: Float, val staminaDamage: Int) : CActionEffect()
+class CMeleeEffect(val attacker: Entity, val target: Entity, val range: Float, val staminaDamage: Int) : CActionEffect() {
+    companion object {
+        fun m() = mapperFor<CMeleeEffect>()
+    }
+}
 
 class BattleActionEffectSystem : IteratingSystem(one(
         CMeleeEffect::class.java).get()) {
@@ -25,13 +29,10 @@ class BattleActionEffectSystem : IteratingSystem(one(
         }
     }
 
-    private val meleeM: ComponentMapper<CMeleeEffect> = mapperFor()
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val healthM: ComponentMapper<CHealth> = mapperFor()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         if (!UserInputManager.isPaused) {
-            entity[meleeM]?.let { effect -> applyEffect(effect) }
+            entity[CMeleeEffect.m()]?.let { effect -> applyEffect(effect) }
             engine.removeEntity(entity)
         }
     }

@@ -31,7 +31,11 @@ class CHealth(
         var maxHealth: Int,
         val damages: MutableList<Damage> = mutableListOf(),
         var staminaNotRechargingForSeconds: Float = 0f
-) : Component
+) : Component {
+    companion object {
+        fun m()  = mapperFor<CHealth>()
+    }
+}
 
 class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSystem(
         all(

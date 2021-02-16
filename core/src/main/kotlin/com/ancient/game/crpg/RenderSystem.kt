@@ -21,7 +21,11 @@ import ktx.ashley.has
 import ktx.ashley.mapperFor
 
 
-class CTransform(var position: Vector2, var rotation: Float, val radius: Float, val scale: Float = 1f) : Component
+class CTransform(var position: Vector2, var rotation: Float, val radius: Float, val scale: Float = 1f) : Component {
+    companion object {
+        fun m() = mapperFor<CTransform>()
+    }
+}
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
@@ -30,18 +34,15 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         all(CAnimated::class.java, CTransform::class.java).get()) {
 
 
-    private val animationM: ComponentMapper<CAnimated> = mapperFor()
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val movableM: ComponentMapper<CMovable> = mapperFor()
     private val shapeRenderer = ShapeRenderer()
     private var spritesToRender = mutableListOf<Pair<Sprite, CTransform>>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
-        entity[animationM]
+        entity[CAnimated.m()]
                 ?.anims
                 ?.values
                 ?.filter { it.isActive }
-                ?.map { it.currentFrame() to entity[transformM]!! }
+                ?.map { it.currentFrame() to entity[CTransform.m()]!! }
                 ?.forEach { spritesToRender.add(it) }
     }
 
@@ -134,9 +135,9 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             }
 
             entities
-                    .filter { it.has(movableM) }
+                    .filter { it.has(CMovable.m()) }
                     .forEach { entity ->
-                        entity[movableM]!!
+                        entity[CMovable.m()]!!
                                 .path
                                 .toList()
                                 .let { path ->

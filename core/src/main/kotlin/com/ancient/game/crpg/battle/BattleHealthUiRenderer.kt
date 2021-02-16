@@ -23,13 +23,10 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
                 CAnimated::class.java
         ).get()) {
 
-    private val healthM: ComponentMapper<CHealth> = mapperFor()
-    private val transformM: ComponentMapper<CTransform> = mapperFor()
-    private val animationM: ComponentMapper<CAnimated> = mapperFor()
     private var healthUiToRender = mutableListOf<Entity>()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
-        entity[healthM]?.let { healthUiToRender.add(entity) }
+        entity[CHealth.m()]?.let { healthUiToRender.add(entity) }
     }
 
     override fun update(deltaTime: Float) {
@@ -44,11 +41,11 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
 
         healthUiToRender.forEach { entity ->
-            val sprite = entity[animationM]!!.anims.values.first().currentFrame()
-            val health = entity[healthM]!!
+            val sprite = entity[CAnimated.m()]!!.anims.values.first().currentFrame()
+            val health = entity[CHealth.m()]!!
 
             val (x, y, r) =
-                    entity[transformM]!!
+                    entity[CTransform.m()]!!
                             .let {
                                 Triple(
                                         it.position.x,
