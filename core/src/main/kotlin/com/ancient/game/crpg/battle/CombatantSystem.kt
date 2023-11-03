@@ -53,7 +53,7 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
         val (x, y) = attacker[CTransform.m()]!!.position
         val target =
-                targets.minBy {
+                targets.minByOrNull {
                     val (tx, ty) = it[CTransform.m()]!!.position
                     Vector2.dst(x, y, tx, ty)
                 } ?: return

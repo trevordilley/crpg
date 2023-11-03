@@ -120,6 +120,10 @@ class UserInputManager(
         return false
     }
 
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        TODO("Not yet implemented")
+    }
+
 
     private fun assignMouseButtonAction(pointer: Int, action: MouseButtonAction) {
         when (pointer) {

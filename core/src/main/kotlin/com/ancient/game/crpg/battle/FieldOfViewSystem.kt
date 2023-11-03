@@ -130,7 +130,7 @@ class FieldOfViewSystem(private val mapManager: MapManager)
                                 ),
                                 angle.toFloat())
                     }
-                    .minBy { it.param }
+                    .minByOrNull { it.param }
         }
 
         return uniqueAngles

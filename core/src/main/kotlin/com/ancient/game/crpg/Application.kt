@@ -37,7 +37,6 @@ class Application : KtxGame<Screen>() {
     private val assetManager = AssetManager()
     private var loaded = false
     override fun create() {
-
         log.debug("""
             --- Application ---
             Resolution:  ${Gdx.graphics.width} x ${Gdx.graphics.height}
