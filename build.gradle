@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.6.10'
+    ext.kotlinVersion = '1.9.0'
     repositories {
         mavenLocal()
         mavenCentral()
@@ -21,11 +21,11 @@ allprojects {
     version = '1.0'
     ext {
         appName = "crpg"
-        gdxVersion = '1.10.0'
+        gdxVersion = '1.12.0'
         roboVMVersion = '2.3.19'
         ashleyVersion = '1.7.4'
         aiVersion = '1.8.1'
-        ktxVersion = "1.9.8-b4"
+        ktxVersion = "1.12.0-rc1"
         slf4jVersion = "1.8.0-beta4"
         logbackVersion = "1.3.0-alpha4"
         quickCheckVersion = "0.8.2"
@@ -47,14 +47,16 @@ project(":desktop") {
 
 
     dependencies {
-        implementation project(":core")
-        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        implementation "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop"
-        implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
-        implementation "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
-        implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+        api project(":core")
+        api "io.github.libktx:ktx-app:$ktxVersion"
+        api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+//        api "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        api "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop"
+        api "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+        api "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     }
 }
 
@@ -63,37 +65,40 @@ project(":core") {
 
 
     dependencies {
-        implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-ai:$aiVersion"
-        implementation "com.badlogicgames.ashley:ashley:$ashleyVersion"
-        implementation "com.kotcrab.vis:vis-ui:$visUiVersion"
-        implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-        implementation "io.github.libktx:ktx-log:$ktxVersion"
-        implementation "io.github.libktx:ktx-app:$ktxVersion"
-        implementation "io.github.libktx:ktx-ashley:$ktxVersion"
-        implementation "io.github.libktx:ktx-graphics:$ktxVersion"
-        implementation "io.github.libktx:ktx-async:$ktxVersion"
-        implementation "io.github.libktx:ktx-inject:$ktxVersion"
-        implementation "io.github.libktx:ktx-math:$ktxVersion"
-        implementation "io.github.libktx:ktx-assets:$ktxVersion"
-        implementation "io.github.libktx:ktx-i18n:$ktxVersion"
-        implementation "io.github.libktx:ktx-actors:$ktxVersion"
-        implementation "io.github.libktx:ktx-collections:$ktxVersion"
-        implementation "io.github.libktx:ktx-style:$ktxVersion"
-        implementation "io.github.libktx:ktx-math:$ktxVersion"
+        api "com.badlogicgames.gdx:gdx:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+        api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
+        api "com.badlogicgames.ashley:ashley:$ashleyVersion"
+        api "com.kotcrab.vis:vis-ui:$visUiVersion"
+        api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+        api "io.github.libktx:ktx-log:$ktxVersion"
+        api "io.github.libktx:ktx-app:$ktxVersion"
+        api "io.github.libktx:ktx-ashley:$ktxVersion"
+        api "io.github.libktx:ktx-graphics:$ktxVersion"
+        api "io.github.libktx:ktx-async:$ktxVersion"
+        api "io.github.libktx:ktx-inject:$ktxVersion"
+        api "io.github.libktx:ktx-math:$ktxVersion"
+        api "io.github.libktx:ktx-assets:$ktxVersion"
+        api "io.github.libktx:ktx-i18n:$ktxVersion"
+        api "io.github.libktx:ktx-actors:$ktxVersion"
+        api "io.github.libktx:ktx-collections:$ktxVersion"
+        api "io.github.libktx:ktx-style:$ktxVersion"
+        api "io.github.libktx:ktx-math:$ktxVersion"
+
+        // Native
+        api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 
         // Logging
-        implementation "org.slf4j:slf4j-api:$slf4jVersion"
-        implementation "ch.qos.logback:logback-classic:$logbackVersion"
-        implementation "ch.qos.logback:logback-core:$logbackVersion"
+        api "org.slf4j:slf4j-api:$slf4jVersion"
+        api "ch.qos.logback:logback-classic:$logbackVersion"
+        api "ch.qos.logback:logback-core:$logbackVersion"
 
         // Scripting in kotlin using Scratch files
-        implementation 'org.jetbrains.kotlin:kotlin-script-runtime:1.3.31'
+        api 'org.jetbrains.kotlin:kotlin-script-runtime:1.3.31'
 
         // https://mvnrepository.com/artifact/com.pholser/junit-quickcheck-core
-        testImplementation "com.pholser:junit-quickcheck-core:$quickCheckVersion"
+        testApi "com.pholser:junit-quickcheck-core:$quickCheckVersion"
         testImplementation "com.pholser:junit-quickcheck-generators:$quickCheckVersion"
         // https://mvnrepository.com/artifact/junit/junit
         testImplementation "junit:junit:$jUnitVersion"

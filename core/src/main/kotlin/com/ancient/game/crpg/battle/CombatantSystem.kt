@@ -100,11 +100,9 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
                         }
                         attacker[CMovable.m()]!!.destination = null
                     } else {
-                        when (combatant) {
-                            is Enemy -> {
-                                if (distance <= combatant.aggroRange) {
-                                    attacker[CMovable.m()]!!.destination = Vector2(tx, ty)
-                                }
+                        if(combatant is Enemy) {
+                            if (distance <= combatant.aggroRange) {
+                                attacker[CMovable.m()]!!.destination = Vector2(tx, ty)
                             }
                         }
                     }

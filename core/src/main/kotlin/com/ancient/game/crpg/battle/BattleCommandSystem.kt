@@ -153,8 +153,10 @@ class BattleCommandSystem(private val viewport: Viewport,
 
         mouseInput.right?.let { rightClick ->
             when (rightClick) {
-                is MouseUp -> if (rotationPivot == null) {
-                    resetSelection()
+                is MouseUp -> {
+                    if (rotationPivot == null) {
+                        resetSelection()
+                    }
                 }
                 is MouseButtonDragging -> {
                     val pos = viewport.unproject(rightClick.position.cpy())
@@ -167,6 +169,8 @@ class BattleCommandSystem(private val viewport: Viewport,
                         rotationPivot = null
                     }
                 }
+
+                is MouseDown -> println("Mouse down")
             }
         }
     }

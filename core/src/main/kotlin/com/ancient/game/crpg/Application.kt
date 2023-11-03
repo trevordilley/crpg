@@ -20,7 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.app.KtxGame
-import ktx.inject.Context
+import ktx.inject.*
 
 object SiUnits {
     const val UNIT = 64 // minimum resolution of a character.
@@ -66,6 +66,7 @@ class Application : KtxGame<Screen>() {
         assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
         assetManager.load(MAP_FILEPATH, TiledMap::class.java)
         log.info("Setting up Context")
+
         context.register {
             bindSingleton<Batch>(SpriteBatch())
             bindSingleton<Viewport>(viewport)

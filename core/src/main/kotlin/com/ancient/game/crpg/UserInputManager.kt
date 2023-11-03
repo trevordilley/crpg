@@ -121,7 +121,8 @@ class UserInputManager(
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        TODO("Not yet implemented")
+        println("Scolling")
+        return true
     }
 
 
