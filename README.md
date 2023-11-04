@@ -18,18 +18,25 @@ https://www.mapeditor.org/
 Sprite/Animation management using Aseprite
 https://www.aseprite.org/
 
-## Current Tasks
-- On-Hit effect (flash white, something a character is damaged.)
-- Smoother camera movement
-- Multi-select rectangle when dragging mouse. 
-- Sound effects, background music.
-- Ranged attacks
-- fix character rotation, sometimes they take the long way
-- Enemy AI is FoV based
-- Pretty things like dust clouds
-   
-
 ## TODO's by priority 
+
+* Get HyperLap2D running 
+  * Import a scene with a nice background
+  * Use the polygonal geometry defined in the scene for FoV instead of my tilemap stuff
+  * Move characters around and see the FoV work
+* Package the game up and upload to itch.io
+  * Force me to go through the steps of actually making a distributable thing
+  * See how hard it is to share the game, if it's not hard to share with my friends then maybe I'll get over the urge to want to have it run on the web
+* Start back on the game features!
+  * On-Hit effect (flash white, something a character is damaged.)
+  * Smoother camera movement
+  * Multi-select rectangle when dragging mouse.
+  * Sound effects, background music.
+  * Ranged attacks
+  * fix character rotation, sometimes they take the long way
+  * Enemy AI is FoV based
+  * Pretty things like dust clouds
+
 
 ### BUGS 
 

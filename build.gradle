@@ -31,6 +31,8 @@ allprojects {
         quickCheckVersion = "0.8.2"
         jUnitVersion = "4.13-beta-2"
         visUiVersion = "1.3.0"
+        h2dVersion = "0.1.3"
+        artemisVersion = "2.3.0"
     }
 
     repositories {
@@ -85,6 +87,10 @@ project(":core") {
         api "io.github.libktx:ktx-collections:$ktxVersion"
         api "io.github.libktx:ktx-style:$ktxVersion"
         api "io.github.libktx:ktx-math:$ktxVersion"
+
+        // Hyperlap
+        api "games.rednblack.hyperlap2d:runtime-libgdx:$h2dVersion"
+        api "net.onedaybeard.artemis:artemis-odb:$artemisVersion"
 
         // Native
         api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
