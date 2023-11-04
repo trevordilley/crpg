@@ -11,12 +11,16 @@ import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.GL30
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
+import games.rednblack.editor.renderer.SceneConfiguration
+import games.rednblack.editor.renderer.SceneLoader
+import games.rednblack.editor.renderer.resources.AsyncResourceManager
 import ktx.app.KtxScreen
 import java.util.Stack
 
@@ -30,7 +34,14 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
     private lateinit var inputManager: UserInputManager
     private lateinit var mapRenderer: OrthogonalTiledMapRenderer
 
+    private lateinit var sceneLoader: SceneLoader
+
     override fun show() {
+        log.info("Setting up h2d")
+        val config = SceneConfiguration()
+        config.setResourceRetriever(assetManager.get("project.dt", AsyncResourceManager::class.java))
+        sceneLoader = SceneLoader(config)
+
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
         log.info("Input Management")
 
@@ -280,6 +291,9 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
         engine.addEntity(createOrc(Vector2(22.5f, 21f)))
         engine.addEntity(createOrc(Vector2(20.5f, 21f)))
+
+        sceneLoader.loadScene("MainScene", viewportManager.viewport)
+
     }
 
 
@@ -287,14 +301,23 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Receive user input first
         inputManager.update()
 
+        viewportManager.viewport.camera.update()
+        //Clear screen
+        Gdx.gl.glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+        Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
         // Update camera
-        viewportManager.update(delta)
+//        viewportManager.update(delta)
 
-        // Render Map
-        mapRenderer.setView(viewportManager.viewport.camera as OrthographicCamera)
-        mapRenderer.render()
+
+//        // Render Map
+//        mapRenderer.setView(viewportManager.viewport.camera as OrthographicCamera)
+//        mapRenderer.render()
+
 
         // Update systems
-        engine.update(delta)
+//        engine.update(delta)
+        // Render h2d
+        viewportManager.viewport.apply()
+        sceneLoader.engine.process()
     }
 }

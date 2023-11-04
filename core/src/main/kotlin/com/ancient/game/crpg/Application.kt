@@ -19,9 +19,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.viewport.Viewport
+import games.rednblack.editor.renderer.resources.AsyncResourceManager
+import games.rednblack.editor.renderer.resources.ResourceManagerLoader
 import ktx.app.KtxGame
+import ktx.assets.setLoader
 import ktx.inject.*
-
 object SiUnits {
     const val UNIT = 64 // minimum resolution of a character.
     const val PIXELS_TO_METER = 1.0f / UNIT.toFloat()
@@ -54,8 +56,11 @@ class Application : KtxGame<Screen>() {
 
         val viewportManager = ViewportManager(viewport)
 
-        log.info("Loading Assets")
+        log.info("Loading h2d")
+        assetManager.setLoader(AsyncResourceManager::class.java, ResourceManagerLoader(assetManager.fileHandleResolver))
+        assetManager.load("project.dt", AsyncResourceManager::class.java)
 
+        log.info("Loading Assets")
         assetManager.setLoader(Aseprite::class.java, AsepriteLoader(InternalFileHandleResolver()))
         assetManager.setLoader(AsepriteJson::class.java, AsepriteJsonLoader(InternalFileHandleResolver()))
         AsepriteAsset.values().forEach {
