@@ -121,7 +121,6 @@ class UserInputManager(
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        println("Scolling")
         return true
     }
 

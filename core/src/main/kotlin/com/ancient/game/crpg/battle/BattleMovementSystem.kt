@@ -182,7 +182,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
 
     private fun position(currentPosition: Vector2, destination: Vector2, speed: Float, dt: Float): Vector2 {
         val direction = direction(currentPosition, destination)
-        val step = direction!! * (speed * dt)
+        val step = direction!! * (speed * dt )
         return Vector2(currentPosition.x, currentPosition.y).add(step)
     }
 }

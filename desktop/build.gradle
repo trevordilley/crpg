@@ -23,7 +23,8 @@ tasks.register('run', JavaExec) {
     standardInput = System.in
     workingDir = project.assetsDir
     ignoreExitValue = true
-
+    println("Setting codecache")
+    jvmArgs += "-XX:ReservedCodeCacheSize=2048m"
     if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
         // Required to run on macOS
         jvmArgs += "-XstartOnFirstThread"
