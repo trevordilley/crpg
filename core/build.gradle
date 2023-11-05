@@ -8,6 +8,10 @@ sourceSets {
     main.kotlin.srcDirs += 'src/main/kotlin'
 }
 
+dependencies {
+    implementation project(path: ':hyperlap2d-runtime-libgdx')
+}
+
 eclipse.project {
     name = appName + "-core"
 }

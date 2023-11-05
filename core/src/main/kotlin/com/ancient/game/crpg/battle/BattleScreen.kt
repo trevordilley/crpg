@@ -292,10 +292,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addEntity(createOrc(Vector2(22.5f, 21f)))
         engine.addEntity(createOrc(Vector2(20.5f, 21f)))
 
+        log.info("Before loadScene")
         sceneLoader.loadScene("MainScene", viewportManager.viewport)
+        log.info("After loadScene")
 
     }
 
+    private var oneRun = false
 
     override fun render(delta: Float) {
         // Receive user input first
@@ -318,6 +321,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 //        engine.update(delta)
         // Render h2d
         viewportManager.viewport.apply()
+        if(!oneRun) {
+            println("Beforgggge process")
+        }
         sceneLoader.engine.process()
+        if(!oneRun) {
+            println("after process")
+            oneRun = true
+        }
     }
 }

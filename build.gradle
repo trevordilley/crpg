@@ -88,8 +88,8 @@ project(":core") {
         api "io.github.libktx:ktx-style:$ktxVersion"
         api "io.github.libktx:ktx-math:$ktxVersion"
 
-        // Hyperlap
-        api "games.rednblack.hyperlap2d:runtime-libgdx:$h2dVersion"
+        // Hyperlap (I've added the runtime as a submodule)
+        // api "games.rednblack.hyperlap2d:runtime-libgdx:$h2dVersion"
         api "net.onedaybeard.artemis:artemis-odb:$artemisVersion"
 
         // Native
