@@ -298,8 +298,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
     }
 
-    private var oneRun = false
-
     override fun render(delta: Float) {
         // Receive user input first
         inputManager.update()
@@ -321,13 +319,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 //        engine.update(delta)
         // Render h2d
         viewportManager.viewport.apply()
-        if(!oneRun) {
-            println("Beforgggge process")
-        }
         sceneLoader.engine.process()
-        if(!oneRun) {
-            println("after process")
-            oneRun = true
-        }
     }
 }
