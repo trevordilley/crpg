@@ -1,6 +1,7 @@
 package com.ancient.game.crpg.desktop;
 
 import com.ancient.game.crpg.Application;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 public class DesktopLauncher {
@@ -8,8 +9,8 @@ public class DesktopLauncher {
     public static void main(String[] arg) {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.ANGLE_GLES20,3 , 2);
+        config.setWindowedMode(1920,1080);
         config.setTitle("CRPG Combat Prototype");
-
      //   config.setFromDisplayMode(Lwjgl3ApplicationConfiguration.getDesktopDisplayMode());
         //If I want to test windowed
 ////        boolean fullscreen = false;
