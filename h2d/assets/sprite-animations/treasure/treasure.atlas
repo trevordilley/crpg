@@ -1,0 +1,21 @@
+treasure.png
+	size: 256, 64
+	filter: Linear, Linear
+treasure
+	index: 0
+	bounds: 1, 1, 36, 36
+treasure
+	index: 1
+	bounds: 39, 1, 36, 36
+treasure
+	index: 5
+	bounds: 39, 1, 36, 36
+treasure
+	index: 2
+	bounds: 77, 1, 36, 36
+treasure
+	index: 4
+	bounds: 77, 1, 36, 36
+treasure
+	index: 3
+	bounds: 115, 1, 36, 36

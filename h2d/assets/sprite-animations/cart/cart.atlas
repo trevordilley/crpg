@@ -1,0 +1,21 @@
+cart.png
+	size: 2048, 128
+	filter: Linear, Linear
+cart
+	index: 0
+	bounds: 1, 1, 256, 115
+cart
+	index: 1
+	bounds: 259, 1, 256, 115
+cart
+	index: 5
+	bounds: 259, 1, 256, 115
+cart
+	index: 2
+	bounds: 517, 1, 256, 115
+cart
+	index: 4
+	bounds: 517, 1, 256, 115
+cart
+	index: 3
+	bounds: 775, 1, 256, 115

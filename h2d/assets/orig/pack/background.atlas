@@ -1,0 +1,5 @@
+background.png
+	size: 2048, 2048
+	filter: Linear, Linear
+openExterior
+	bounds: 1, 1, 1980, 1485

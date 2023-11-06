@@ -1,0 +1,72 @@
+orc_ase.png
+	size: 1024, 512
+	filter: Linear, Linear
+orc_ase
+	index: 0
+	bounds: 1, 261, 128, 128
+orc_ase
+	index: 6
+	bounds: 1, 261, 128, 128
+orc_ase
+	index: 1
+	bounds: 1, 131, 128, 128
+orc_ase
+	index: 5
+	bounds: 1, 131, 128, 128
+orc_ase
+	index: 2
+	bounds: 131, 261, 128, 128
+orc_ase
+	index: 4
+	bounds: 131, 261, 128, 128
+orc_ase
+	index: 3
+	bounds: 1, 1, 128, 128
+orc_ase
+	index: 7
+	bounds: 131, 131, 128, 128
+orc_ase
+	index: 11
+	bounds: 131, 131, 128, 128
+orc_ase
+	index: 8
+	bounds: 261, 261, 128, 128
+orc_ase
+	index: 10
+	bounds: 261, 261, 128, 128
+orc_ase
+	index: 9
+	bounds: 131, 1, 128, 128
+orc_ase
+	index: 12
+	bounds: 261, 131, 128, 128
+orc_ase
+	index: 13
+	bounds: 391, 261, 128, 128
+orc_ase
+	index: 14
+	bounds: 261, 1, 128, 128
+orc_ase
+	index: 15
+	bounds: 391, 131, 128, 128
+orc_ase
+	index: 16
+	bounds: 521, 261, 128, 128
+orc_ase
+	index: 17
+	bounds: 391, 1, 128, 128
+orc_ase
+	index: 18
+	bounds: 521, 131, 128, 128
+orc_ase
+	index: 19
+	bounds: 651, 261, 128, 128
+orc_ase
+	index: 20
+	bounds: 521, 1, 128, 128
+orc_ase
+	index: 21
+	bounds: 651, 131, 128, 128
+orc_ase
+	index: 22
+	bounds: 781, 261, 128, 128

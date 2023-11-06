@@ -1,0 +1,6 @@
+healing_dropzone.png
+	size: 256, 512
+	filter: Linear, Linear
+healing_dropzone
+	index: 0
+	bounds: 1, 1, 128, 256

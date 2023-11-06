@@ -1,7 +1,194 @@
 pack.png
-	size: 2048, 2048
+	size: 2048, 512
 	filter: Linear, Linear
-openExterior
-	bounds: 1, 4, 1980, 1485
+64_rpg_sword_shield_ase
+	index: 5
+	bounds: 1, 39, 64, 64
+64_rpg_sword_shield_ase
+	index: 4
+	bounds: 1947, 427, 64, 64
+64_rpg_sword_shield_ase
+	index: 13
+	bounds: 1947, 427, 64, 64
+64_rpg_sword_shield_ase
+	index: 6
+	bounds: 651, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 12
+	bounds: 651, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 7
+	bounds: 1041, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 3
+	bounds: 717, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 2
+	bounds: 1107, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 0
+	bounds: 783, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 20
+	bounds: 783, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 14
+	bounds: 783, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 1
+	bounds: 1173, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 23
+	bounds: 849, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 25
+	bounds: 849, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 22
+	bounds: 1239, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 26
+	bounds: 1239, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 21
+	bounds: 915, 167, 64, 64
+64_rpg_sword_shield_ase
+	index: 19
+	bounds: 1305, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 24
+	bounds: 1371, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 18
+	bounds: 1437, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 16
+	bounds: 1503, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 17
+	bounds: 1569, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 15
+	bounds: 1635, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 10
+	bounds: 1701, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 11
+	bounds: 1767, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 9
+	bounds: 1833, 297, 64, 64
+64_rpg_sword_shield_ase
+	index: 8
+	bounds: 67, 39, 64, 64
+cart
+	index: 2
+	bounds: 131, 376, 256, 115
+cart
+	index: 4
+	bounds: 131, 376, 256, 115
+cart
+	index: 3
+	bounds: 131, 259, 256, 115
+cart
+	index: 1
+	bounds: 389, 376, 256, 115
+cart
+	index: 5
+	bounds: 389, 376, 256, 115
+cart
+	index: 0
+	bounds: 389, 259, 256, 115
+healing_dropzone
+	index: 0
+	bounds: 1, 235, 128, 256
+orc_ase
+	index: 4
+	bounds: 1, 105, 128, 128
+orc_ase
+	index: 2
+	bounds: 1, 105, 128, 128
+orc_ase
+	index: 20
+	bounds: 131, 129, 128, 128
+orc_ase
+	index: 21
+	bounds: 647, 363, 128, 128
+orc_ase
+	index: 5
+	bounds: 261, 129, 128, 128
+orc_ase
+	index: 1
+	bounds: 261, 129, 128, 128
+orc_ase
+	index: 7
+	bounds: 777, 363, 128, 128
+orc_ase
+	index: 11
+	bounds: 777, 363, 128, 128
+orc_ase
+	index: 6
+	bounds: 391, 129, 128, 128
+orc_ase
+	index: 0
+	bounds: 391, 129, 128, 128
+orc_ase
+	index: 22
+	bounds: 907, 363, 128, 128
+orc_ase
+	index: 3
+	bounds: 1037, 363, 128, 128
+orc_ase
+	index: 19
+	bounds: 1167, 363, 128, 128
+orc_ase
+	index: 18
+	bounds: 1297, 363, 128, 128
+orc_ase
+	index: 15
+	bounds: 1427, 363, 128, 128
+orc_ase
+	index: 14
+	bounds: 1557, 363, 128, 128
+orc_ase
+	index: 16
+	bounds: 1687, 363, 128, 128
+orc_ase
+	index: 17
+	bounds: 1817, 363, 128, 128
+orc_ase
+	index: 13
+	bounds: 521, 129, 128, 128
+orc_ase
+	index: 12
+	bounds: 651, 233, 128, 128
+orc_ase
+	index: 10
+	bounds: 781, 233, 128, 128
+orc_ase
+	index: 8
+	bounds: 781, 233, 128, 128
+orc_ase
+	index: 9
+	bounds: 911, 233, 128, 128
+treasure
+	index: 5
+	bounds: 1, 1, 36, 36
+treasure
+	index: 1
+	bounds: 1, 1, 36, 36
+treasure
+	index: 4
+	bounds: 1947, 389, 36, 36
+treasure
+	index: 2
+	bounds: 1947, 389, 36, 36
+treasure
+	index: 3
+	bounds: 651, 129, 36, 36
+treasure
+	index: 0
+	bounds: 1041, 259, 36, 36
 white-pixel
-	bounds: 1, 1, 1, 1
+	bounds: 647, 360, 1, 1
