@@ -1,6 +1,7 @@
 package com.ancient.game.crpg
 
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
+import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJson
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJsonLoader
@@ -13,12 +14,15 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.maps.tiled.TiledMap
+import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import games.rednblack.editor.renderer.resources.AsyncResourceManager
 import games.rednblack.editor.renderer.resources.ResourceManagerLoader
 import ktx.app.KtxGame
+import ktx.assets.setLoader
 import ktx.inject.*
 object SiUnits {
     const val UNIT = 64 // minimum resolution of a character.
@@ -43,8 +47,11 @@ class Application : KtxGame<Screen>() {
 
 
         val camera = OrthographicCamera()
+//        val camera = OrthographicCamera(Gdx.graphics.width * SiUnits.PIXELS_TO_METER,
+//                Gdx.graphics.height * SiUnits.PIXELS_TO_METER)
 
         val viewport = ScreenViewport(camera)
+     //   viewport.unitsPerPixel = SiUnits.PIXELS_TO_METER
         viewport.apply()
 
         val viewportManager = ViewportManager(viewport)
@@ -60,6 +67,10 @@ class Application : KtxGame<Screen>() {
             log.info("Loading Aesprite Asset: ${it.assetName}")
             assetManager.load(it.assetName, Aseprite::class.java)
         }
+
+        assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
+        assetManager.load(MAP_FILEPATH, TiledMap::class.java)
+        log.info("Setting up Context")
 
         context.register {
             bindSingleton<Batch>(SpriteBatch())

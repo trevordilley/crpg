@@ -298,6 +298,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
     }
 
+
     override fun render(delta: Float) {
         // Receive user input first
         inputManager.update()
