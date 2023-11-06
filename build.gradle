@@ -90,6 +90,7 @@ project(":core") {
 
         // Hyperlap (I've added the runtime as a submodule)
         // api "games.rednblack.hyperlap2d:runtime-libgdx:$h2dVersion"
+        api "com.badlogicgames.gdx:gdx-lwjgl3-angle:$gdxVersion"
         api "net.onedaybeard.artemis:artemis-odb:$artemisVersion"
 
         // Native
