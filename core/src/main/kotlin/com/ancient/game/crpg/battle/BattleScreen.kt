@@ -255,7 +255,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
             add(CTransform(Vector2(1.5f, 7f), 0f, spriteRadius))
             add(CHaulable())
-            add(CDiscovery("An impressive pile of gold coin. A cumbersome load to carry, but certainly worthwhile!"))
+            add(CDiscovery("An impressive pile of gold coin. A heavy load to carry, but certainly worthwhile!"))
             add(CTreasure(100))
             add(CSelectable(kind = HaulableSelect))
             add(CAnimated(
