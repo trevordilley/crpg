@@ -27,8 +27,7 @@ class ViewportManager(val viewport: Viewport) : UserInputListener {
     fun update(dt: Float) {
         viewport.camera.update()
 
-        val cameraMoveSpeed = 20 * dt
-
+        val cameraMoveSpeed = 400 * dt
         if (left) viewport.camera.position.x -= cameraMoveSpeed
         if (right) viewport.camera.position.x += cameraMoveSpeed
         if (up) viewport.camera.position.y += cameraMoveSpeed

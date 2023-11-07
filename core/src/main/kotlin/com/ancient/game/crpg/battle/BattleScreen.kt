@@ -280,17 +280,17 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         })
 
 
-        engine.addEntity(createPc(Vector2(1.5f, 1f)))
-        engine.addEntity(createPc(Vector2(1.5f, 2f)))
-        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-        engine.addEntity(createPc(Vector2(2.5f, 2f)))
-
-        engine.addEntity(createOrc(Vector2(4.5f, 9f)))
-        engine.addEntity(createOrc(Vector2(5.5f, 12f)))
-        engine.addEntity(createOrc(Vector2(10.5f, 9.5f)))
-        engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
-        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
-        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
+//        engine.addEntity(createPc(Vector2(1.5f, 1f)))
+//        engine.addEntity(createPc(Vector2(1.5f, 2f)))
+//        engine.addEntity(createPc(Vector2(2.5f, 1f)))
+//        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+//
+//        engine.addEntity(createOrc(Vector2(4.5f, 9f)))
+//        engine.addEntity(createOrc(Vector2(5.5f, 12f)))
+//        engine.addEntity(createOrc(Vector2(10.5f, 9.5f)))
+//        engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
+//        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
+//        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
 
         log.info("Before loadScene")
         sceneLoader.loadScene("MainScene", viewportManager.viewport)
@@ -319,7 +319,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Update systems
 //        engine.update(delta)
         // Render h2d
-        viewportManager.viewport.apply()
+        viewportManager.update(delta)
         sceneLoader.engine.process()
+      //  engine.update(delta)
     }
 }
