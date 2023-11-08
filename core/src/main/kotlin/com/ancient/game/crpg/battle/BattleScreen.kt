@@ -35,7 +35,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
     private lateinit var mapRenderer: OrthogonalTiledMapRenderer
 
     private lateinit var sceneLoader: SceneLoader
-
     override fun show() {
         log.info("Setting up h2d")
         val config = SceneConfiguration()
@@ -54,7 +53,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val selectionCircleAnim: Aseprite = assetManager[AsepriteAsset.SELECTION_CIRCLE.assetName]
         val selectionSystem = SelectionSystem()
 
-
         val haulableSystem = HaulableSystem()
 
         val battleCommandSystem = BattleCommandSystem(viewportManager.viewport, mapManager, selectionSystem, haulableSystem)
@@ -65,17 +63,17 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(FovRenderSystem(viewportManager.viewport))
+//        engine.addSystem(FovRenderSystem(viewportManager.viewport))
         engine.addSystem(
                 RenderSystem(
-                        batch,
+                        sceneLoader.batch,
                         viewportManager.viewport,
                         collisionPoints,
                         mapManager,
                         showDebug = true
                 )
         )
-        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
+//        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
@@ -84,7 +82,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
-        engine.addSystem(FieldOfViewSystem(mapManager))
+//        engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
         engine.addSystem(DropZoneSystem(selectionSystem))
         engine.addSystem(selectionSystem)
@@ -190,7 +188,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val width = lootDropZoneAnim.frame(0).regionHeight.toFloat()
         val normedW = width * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(2f, 2f), 270f, 1f)
+            val transform = CTransform(Vector2(0f, 400f), 270f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
@@ -222,7 +220,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val healingHeight = healingDropZoneAnim.frame(0).regionHeight.toFloat()
         val healingNormedH = healingHeight * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(4f, 2f), 0f, 1f)
+            val transform = CTransform(Vector2(200f, 200f), 0f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
@@ -253,7 +251,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addEntity(Entity().apply {
 
             val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
-            add(CTransform(Vector2(1.5f, 7f), 0f, spriteRadius))
+            add(CTransform(Vector2(1.5f, 950f), 0f, spriteRadius))
             add(CHaulable())
             add(CDiscovery("An impressive pile of gold coin. A heavy load to carry, but certainly worthwhile!"))
             add(CTreasure(100))
@@ -280,17 +278,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         })
 
 
-//        engine.addEntity(createPc(Vector2(1.5f, 1f)))
-//        engine.addEntity(createPc(Vector2(1.5f, 2f)))
-//        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-//        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+        engine.addEntity(createPc(Vector2(0.5f, 1f)))
+        engine.addEntity(createPc(Vector2(100f, 1f)))
 //
-//        engine.addEntity(createOrc(Vector2(4.5f, 9f)))
-//        engine.addEntity(createOrc(Vector2(5.5f, 12f)))
-//        engine.addEntity(createOrc(Vector2(10.5f, 9.5f)))
-//        engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
-//        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
-//        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
+        engine.addEntity(createOrc(Vector2(500f, 900f)))
+        engine.addEntity(createOrc(Vector2(800f, 1200f)))
 
         log.info("Before loadScene")
         sceneLoader.loadScene("MainScene", viewportManager.viewport)
@@ -317,10 +309,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
 
         // Update systems
-//        engine.update(delta)
         // Render h2d
         viewportManager.update(delta)
         sceneLoader.engine.process()
+        engine.update(delta)
       //  engine.update(delta)
     }
 }

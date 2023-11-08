@@ -55,19 +55,19 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
     private fun draw(drawData: List<Pair<Sprite, CTransform>>) {
         viewport.camera.update()
-
+//
         shapeRenderer.projectionMatrix = viewport.camera.combined
-
-        // Entity Renders
+//
+//        // Entity Renders
         batch.projectionMatrix = viewport.camera.combined
         batch.begin()
         Gdx.gl20.glColorMask(true, true, true, true)
         Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
-        Gdx.gl20.glDepthFunc(GL20.GL_EQUAL)
-
+        Gdx.gl20.glDepthFunc(GL20.GL_LESS)
+//
         drawData.forEach { (sprite, transform) ->
-            val width = sprite.width * SiUnits.PIXELS_TO_METER
-            val height = sprite.height * SiUnits.PIXELS_TO_METER
+            val width = sprite.width // * SiUnits.PIXELS_TO_METER
+            val height = sprite.height// * SiUnits.PIXELS_TO_METER
 
             val widthOffset = width / 2
             val heightOffset = height / 2
@@ -95,24 +95,24 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             )
         }
         batch.end()
-        // UI Rendering
-        val originalMatrix = batch.projectionMatrix.cpy()
-        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
-        batch.projectionMatrix = uiMatrix
-        batch.begin()
-        val font = BitmapFont()
-        if (UserInputManager.isPaused) {
-            font.color = Color.MAGENTA
-            font.draw(
-                    batch,
-                    "PAUSED",
-                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
-                    200f
-            )
-        }
-        batch.projectionMatrix = originalMatrix
-        batch.end()
-        debugDraw(showDebug)
+//        // UI Rendering
+//        val originalMatrix = batch.projectionMatrix.cpy()
+//        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
+//        batch.projectionMatrix = uiMatrix
+//        batch.begin()
+//        val font = BitmapFont()
+//        if (UserInputManager.isPaused) {
+//            font.color = Color.MAGENTA
+//            font.draw(
+//                    batch,
+//                    "PAUSED",
+//                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
+//                    200f
+//            )
+//        }
+//        batch.projectionMatrix = originalMatrix
+//        batch.end()
+//        debugDraw(showDebug)
     }
 
     private fun debugDraw(displayDebug: Boolean) {
