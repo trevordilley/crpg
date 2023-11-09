@@ -22,6 +22,7 @@ import games.rednblack.editor.renderer.SceneConfiguration
 import games.rednblack.editor.renderer.SceneLoader
 import games.rednblack.editor.renderer.resources.AsyncResourceManager
 import ktx.app.KtxScreen
+import ktx.ashley.add
 import java.util.Stack
 
 
@@ -40,6 +41,22 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val config = SceneConfiguration()
         config.setResourceRetriever(assetManager.get("project.dt", AsyncResourceManager::class.java))
         sceneLoader = SceneLoader(config)
+
+        log.info("Before loadScene")
+        sceneLoader.loadScene("MainScene", viewportManager.viewport)
+
+        // TODO: Enumify all this! Pull into a lambda!
+        val spawnPoints = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.LabelVO")
+        val partySpawns = spawnPoints.filter {it.itemIdentifier == "PARTY_SPAWN"}
+        val treasureSpawns = spawnPoints.filter { it.itemIdentifier == "TREASURE_SPAWN"}
+        val cartSpawn = spawnPoints.filter {it.itemIdentifier == "CART_SPAWN" }
+        val healerSpawn = spawnPoints.filter {it.itemIdentifier == "HEALER_SPAWN"}
+        val enemySpawns = spawnPoints.filter {it.itemIdentifier == "ENEMY_SPAWN"}
+        val occluders = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.ColorPrimitiveVO")
+            .filter {it.itemIdentifier === "OCCLUDE"}
+            .map { it.shape.vertices }
+
+        log.info("After loadScene")
 
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
         log.info("Input Management")
@@ -82,7 +99,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
-//        engine.addSystem(FieldOfViewSystem(mapManager))
+        // engine.addSystem(FieldOfViewSystem(mapManager))
         engine.addSystem(AnimationSystem())
         engine.addSystem(DropZoneSystem(selectionSystem))
         engine.addSystem(selectionSystem)
@@ -140,7 +157,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 )
             }
         }
-
+        partySpawns.map { engine.addEntity(createPc(Vector2(it.x, it.y)))}
         // Orc
         val orcAnim: Aseprite = assetManager[AsepriteAsset.ORC.assetName]
         val createOrc = { pos: Vector2 ->
@@ -179,16 +196,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 ))
             }
         }
+        enemySpawns.map { engine.addEntity(createOrc(Vector2(it.x, it.y)))}
 
         // DropZones have to come before other entities in render order!
         val lootDropZoneAnim: Aseprite = assetManager[AsepriteAsset.LOOT_DROP_ZONE.assetName]
-        // OOps, I mixed up the way the cart if facing, so it's width and height are mixed up
-        val height = lootDropZoneAnim.frame(0).regionWidth.toFloat()
-        val normedH = height * SiUnits.PIXELS_TO_METER
-        val width = lootDropZoneAnim.frame(0).regionHeight.toFloat()
-        val normedW = width * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(0f, 400f), 270f, 1f)
+            val transform = CTransform(Vector2(cartSpawn[0].x, cartSpawn[0].y), 270f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
@@ -215,12 +228,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         // Healing DropZone
         val healingDropZoneAnim: Aseprite = assetManager[AsepriteAsset.HEALING_DROP_ZONE.assetName]
-        val healingWidth = healingDropZoneAnim.frame(0).regionWidth.toFloat()
-        val healingNormedW = healingWidth * SiUnits.PIXELS_TO_METER
-        val healingHeight = healingDropZoneAnim.frame(0).regionHeight.toFloat()
-        val healingNormedH = healingHeight * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(200f, 200f), 0f, 1f)
+            val transform = CTransform(Vector2(healerSpawn[0].x, healerSpawn[0].y), 0f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
@@ -248,46 +257,37 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val treasureAnim: Aseprite = assetManager[AsepriteAsset.TREASURE.assetName]
 
         // Treasure
-        engine.addEntity(Entity().apply {
+        val createTreasure = { pos: Vector2 -> Entity().apply {
 
             val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
-            add(CTransform(Vector2(1.5f, 950f), 0f, spriteRadius))
+            add(CTransform(pos, 0f, spriteRadius))
             add(CHaulable())
             add(CDiscovery("An impressive pile of gold coin. A heavy load to carry, but certainly worthwhile!"))
             add(CTreasure(100))
             add(CSelectable(kind = HaulableSelect))
-            add(CAnimated(
+            add(
+                CAnimated(
                     mapOf(
-                            AsepriteAsset.TREASURE to AnimationData(
-                                    IdleAnimation(treasureAnim),
-                                    listOf(
-                                            IdleAnimation(treasureAnim),
-                                            OnHaulAnimation(treasureAnim)
-                                    )
-                            ),
-                            AsepriteAsset.SELECTION_CIRCLE to AnimationData(
-                                    OnSelectAnimation(selectionCircleAnim),
-                                    listOf(
-                                            OnSelectAnimation(selectionCircleAnim),
-                                            SelectedAnimation(selectionCircleAnim)
-                                    ), false
-
+                        AsepriteAsset.TREASURE to AnimationData(
+                            IdleAnimation(treasureAnim),
+                            listOf(
+                                IdleAnimation(treasureAnim),
+                                OnHaulAnimation(treasureAnim)
                             )
+                        ),
+                        AsepriteAsset.SELECTION_CIRCLE to AnimationData(
+                            OnSelectAnimation(selectionCircleAnim),
+                            listOf(
+                                OnSelectAnimation(selectionCircleAnim),
+                                SelectedAnimation(selectionCircleAnim)
+                            ), false
+
+                        )
                     )
-            ))
-        })
-
-
-        engine.addEntity(createPc(Vector2(0.5f, 1f)))
-        engine.addEntity(createPc(Vector2(100f, 1f)))
-//
-        engine.addEntity(createOrc(Vector2(500f, 900f)))
-        engine.addEntity(createOrc(Vector2(800f, 1200f)))
-
-        log.info("Before loadScene")
-        sceneLoader.loadScene("MainScene", viewportManager.viewport)
-        log.info("After loadScene")
-
+                )
+            )
+        }}
+        treasureSpawns.forEach { engine.addEntity(createTreasure(Vector2(it.x, it.y)))}
     }
 
 
@@ -312,6 +312,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Render h2d
         viewportManager.update(delta)
         sceneLoader.engine.process()
+
         engine.update(delta)
       //  engine.update(delta)
     }
