@@ -29,18 +29,30 @@ class FieldOfViewSystem(private val occludingPolys: List<List<Edge>>)
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val pos = entity[CTransform.m()]!!.position
-
-        val oEdges = occludingPolys.flatten()
-
+        val polys = occludingPolys.toMutableList()
+        //config.setWindowedMode(1920,1080);
+        // TODO, we need to set the bounds of the world
+        // to properly capture the FoV
+        val bl = Vector2(0f,0f)
+        val br = Vector2(1920f,0f)
+        val tr = Vector2(1920f,1080f)
+        val tl = Vector2(0f,1080f)
+        polys.add(listOf(
+            Edge(bl, br ),
+            Edge(br, tr ),
+            Edge(tr, tl ),
+            Edge(tl, bl ),
+        ))
+        val oEdges = polys.flatten()
         // line 66 to 89 in sight-and-light.js
-        val uPnts = oEdges.map { listOf (it.p1, it.p2)}.flatten().toSet()
+        val uPnts = oEdges.map { listOf (it.p1, it.p2)}.flatten().toMutableSet()
 //        val uniquePoints = opaqueEdges.map { listOf(it.p1, it.p2) }.flatten().toSet()
         // line 91 sight-and-light.js
         //val angles = uniquePoints.map { p ->
         val angles = uPnts.map { p ->
             //            val a = Math.atan2((p.y - pos.y).toDouble(), (p.x - pos.x).toDouble()).toFloat()
             val a = (p - pos).angleRad()
-            val tweak = 0.0005f
+            val tweak = 0.0001f
             listOf(a, a + tweak, a - tweak)
         }.flatten()
 

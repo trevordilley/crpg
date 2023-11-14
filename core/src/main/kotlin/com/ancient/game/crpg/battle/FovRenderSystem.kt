@@ -51,7 +51,7 @@ class FovRenderSystem(private val viewport: Viewport, private val batch: Batch)
         viewport.camera.update()
         fbo.begin()
         shapeRenderer.projectionMatrix = viewport.camera.combined
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1.0f);
+        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 //        Gdx.gl20.glColorMask(true, true, true, true)
 //        Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
