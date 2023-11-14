@@ -29,8 +29,7 @@ class FieldOfViewSystem(private val occludingPolys: List<List<Edge>>)
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val pos = entity[CTransform.m()]!!.position
-        val polys = occludingPolys.toMutableList()
-        val oEdges = polys.flatten()
+        val oEdges = occludingPolys.flatten()
         // line 66 to 89 in sight-and-light.js
         val uPnts = oEdges.map { listOf (it.p1, it.p2)}.flatten().toMutableSet()
 //        val uniquePoints = opaqueEdges.map { listOf(it.p1, it.p2) }.flatten().toSet()

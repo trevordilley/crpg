@@ -9,6 +9,7 @@ public class DesktopLauncher {
     public static void main(String[] arg) {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.ANGLE_GLES20,3 , 2);
+        config.useVsync(true);
         config.setWindowedMode(1920,1080);
         config.setTitle("CRPG Combat Prototype");
      //   config.setFromDisplayMode(Lwjgl3ApplicationConfiguration.getDesktopDisplayMode());
