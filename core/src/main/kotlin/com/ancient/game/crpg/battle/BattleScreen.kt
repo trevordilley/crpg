@@ -6,6 +6,7 @@ import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
+import com.ancient.game.crpg.map.Edge
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
@@ -53,8 +54,22 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val healerSpawn = spawnPoints.filter {it.itemIdentifier == "HEALER_SPAWN"}
         val enemySpawns = spawnPoints.filter {it.itemIdentifier == "ENEMY_SPAWN"}
         val occluders = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.ColorPrimitiveVO")
-            .filter {it.itemIdentifier === "OCCLUDE"}
-            .map { it.shape.vertices }
+            .filter {it.itemIdentifier == "OCCLUDER"}
+            .let { it }
+            .map { it.shape.vertices.map { v -> Vector2(v.x + it.x, v.y + it.y) }  }
+            .map { poly ->
+                poly.withIndex().map { (i, v) ->
+
+                    // Perhaps a bit to clever, if i+1 is out of bounds then
+                    // we've circled back, so connect the last vert with the first vert.
+                    //
+                    // I suppose I could put some kind of assert here? Like... if i is
+                    // out of bounds by more than 1? Meh... _it'll be fine..._
+                    val nxt = poly.getOrElse(i + 1) { poly[0] }
+                    Edge(v, nxt)
+                }
+            }
+
 
         log.info("After loadScene")
 
@@ -80,17 +95,16 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         log.info("Revving Engines")
         engine = PooledEngine()
-//        engine.addSystem(FovRenderSystem(viewportManager.viewport))
         engine.addSystem(
                 RenderSystem(
                         sceneLoader.batch,
                         viewportManager.viewport,
                         collisionPoints,
                         mapManager,
+                        occluders,
                         showDebug = true
                 )
         )
-//        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(collisionPoints))
@@ -99,7 +113,9 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
-        // engine.addSystem(FieldOfViewSystem(mapManager))
+        engine.addSystem(FieldOfViewSystem(occluders))
+        engine.addSystem(FovRenderSystem(viewportManager.viewport, sceneLoader.batch))
+//        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(AnimationSystem())
         engine.addSystem(DropZoneSystem(selectionSystem))
         engine.addSystem(selectionSystem)
@@ -130,7 +146,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CSelectable(kind = CharacterSelect(Allegiance.PLAYER)))
                 add(CFoV(null))
                 add(CPlayerControlled)
-                add(CMovable(2f, null, Stack(), 600f, null))
+                add(CMovable(2f, Vector2(1000f, 1000f), Stack(), 600f, null))
                 add(
                         CAnimated(
                                 mapOf(
@@ -307,13 +323,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 //        mapRenderer.setView(viewportManager.viewport.camera as OrthographicCamera)
 //        mapRenderer.render()
 
-
         // Update systems
         // Render h2d
         viewportManager.update(delta)
         sceneLoader.engine.process()
-
         engine.update(delta)
-      //  engine.update(delta)
+
     }
 }

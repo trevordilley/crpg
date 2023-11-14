@@ -1,6 +1,7 @@
 package com.ancient.game.crpg
 
 import com.ancient.game.crpg.battle.CMovable
+import com.ancient.game.crpg.map.Edge
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
@@ -29,7 +30,9 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float, 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>, val mapManager: MapManager,
+                   val collisionPoints: Set<Vector2>,
+                   val mapManager: MapManager,
+                   val occluders: List<List<Edge>>,
                    val showDebug: Boolean = false) : IteratingSystem(
         all(CAnimated::class.java, CTransform::class.java).get()) {
 
@@ -112,7 +115,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 //        }
 //        batch.projectionMatrix = originalMatrix
 //        batch.end()
-//        debugDraw(showDebug)
+        debugDraw(showDebug)
     }
 
     private fun debugDraw(displayDebug: Boolean) {
@@ -127,10 +130,12 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
 
-            mapManager.opaqueEdges.forEach { e ->
+            occluders.forEach { poly ->
                 shapeRenderer.apply {
                     color = Color.MAGENTA
-                    line(e.p1, e.p2)
+                    poly.forEach {
+                        line(it.p1, it.p2)
+                    }
                 }
             }
 

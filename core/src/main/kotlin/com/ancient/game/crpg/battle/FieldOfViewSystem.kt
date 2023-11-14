@@ -20,7 +20,7 @@ class CFoV(var fovPoly: Polygon?) : Component {
    }
 }
 
-class FieldOfViewSystem(private val mapManager: MapManager)
+class FieldOfViewSystem(private val occludingPolys: List<List<Edge>>)
     : IteratingSystem(
         all(
                 CFoV::class.java,
@@ -30,20 +30,21 @@ class FieldOfViewSystem(private val mapManager: MapManager)
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val pos = entity[CTransform.m()]!!.position
 
-        val opaqueEdges = mapManager.opaqueEdges
+        val oEdges = occludingPolys.flatten()
 
         // line 66 to 89 in sight-and-light.js
-        val uniquePoints = opaqueEdges.map { listOf(it.p1, it.p2) }.flatten().toSet()
-
+        val uPnts = oEdges.map { listOf (it.p1, it.p2)}.flatten().toSet()
+//        val uniquePoints = opaqueEdges.map { listOf(it.p1, it.p2) }.flatten().toSet()
         // line 91 sight-and-light.js
-        val angles = uniquePoints.map { p ->
+        //val angles = uniquePoints.map { p ->
+        val angles = uPnts.map { p ->
             //            val a = Math.atan2((p.y - pos.y).toDouble(), (p.x - pos.x).toDouble()).toFloat()
             val a = (p - pos).angleRad()
-            val tweak = 0.00001f
+            val tweak = 0.0005f
             listOf(a, a + tweak, a - tweak)
         }.flatten()
 
-        val fovPoly = calculateFoV(pos.x, pos.y, opaqueEdges, angles)
+        val fovPoly = calculateFoV(pos.x, pos.y, oEdges, angles)
         entity[CFoV.m()]!!.fovPoly = fovPoly
     }
 
