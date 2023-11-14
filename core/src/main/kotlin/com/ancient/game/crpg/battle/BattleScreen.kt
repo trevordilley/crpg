@@ -53,6 +53,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val cartSpawn = spawnPoints.filter {it.itemIdentifier == "CART_SPAWN" }
         val healerSpawn = spawnPoints.filter {it.itemIdentifier == "HEALER_SPAWN"}
         val enemySpawns = spawnPoints.filter {it.itemIdentifier == "ENEMY_SPAWN"}
+        val backgroundImage = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.SimpleImageVO").filter { it.itemIdentifier == "BACKGROUND"}.first()
+        val backgroundPosition = Vector2(backgroundImage.x, backgroundImage.y)
         val occluders = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.ColorPrimitiveVO")
             .filter {it.itemIdentifier == "OCCLUDER"}
             .let { it }
@@ -68,7 +70,19 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                     val nxt = poly.getOrElse(i + 1) { poly[0] }
                     Edge(v, nxt)
                 }
-            }
+            }.toMutableList().apply {
+
+                val bl = Vector2(backgroundPosition.x, backgroundPosition.y)
+                val br = Vector2(1920f - backgroundPosition.x,backgroundPosition.y)
+                val tr = Vector2(1920f - backgroundPosition.x,1080f - backgroundPosition.y)
+                val tl = Vector2(backgroundPosition.x,1080f - backgroundPosition.y)
+                add(listOf(
+                    Edge(bl, br ),
+                    Edge(br, tr ),
+                    Edge(tr, tl ),
+                    Edge(tl, bl ),
+                ))
+            }.toList()
 
 
         log.info("After loadScene")
@@ -102,7 +116,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         collisionPoints,
                         mapManager,
                         occluders,
-                        showDebug = true
+                        showDebug = false
                 )
         )
         engine.addSystem(haulableSystem)
@@ -313,7 +327,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         viewportManager.viewport.camera.update()
         //Clear screen
-        Gdx.gl.glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1.0f);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
         // Update camera
 //        viewportManager.update(delta)
