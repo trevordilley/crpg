@@ -2,20 +2,16 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
-import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
-import com.ancient.game.crpg.map.Edge
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.GL30
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Batch
-import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
@@ -23,7 +19,6 @@ import games.rednblack.editor.renderer.SceneConfiguration
 import games.rednblack.editor.renderer.SceneLoader
 import games.rednblack.editor.renderer.resources.AsyncResourceManager
 import ktx.app.KtxScreen
-import ktx.ashley.add
 import java.util.Stack
 
 
@@ -34,7 +29,6 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
     private lateinit var engine: PooledEngine
     private lateinit var inputManager: UserInputManager
-    private lateinit var mapRenderer: OrthogonalTiledMapRenderer
 
     private lateinit var sceneLoader: SceneLoader
     override fun show() {
@@ -42,47 +36,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val config = SceneConfiguration()
         config.setResourceRetriever(assetManager.get("project.dt", AsyncResourceManager::class.java))
         sceneLoader = SceneLoader(config)
-
+        val worldWidth = 1920
+        val worldHeight = 1080
         log.info("Before loadScene")
         sceneLoader.loadScene("MainScene", viewportManager.viewport)
 
         // TODO: Enumify all this! Pull into a lambda!
-        val spawnPoints = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.LabelVO")
-        val partySpawns = spawnPoints.filter {it.itemIdentifier == "PARTY_SPAWN"}
-        val treasureSpawns = spawnPoints.filter { it.itemIdentifier == "TREASURE_SPAWN"}
-        val cartSpawn = spawnPoints.filter {it.itemIdentifier == "CART_SPAWN" }
-        val healerSpawn = spawnPoints.filter {it.itemIdentifier == "HEALER_SPAWN"}
-        val enemySpawns = spawnPoints.filter {it.itemIdentifier == "ENEMY_SPAWN"}
-        val backgroundImage = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.SimpleImageVO").filter { it.itemIdentifier == "BACKGROUND"}.first()
-        val backgroundPosition = Vector2(backgroundImage.x, backgroundImage.y)
-        val occluders = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.ColorPrimitiveVO")
-            .filter {it.itemIdentifier == "OCCLUDER"}
-            .let { it }
-            .map { it.shape.vertices.map { v -> Vector2(v.x + it.x, v.y + it.y) }  }
-            .map { poly ->
-                poly.withIndex().map { (i, v) ->
-
-                    // Perhaps a bit to clever, if i+1 is out of bounds then
-                    // we've circled back, so connect the last vert with the first vert.
-                    //
-                    // I suppose I could put some kind of assert here? Like... if i is
-                    // out of bounds by more than 1? Meh... _it'll be fine..._
-                    val nxt = poly.getOrElse(i + 1) { poly[0] }
-                    Edge(v, nxt)
-                }
-            }.toMutableList().apply {
-
-                val bl = Vector2(backgroundPosition.x, backgroundPosition.y)
-                val br = Vector2(1920f - backgroundPosition.x,backgroundPosition.y)
-                val tr = Vector2(1920f - backgroundPosition.x,1080f - backgroundPosition.y)
-                val tl = Vector2(backgroundPosition.x,1080f - backgroundPosition.y)
-                add(listOf(
-                    Edge(bl, br ),
-                    Edge(br, tr ),
-                    Edge(tr, tl ),
-                    Edge(tl, bl ),
-                ))
-            }.toList()
 
 
         log.info("After loadScene")
@@ -90,11 +49,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
         log.info("Input Management")
 
-        log.info("Building Map")
-        val map: TiledMap = assetManager[MAP_FILEPATH]
-        val mapManager = MapManager(map)
-        val collisionPoints = mapManager.impassableCellPositions()
-        mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
+        val mapManager = MapManager(sceneLoader, worldWidth,worldHeight)
 
         val selectionCircleAnim: Aseprite = assetManager[AsepriteAsset.SELECTION_CIRCLE.assetName]
         val selectionSystem = SelectionSystem()
@@ -113,21 +68,19 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 RenderSystem(
                         sceneLoader.batch,
                         viewportManager.viewport,
-                        collisionPoints,
                         mapManager,
-                        occluders,
                         showDebug = false
                 )
         )
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
-        engine.addSystem(BattleMovementSystem(collisionPoints))
+        engine.addSystem(BattleMovementSystem(mapManager.collision))
         engine.addSystem(HealthSystem(selectionSystem))
         engine.addSystem(DeadSystem(haulableSystem))
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
-        engine.addSystem(FieldOfViewSystem(occluders))
+        engine.addSystem(FieldOfViewSystem(mapManager.occluders))
         engine.addSystem(FovRenderSystem(viewportManager.viewport, sceneLoader.batch))
 //        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(AnimationSystem())
@@ -187,7 +140,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 )
             }
         }
-        partySpawns.map { engine.addEntity(createPc(Vector2(it.x, it.y)))}
+        mapManager.partySpawns.map { engine.addEntity(createPc(Vector2(it.x, it.y)))}
         // Orc
         val orcAnim: Aseprite = assetManager[AsepriteAsset.ORC.assetName]
         val createOrc = { pos: Vector2 ->
@@ -226,11 +179,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 ))
             }
         }
-        enemySpawns.map { engine.addEntity(createOrc(Vector2(it.x, it.y)))}
+        mapManager.enemySpawns.map { engine.addEntity(createOrc(Vector2(it.x, it.y)))}
 
         // DropZones have to come before other entities in render order!
         val lootDropZoneAnim: Aseprite = assetManager[AsepriteAsset.LOOT_DROP_ZONE.assetName]
         engine.addEntity(Entity().apply {
+            val cartSpawn = mapManager.cartSpawn
             val transform = CTransform(Vector2(cartSpawn[0].x, cartSpawn[0].y), 270f, 1f)
             add(transform)
             val dropZoneRect =
@@ -259,6 +213,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Healing DropZone
         val healingDropZoneAnim: Aseprite = assetManager[AsepriteAsset.HEALING_DROP_ZONE.assetName]
         engine.addEntity(Entity().apply {
+            val healerSpawn = mapManager.healerSpawn
             val transform = CTransform(Vector2(healerSpawn[0].x, healerSpawn[0].y), 0f, 1f)
             add(transform)
             val dropZoneRect =
@@ -317,7 +272,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 )
             )
         }}
-        treasureSpawns.forEach { engine.addEntity(createTreasure(Vector2(it.x, it.y)))}
+        mapManager.treasureSpawns.forEach { engine.addEntity(createTreasure(Vector2(it.x, it.y)))}
     }
 
 

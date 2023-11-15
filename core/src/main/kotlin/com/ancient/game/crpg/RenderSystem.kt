@@ -30,9 +30,7 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float, 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>,
                    val mapManager: MapManager,
-                   val occluders: List<List<Edge>>,
                    val showDebug: Boolean = false) : IteratingSystem(
         all(CAnimated::class.java, CTransform::class.java).get()) {
 
@@ -123,14 +121,8 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
         if (showDebug) {
-            collisionPoints.forEach { v ->
-                shapeRenderer.apply {
-                    color = Color.YELLOW
-                    rect(v.x, v.y, 1f, 1f)
-                }
-            }
 
-            occluders.forEach { poly ->
+            mapManager.occluders.forEach { poly ->
                 shapeRenderer.apply {
                     color = Color.MAGENTA
                     poly.forEach {

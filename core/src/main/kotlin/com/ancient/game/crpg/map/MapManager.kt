@@ -1,367 +1,147 @@
 package com.ancient.game.crpg.map
 
-import com.badlogic.gdx.ai.pfa.Connection
-import com.badlogic.gdx.ai.pfa.DefaultGraphPath
-import com.badlogic.gdx.ai.pfa.GraphPath
+import com.badlogic.gdx.ai.pfa.*
 import com.badlogic.gdx.ai.pfa.indexed.IndexedAStarPathFinder
 import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell
+import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
+import games.rednblack.editor.renderer.SceneLoader
+import games.rednblack.editor.renderer.data.MainItemVO
+import games.rednblack.editor.renderer.data.SimpleImageVO
 import ktx.math.component1
 import ktx.math.component2
 
-data class TileCell(val cell: Cell, val pos: Vector2, val index: Int) {
-    fun bl() = pos
-    fun tl() = Vector2(pos.x, pos.y + 1f)
-    fun tr() = Vector2(pos.x + 1, pos.y + 1)
-    fun br() = Vector2(pos.x + 1, pos.y)
-    fun edges() = listOf(
-            Edge(bl(), tl()),
-            Edge(tl(), tr()),
-            Edge(tr(), br()),
-            Edge(br(), bl())
-    )
-}
 
-data class TileCellConnection(val source: TileCell,
-                              val sink: TileCell) : Connection<TileCell> {
+data class PathNode(val x: Int, val y: Int)
+data class PathNodeConnection(
+    val source: PathNode,
+    val sink: PathNode,
+    val isCollision: Boolean
+) : Connection<PathNode> {
     override fun getToNode() = sink
 
-    override fun getCost() = 1f
+    override fun getCost() = if (isCollision) 1f else 0f
 
     override fun getFromNode() = source
 }
 
 data class Edge(val p1: Vector2, val p2: Vector2)
 
-class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
+class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: Int, private val worldHeight: Int) : IndexedGraph<PathNode> {
+    val spawnPoints = sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.LabelVO")
+    val partySpawns = spawnPoints.filter {it.itemIdentifier == "PARTY_SPAWN"}
+    val treasureSpawns = spawnPoints.filter { it.itemIdentifier == "TREASURE_SPAWN"}
+    val cartSpawn = spawnPoints.filter {it.itemIdentifier == "CART_SPAWN" }
+    val healerSpawn = spawnPoints.filter {it.itemIdentifier == "HEALER_SPAWN"}
+    val enemySpawns = spawnPoints.filter {it.itemIdentifier == "ENEMY_SPAWN"}
 
-    private val allCells: List<TileCell>
-    private val adjacencyList: Map<TileCell, List<TileCellConnection>>
-    private val cellsCount: Int
-    val opaqueEdges: List<Edge>
+    private val spacingBetweenPathNodes = 10 // in px
+    private val backgroundImage: MainItemVO =
+        sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.SimpleImageVO")
+            .first { it.itemIdentifier == "BACKGROUND" }
+    private val backgroundPosition = Vector2(backgroundImage.x, backgroundImage.y)
+    private val polys =
+        sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.ColorPrimitiveVO")
+    val collision = polys.filter { it.itemIdentifier == "COLLISION" }.map {
+        it.shape.vertices.map { v -> listOf(v.x + it.x, v.y + it.y) }
+    }.flatten()
+        .map {
+            Polygon(it.toFloatArray())
+        }
+    val occluders = polys
+        .filter { it.itemIdentifier == "OCCLUDER" }
+        .map { it.shape.vertices.map { v -> Vector2(v.x + it.x, v.y + it.y) } }
+        .map { poly ->
+            poly.withIndex().map { (i, v) ->
 
-    init {
-        allCells = getCells()
-        adjacencyList = allCells
-                .let { cells -> cellConnections(cells) }
-                .let { conns -> cellAdjacencyList(conns) }
-        cellsCount = allCells.size
-        opaqueEdges = getOpaqueEdges(allCells)
+                // Perhaps a bit to clever, if i+1 is out of bounds then
+                // we've circled back, so connect the last vert with the first vert.
+                //
+                // I suppose I could put some kind of assert here? Like... if i is
+                // out of bounds by more than 1? Meh... _it'll be fine..._
+                val nxt = poly.getOrElse(i + 1) { poly[0] }
+                Edge(v, nxt)
+            }
+        }.toMutableList().apply {
+
+            val bl = Vector2(backgroundPosition.x, backgroundPosition.y)
+            val br = Vector2(worldWidth.toFloat() - backgroundPosition.x, backgroundPosition.y)
+            val tr = Vector2(worldWidth.toFloat() - backgroundPosition.x, worldHeight.toFloat() - backgroundPosition.y)
+            val tl = Vector2(backgroundPosition.x, worldHeight.toFloat() - backgroundPosition.y)
+            add(
+                listOf(
+                    Edge(bl, br),
+                    Edge(br, tr),
+                    Edge(tr, tl),
+                    Edge(tl, bl),
+                )
+            )
+        }.toList()
+    private val numRows = worldHeight / spacingBetweenPathNodes
+    private val numCols = worldWidth / spacingBetweenPathNodes
+    private val pathNodes: Array<Array<Int>> = Array<Array<Int>>().apply {
+        var idx = 0
+        for (x in 0..<numRows) {
+            this.set(x, Array(numCols))
+            for (y in 0..<numCols) {
+                val pos = Vector2(x * spacingBetweenPathNodes * 1f, y * spacingBetweenPathNodes * 1f)
+                val collides = collision.firstOrNull() { it.contains(pos)}
+                idx++
+                // Less than 0 means collision, packing to bits of data in one
+                // Not writing A* ourself means using the IndexedAStarPathFinder, which expects
+                // some kind of index function and this is the easiest way to save the index
+                // in an array AND communicate the path cost
+                this[x][y] = if(collides != null) idx else idx * -1
+            }
+        }
+
     }
 
 
-    override fun getConnections(fromNode: TileCell): Array<Connection<TileCell>> {
-        return adjacencyList[fromNode]
-                ?.let { Array<Connection<TileCell>>(it.toTypedArray()) }
-                ?: Array(0)
+    override fun getConnections(fromNode: PathNode): Array<Connection<PathNode>> {
+        val (x,y) = fromNode
+        val t = PathNode(x, y + 1)
+        val tl = PathNode(x - 1,y + 1)
+        val l = PathNode(x - 1, y)
+        val bl = PathNode(x - 1, y - 1)
+        val b = PathNode(x, y - 1)
+        val br = PathNode(x + 1, y - 1)
+        val r = PathNode(x + 1, y)
+        val tr = PathNode(x + 1, y + 1)
+
+        val connect = { node: PathNode -> PathNodeConnection(fromNode, node, pathNodes[node.x][node.y] < 0)}
+
+        return Array<Connection<PathNode>>().apply {
+            add(connect(t))
+            add(connect(tl))
+            add(connect(l))
+            add(connect(bl))
+            add(connect(b))
+            add(connect(br))
+            add(connect(r))
+            add(connect(tr))
+        }
     }
 
-    override fun getIndex(node: TileCell?): Int {
-        return node!!.index
-    }
 
-    override fun getNodeCount(): Int {
-        return cellsCount
-    }
 
-    private fun getOpaqueEdges(tiles: List<TileCell>) =
-            tiles
-                    .filter { isOpaqueCell(it) }
-                    .let { getTilesInAdjacentGroups(it) }
-                    .map { getEdgesFromTileGroup(it) }
-                    .flatten()
 
 
     // TODO OPTIMIZE>>>>
-    fun findPath(startPos: Vector2, endPos: Vector2): GraphPath<TileCell> {
-        val flooredVec = { vec: Vector2 -> Vector2(vec.x.toInt().toFloat(), vec.y.toInt().toFloat()) }
-        val start = allCells.find { it.pos == flooredVec(startPos) }
-        val end = allCells.find { it.pos == flooredVec(endPos) }
-        val graph = DefaultGraphPath<TileCell>()
-        IndexedAStarPathFinder(this).searchNodePath(start, end,
-                { a, b ->
-                    Vector2.dst(a.pos.x + 0.5f, a.pos.y + 0.5f, b.pos.x + 0.5f, b.pos.y + 0.5f)
-                }
-                , graph)
+    fun findPath(startPos: Vector2, endPos: Vector2): GraphPath<PathNode> {
+        val graph = DefaultGraphPath<PathNode>()
+        IndexedAStarPathFinder(this).searchNodePath(PathNode(startPos.x.toInt(),startPos.y.toInt()), PathNode(endPos.x.toInt(), endPos.y.toInt()),
+            { a, b ->
+                Vector2.dst(a.x.toFloat() , a.y.toFloat() , b.x.toFloat() , b.y.toFloat())
+            }, graph)
         return graph
     }
 
-    fun cellAdjacencyList(connections: List<TileCellConnection>): Map<TileCell, List<TileCellConnection>> {
-        return mutableMapOf<TileCell, MutableList<TileCellConnection>>().apply {
-            connections.forEach { conn ->
-                if (!containsKey(conn.source)) {
-                    put(conn.source, mutableListOf())
-                }
-                get(conn.source)!!.add(conn)
-            }
-        }
-    }
-
-    fun cellConnections(
-            cells: List<TileCell>): List<TileCellConnection> {
-        var idx = 0
-        val positions = cells
-                .filter { !isImpassableCell(it) }
-                .map { it.pos to it }
-                .toMap()
-        return mutableListOf<TileCellConnection>().apply {
-            val neighbors = { cell: TileCell ->
-                val (x, y) = cell.pos
-                listOf(
-                        positions[Vector2(x + 1, y)],
-                        positions[Vector2(x + 1, y + 1)],
-                        positions[Vector2(x + 1, y - 1)],
-                        positions[Vector2(x, y + 1)],
-                        positions[Vector2(x - 1, y)],
-                        positions[Vector2(x - 1, y + 1)],
-                        positions[Vector2(x - 1, y - 1)],
-                        positions[Vector2(x, y - 1)]
-                )
-                        .filterNotNull()
-                        .filter { c ->
-                            !isImpassableCell(c)
-                        }
-                        .map {
-                            TileCellConnection(cell, it).also {
-                                idx++
-                            }
-                        }
-            }
-
-            cells.map { addAll(neighbors(it)) }
-        }
-    }
-
-    fun getCells(): List<TileCell> {
-        val collisionLayer = map.layers.first() as TiledMapTileLayer
-        return collisionLayer
-                .let {
-                    val width = it.width
-                    val height = it.height
-                    mutableListOf<TileCell>().apply {
-                        var index = 0
-                        for (i in 0 until width) {
-                            for (j in 0 until height) {
-                                val c: Cell? = it.getCell(i, j)
-                                if (c != null) {
-                                    add(TileCell(c, Vector2(i.toFloat(), j.toFloat()), index)).also { index++ }
-                                }
-                            }
-                        }
-                    }
-                }
-    }
-
-
-    // TODO: !!!! cell.tile.properties.containsKey just throws nullpointerexceptions
-    // for some reason. We need to iterate over these cells and build our own
-    // data structure mapping a cells position to it's data
-    //
-    // It's a future thing cause we currently don't need it NOW to implement path
-    // finding. But once we get an MVP of pathfinding and stuff in, we should
-    // remedy how we treat map data.
-
-    companion object {
-        val impassablePropertyName = "impassable"
-
-        // TODO: change to opaque when I update the tileset
-        val opaquePropertyName = "impassable"
-
-        fun isImpassableCell(cell: TileCell) = hasProperty(cell.cell, impassablePropertyName)
-        fun isOpaqueCell(cell: TileCell) = hasProperty(cell.cell, opaquePropertyName)
-        fun hasProperty(cell: TiledMapTileLayer.Cell, property: String) =
-                cell.tile.properties.keys.let {
-                    mutableSetOf<String>().apply {
-                        it.forEach {
-                            add(it)
-                        }
-                    }
-                }.contains(property)
-
-
-        fun getVertCounts(tiles: List<Pair<Float, Float>>): Map<Pair<Float, Float>, Int> {
-            return mutableMapOf<Pair<Float, Float>, Int>().let { vertToCount ->
-                tiles.map {
-                    if (!vertToCount.contains(it)) {
-                        vertToCount.put(it, 1)
-                    } else {
-                        vertToCount[it] = vertToCount[it]!! + 1
-                    }
-                }
-                vertToCount
-            }
-        }
-
-        fun getCornersFromVertCounts(vertsToCounts: Map<Pair<Float, Float>, Int>): Set<Pair<Float, Float>> =
-                vertsToCounts
-                        .map {
-                            when (it.value) {
-                                1 -> it.key // 1 tile had this vert, so it's an exterior corner
-                                2 -> null // 2 tiles had this vert, so it's the side of an edge
-                                3 -> it.key // 3 tiles had this vert, so it's a convex corner
-                                4 -> null // 4 tiles had this vert, so it's an interior vert and not part of an edge
-                                else -> throw Error("Unexpected number of overlaps ${it.value}")
-                            }
-                        }
-                        .filterNotNull()
-                        .toSet()
-
-
-        fun getVertsForTilePos(pos: Vector2): List<Pair<Float, Float>> {
-            return listOf(
-                    pos.x to pos.y, // Bottom Left
-                    pos.x + 1 to pos.y, // Bottom Right
-                    pos.x to pos.y + 1, // Top Left
-                    pos.x + 1 to pos.y + 1 // Top Right
-            )
-        }
-
-        fun dedupeEdges(edges: List<Edge>): List<Edge> {
-            val posToEdge =
-                    mutableMapOf<String, Edge>()
-            val edgeStr =
-                    { edge: Edge -> "${edge.p1.x}-${edge.p1.y}-${edge.p2.x}-${edge.p2.y}" }
-            edges.forEach { e ->
-                val key = edgeStr(e)
-                val inverseKey = edgeStr(Edge(e.p2, e.p1))
-                if (!(posToEdge.containsKey(key) || posToEdge.containsKey(inverseKey))) {
-                    posToEdge[key] = e
-                }
-            }
-            return posToEdge.values.toList()
-        }
-
-        fun getEdgesFromCornersAndVerts(corners: Set<Pair<Float, Float>>,
-                                        verts: Set<Pair<Float, Float>>): List<Edge> {
-
-            val up = Pair(0f, 1f)
-            val right = Pair(1f, 0f)
-            val down = Pair(0f, -1f)
-            val left = (Pair(-1f, 0f))
-            return corners
-                    .map {
-                        listOf(
-                                walkDirection(it, up, corners, verts),
-                                walkDirection(it, right, corners, verts),
-                                walkDirection(it, down, corners, verts),
-                                walkDirection(it, left, corners, verts)
-                        )
-                                .filterNotNull()
-                    }
-                    .flatten()
-                    .let { dedupeEdges(it) }
-
-        }
-
-        fun walkDirection(start: Pair<Float, Float>, direction: Pair<Float, Float>, corners: Set<Pair<Float, Float>>,
-                          verts: Set<Pair<Float, Float>>): Edge? {
-
-            val nextVert = { cur: Pair<Float, Float> ->
-                Pair(cur.first + direction.first, cur.second + direction.second)
-            }
-            var curVert = start
-            while (true) {
-                val next = nextVert(curVert)
-                // Sanity Check
-                if (next == start) throw Error("How did the start and next become equal?")
-                if (corners.contains(next)) {
-                    return Edge(Vector2(start.first, start.second), Vector2(next.first, next.second))
-                } else if (!verts.contains(next)) {
-                    return null // Hit a terminating side
-                } else {
-                    curVert = next
-                }
-            }
-
-        }
-
-        fun getEdgesFromTileGroup(tiles: List<TileCell>): List<Edge> =
-                tiles
-                        .map { getVertsForTilePos(it.pos) }
-                        .flatten()
-                        .let { getVertCounts(it) }
-                        .let { vertsToCounts ->
-                            val corners = getCornersFromVertCounts(vertsToCounts)
-                            val verts = vertsToCounts.keys
-                            getEdgesFromCornersAndVerts(corners, verts)
-                        }
-
-
-        fun getTilesInAdjacentGroups(tiles: List<TileCell>): List<List<TileCell>> {
-            val posToTile =
-                    tiles
-                            .map { Pair(it.pos.x.toInt(), it.pos.y.toInt()) to it }
-                            .toMap()
-            val maxX = tiles.maxByOrNull { it.pos.x }!!.pos.x.toInt()
-            val maxY = tiles.maxByOrNull { it.pos.y }!!.pos.y.toInt()
-
-            var curGroup = 0
-
-            val posToGroup = mutableMapOf<Pair<Int, Int>, Int>()
-
-            for (i in 0..maxX) {
-                for (j in 0..maxY) {
-
-                    val curPos = Pair(i, j)
-                    if (!posToTile.containsKey(curPos)) {
-                        continue
-                    }
-
-                    val group = if (posToGroup.containsKey(curPos)) {
-                        posToGroup[curPos]!!
-                    } else {
-                        curGroup++
-                        posToGroup[curPos] = curGroup
-                        curGroup
-                    }
-
-                    val bottom = Pair(curPos.first, curPos.second + 1)
-                    if (posToTile.contains(bottom) && !posToGroup.containsKey(bottom)) {
-                        posToGroup[bottom] = group
-                    }
-
-                    val right = Pair(curPos.first + 1, curPos.second)
-                    if (posToTile.contains(right) && !posToGroup.containsKey(right)) {
-                        posToGroup[right] = group
-                    }
-                }
-            }
-
-            return mutableMapOf<Int, MutableList<TileCell>>().apply {
-                posToGroup.values.forEach { group ->
-                    this[group] = mutableListOf()
-                }
-                posToGroup.forEach { pos, group ->
-                    posToTile[pos]?.let { tile ->
-                        this[group]!!.add(tile)
-                    }
-                }
-            }.values.toList()
-
-
-        }
-
-    }
-
-
-    fun getImpassableCells() = getCells()
-            .filter {
-                isImpassableCell(it)
-            }
-
-    fun impassableCellPositions(): Set<Vector2> {
-        return getImpassableCells()
-                .map { (_, pos) ->
-                    val (x, y) = pos
-                    // In meters, not pixels
-                    Vector2(x, y)
-
-                }.toSet()
-
-    }
+    override fun getIndex(node: PathNode): Int = pathNodes[node.x][node.y]
+    override fun getNodeCount(): Int = numRows * numCols
 
 }

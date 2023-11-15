@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
@@ -29,7 +30,7 @@ data class CMovable(
 }
 
 
-class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : IteratingSystem(
+class BattleMovementSystem(private val collisionPolys: List<Polygon>) : IteratingSystem(
         all(
                 CMovable::class.java,
                 CTransform::class.java
@@ -150,7 +151,7 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
                                         y.toInt()
                                 )
                             }
-                    if ((collisionPoints.contains(Vector2(x.toFloat(), y.toFloat())))) {
+                    if (collisionPolys.firstOrNull { it.contains(Vector2(x.toFloat(), y.toFloat())) } != null) {
                         // do some collision correction, move them slightly closer to the center of their
                         // containing cell
                         val centerOfTheirCell =
