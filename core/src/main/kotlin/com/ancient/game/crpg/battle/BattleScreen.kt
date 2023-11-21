@@ -69,7 +69,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         sceneLoader.batch,
                         viewportManager.viewport,
                         mapManager,
-                        showDebug = false
+                        showDebug = true
                 )
         )
         engine.addSystem(haulableSystem)

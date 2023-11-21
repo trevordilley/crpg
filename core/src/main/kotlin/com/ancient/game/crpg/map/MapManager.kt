@@ -9,9 +9,12 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell
 import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
+import com.badlogic.gdx.utils.IntArray
 import games.rednblack.editor.renderer.SceneLoader
 import games.rednblack.editor.renderer.data.MainItemVO
 import games.rednblack.editor.renderer.data.SimpleImageVO
+import ktx.collections.gdxArrayOf
+import ktx.collections.gdxIntArrayOf
 import ktx.math.component1
 import ktx.math.component2
 
@@ -47,8 +50,8 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
     private val polys =
         sceneLoader.sceneVO.composite.content.get("games.rednblack.editor.renderer.data.ColorPrimitiveVO")
     val collision = polys.filter { it.itemIdentifier == "COLLISION" }.map {
-        it.shape.vertices.map { v -> listOf(v.x + it.x, v.y + it.y) }
-    }.flatten()
+        it.shape.vertices.map { v -> listOf(v.x + it.x, v.y + it.y) }.flatten()
+    }
         .map {
             Polygon(it.toFloatArray())
         }
@@ -83,22 +86,23 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
         }.toList()
     private val numRows = worldHeight / spacingBetweenPathNodes
     private val numCols = worldWidth / spacingBetweenPathNodes
-    private val pathNodes: Array<Array<Int>> = Array<Array<Int>>().apply {
-        var idx = 0
-        for (x in 0..<numRows) {
-            this.set(x, Array(numCols))
-            for (y in 0..<numCols) {
-                val pos = Vector2(x * spacingBetweenPathNodes * 1f, y * spacingBetweenPathNodes * 1f)
-                val collides = collision.firstOrNull() { it.contains(pos)}
-                idx++
-                // Less than 0 means collision, packing to bits of data in one
-                // Not writing A* ourself means using the IndexedAStarPathFinder, which expects
-                // some kind of index function and this is the easiest way to save the index
-                // in an array AND communicate the path cost
-                this[x][y] = if(collides != null) idx else idx * -1
+    val pathNodes =
+        gdxArrayOf<IntArray>(true, numRows).apply{
+            var idx = 0
+            for(x in 0 ..<numRows) {
+                val arr = gdxIntArrayOf()
+                for (y in 0..<numCols) {
+                    val pos = Vector2(x * spacingBetweenPathNodes * 1f, y * spacingBetweenPathNodes * 1f)
+                    val collides = collision.firstOrNull() { it.contains(pos)}
+                    idx++
+                    // Less than 0 means collision, packing to bits of data in one
+                    // Not writing A* ourself means using the IndexedAStarPathFinder, which expects
+                    // some kind of index function and this is the easiest way to save the index
+                    // in an array AND communicate the path cost
+                    arr.add(if(collides == null) idx else idx * -1)
+                }
+                add(arr)
             }
-        }
-
     }
 
 

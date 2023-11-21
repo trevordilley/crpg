@@ -131,6 +131,16 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
 
+            mapManager.pathNodes.forEachIndexed { x, column ->
+                shapeRenderer.apply {
+                    column.items.forEachIndexed { y, id ->
+                        color = if (id > 0)  Color.LIME else Color.FIREBRICK
+                        circle(x.toFloat() * 10, y.toFloat() * 10, 2f)
+                    }
+                }
+
+            }
+
             entities
                     .filter { it.has(CMovable.m()) }
                     .forEach { entity ->
