@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
 import ktx.ashley.has
 import ktx.ashley.mapperFor
+import javax.print.attribute.standard.JobKOctets
 
 
 class CTransform(var position: Vector2, var rotation: Float, val radius: Float, val scale: Float = 1f) : Component {
@@ -35,7 +36,7 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         all(CAnimated::class.java, CTransform::class.java).get()) {
 
 
-    private val shapeRenderer = ShapeRenderer()
+    private val shapeRenderer = ShapeRenderer(204 * 204 * 4)
     private var spritesToRender = mutableListOf<Pair<Sprite, CTransform>>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
 
@@ -97,22 +98,22 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         }
         batch.end()
 //        // UI Rendering
-//        val originalMatrix = batch.projectionMatrix.cpy()
-//        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
-//        batch.projectionMatrix = uiMatrix
-//        batch.begin()
-//        val font = BitmapFont()
-//        if (UserInputManager.isPaused) {
-//            font.color = Color.MAGENTA
-//            font.draw(
-//                    batch,
-//                    "PAUSED",
-//                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
-//                    200f
-//            )
-//        }
-//        batch.projectionMatrix = originalMatrix
-//        batch.end()
+        val originalMatrix = batch.projectionMatrix.cpy()
+        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
+        batch.projectionMatrix = uiMatrix
+        batch.begin()
+        val font = BitmapFont()
+        if (UserInputManager.isPaused) {
+            font.color = Color.MAGENTA
+            font.draw(
+                    batch,
+                    "PAUSED",
+                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
+                    200f
+            )
+        }
+        batch.projectionMatrix = originalMatrix
+        batch.end()
         debugDraw(showDebug)
     }
 
@@ -131,40 +132,52 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                 }
             }
 
-            mapManager.pathNodes.forEachIndexed { x, column ->
-                shapeRenderer.apply {
-                    column.items.forEachIndexed { y, id ->
-                        color = if (id > 0)  Color.LIME else Color.FIREBRICK
-                        circle(x.toFloat() * 10, y.toFloat() * 10, 2f)
-                    }
-                }
-
-            }
-
+            val nodesOnPath = mutableMapOf<Int,Int>()
             entities
-                    .filter { it.has(CMovable.m()) }
-                    .forEach { entity ->
-                        entity[CMovable.m()]!!
-                                .path
-                                .toList()
-                                .let { path ->
-                                    var prevPoint = path.firstOrNull()
-                                    if (prevPoint != null) {
-                                        path.forEach {
-                                            shapeRenderer.apply {
-                                                color = Color.BLUE
-                                                prevPoint?.let { p ->
-                                                    line(p.x, p.y, it.x, it.y)
-                                                    circle(it.x, it.y, 0.2f)
-                                                }
-                                                prevPoint = it
-                                            }
+                .filter { it.has(CMovable.m()) }
+                .forEach { entity ->
+                    entity[CMovable.m()]!!
+                        .path
+                        .let { p ->
+                            p.forEach { n -> nodesOnPath.set(n.x.toInt()/10,n.y.toInt()/10) }
+                            p
+                        }
+                        .toList()
+                        .let { path ->
+                            var prevPoint = path.firstOrNull()
+                            if (prevPoint != null) {
+                                path.forEach {
+                                    shapeRenderer.apply {
+                                        color = Color.BLUE
+                                        prevPoint?.let { p ->
+                                            line(p.x, p.y, it.x, it.y)
+                                            circle(it.x, it.y, 0.2f)
                                         }
-
+                                        prevPoint = it
                                     }
                                 }
 
+                            }
+                        }
+
+                }
+
+            shapeRenderer.apply {
+                for(x in 0..<mapManager.pathNodes.size) {
+                    for(y in 0..<mapManager.pathNodes[x].size) {
+                        if(nodesOnPath[x] == y) {
+                            color = Color.BLUE
+                        }
+                        else if(mapManager.pathNodes[x][y] < 0) {
+                            color = Color.DARK_GRAY
+                        } else {
+                            color = Color.FOREST
+                        }
+                        rect((x.toFloat() * 10) - 5f, (y.toFloat() * 10) - 5f, 10f, 10f)
                     }
+                }
+            }
+
         }
         shapeRenderer.end()
     }

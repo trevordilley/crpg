@@ -36,8 +36,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val config = SceneConfiguration()
         config.setResourceRetriever(assetManager.get("project.dt", AsyncResourceManager::class.java))
         sceneLoader = SceneLoader(config)
-        val worldWidth = 1920
-        val worldHeight = 1080
+        val worldWidth = 2048
+        val worldHeight = 2048
         log.info("Before loadScene")
         sceneLoader.loadScene("MainScene", viewportManager.viewport)
 
@@ -82,7 +82,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(CombatantSystem())
         engine.addSystem(FieldOfViewSystem(mapManager.occluders))
         engine.addSystem(FovRenderSystem(viewportManager.viewport, sceneLoader.batch))
-//        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
+        engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(AnimationSystem())
         engine.addSystem(DropZoneSystem(selectionSystem))
         engine.addSystem(selectionSystem)
@@ -92,7 +92,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val createPc = { pos: Vector2 ->
 
             Entity().apply {
-                val spriteRadius = (playerCharacterAnim.width * SiUnits.PIXELS_TO_METER) / 2f
+                val spriteRadius = (playerCharacterAnim.width ) / 2f
                 val rotation = 90f
                 add(CCombatant(Player,
                         Equipment(
@@ -113,7 +113,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CSelectable(kind = CharacterSelect(Allegiance.PLAYER)))
                 add(CFoV(null))
                 add(CPlayerControlled)
-                add(CMovable(2f, Vector2(1000f, 1000f), Stack(), 600f, null))
+                add(CMovable(200f, null, Stack(), 600f, null))
                 add(
                         CAnimated(
                                 mapOf(

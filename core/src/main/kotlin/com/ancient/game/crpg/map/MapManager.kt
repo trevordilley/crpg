@@ -23,11 +23,10 @@ data class PathNode(val x: Int, val y: Int)
 data class PathNodeConnection(
     val source: PathNode,
     val sink: PathNode,
-    val isCollision: Boolean
 ) : Connection<PathNode> {
     override fun getToNode() = sink
 
-    override fun getCost() = if (isCollision) 1f else 0f
+    override fun getCost() =  1f
 
     override fun getFromNode() = source
 }
@@ -84,14 +83,28 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
                 )
             )
         }.toList()
+
+
+    // NEW APPROACH: Use collision polygon verts as nav nodes
+    // At level load, grab each vert from collision
+    // offset those verts by the radius of the various size creatures we'll support
+    // (64px, 128px, 256px)
+    // The offset is a function of the angle (if acute, needs to be further out) and
+    // the creature radius
+    //
+    // Once we've calc'd those offsets, for each vert connect them if they have
+    // unobstructed line-of-site
+    //
+    // That's our A* graph
+
     private val numRows = worldHeight / spacingBetweenPathNodes
     private val numCols = worldWidth / spacingBetweenPathNodes
     val pathNodes =
         gdxArrayOf<IntArray>(true, numRows).apply{
             var idx = 0
-            for(x in 0 ..<numRows) {
+            for(x in 0 ..<numCols) {
                 val arr = gdxIntArrayOf()
-                for (y in 0..<numCols) {
+                for (y in 0..<numRows) {
                     val pos = Vector2(x * spacingBetweenPathNodes * 1f, y * spacingBetweenPathNodes * 1f)
                     val collides = collision.firstOrNull() { it.contains(pos)}
                     idx++
@@ -106,6 +119,7 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
     }
 
 
+    // Built from the LoS connections between collision verts
     override fun getConnections(fromNode: PathNode): Array<Connection<PathNode>> {
         val (x,y) = fromNode
         val t = PathNode(x, y + 1)
@@ -117,17 +131,24 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
         val r = PathNode(x + 1, y)
         val tr = PathNode(x + 1, y + 1)
 
-        val connect = { node: PathNode -> PathNodeConnection(fromNode, node, pathNodes[node.x][node.y] < 0)}
+
 
         return Array<Connection<PathNode>>().apply {
-            add(connect(t))
-            add(connect(tl))
-            add(connect(l))
-            add(connect(bl))
-            add(connect(b))
-            add(connect(br))
-            add(connect(r))
-            add(connect(tr))
+            val connect = { node: PathNode ->
+                // Only connect nodes that aren't collision
+                if(pathNodes[node.x/10][node.y/10] >= 0) {
+                    add(PathNodeConnection(fromNode, node))
+                }
+            }
+
+            connect(t)
+            connect(tl)
+            connect(l)
+            connect(bl)
+            connect(b)
+            connect(br)
+            connect(r)
+            connect(tr)
         }
     }
 
@@ -138,14 +159,20 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
     // TODO OPTIMIZE>>>>
     fun findPath(startPos: Vector2, endPos: Vector2): GraphPath<PathNode> {
         val graph = DefaultGraphPath<PathNode>()
-        IndexedAStarPathFinder(this).searchNodePath(PathNode(startPos.x.toInt(),startPos.y.toInt()), PathNode(endPos.x.toInt(), endPos.y.toInt()),
+        val i = IndexedAStarPathFinder(this, true)
+            i.searchNodePath(PathNode(startPos.x.toInt()/10,startPos.y.toInt()/10), PathNode(endPos.x.toInt()/10, endPos.y.toInt()/10),
             { a, b ->
-                Vector2.dst(a.x.toFloat() , a.y.toFloat() , b.x.toFloat() , b.y.toFloat())
+                Vector2.dst(a.x.toFloat() , a.y.toFloat() , endPos.x.toFloat() , endPos.y.toFloat())
             }, graph)
+        i.metrics
         return graph
     }
 
-    override fun getIndex(node: PathNode): Int = pathNodes[node.x][node.y]
+    override fun getIndex(node: PathNode): Int {
+        val x = node.x/10
+        val y = node.y/10
+        return pathNodes[x][y]
+    }
     override fun getNodeCount(): Int = numRows * numCols
 
 }
