@@ -98,22 +98,23 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         }
         batch.end()
 //        // UI Rendering
-        val originalMatrix = batch.projectionMatrix.cpy()
-        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
-        batch.projectionMatrix = uiMatrix
-        batch.begin()
-        val font = BitmapFont()
-        if (UserInputManager.isPaused) {
-            font.color = Color.MAGENTA
-            font.draw(
-                    batch,
-                    "PAUSED",
-                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
-                    200f
-            )
-        }
-        batch.projectionMatrix = originalMatrix
-        batch.end()
+        // TODO: This stuff breaks the FoV render system?
+//        val originalMatrix = batch.projectionMatrix.cpy()
+//        val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)
+//        batch.projectionMatrix = uiMatrix
+//        batch.begin()
+//        val font = BitmapFont()
+//        if (UserInputManager.isPaused) {
+//            font.color = Color.MAGENTA
+//            font.draw(
+//                    batch,
+//                    "PAUSED",
+//                    (viewport.worldWidth * SiUnits.UNIT) / 2f,
+//                    200f
+//            )
+//        }
+//        batch.projectionMatrix = originalMatrix
+//        batch.end()
         debugDraw(showDebug)
     }
 
