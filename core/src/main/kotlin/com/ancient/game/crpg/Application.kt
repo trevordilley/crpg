@@ -24,10 +24,6 @@ import games.rednblack.editor.renderer.resources.ResourceManagerLoader
 import ktx.app.KtxGame
 import ktx.assets.setLoader
 import ktx.inject.*
-object SiUnits {
-    const val UNIT = 64 // minimum resolution of a character.
-    const val PIXELS_TO_METER = 1.0f / UNIT.toFloat()
-}
 
 class Application : KtxGame<Screen>() {
 

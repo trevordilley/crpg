@@ -54,6 +54,19 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
         .map {
             Polygon(it.toFloatArray())
         }
+    val navMesh = collision.let { colliders ->
+        val deriveNavPoint = { target: Vector2, before: Vector2, after: Vector2, center: Vector2, radiusToFit: Float ->
+           println("todo")
+           Vector2(0f,0f)
+        }
+
+        for(collider in colliders) {
+            // TODO: need to pair these verts up
+            for(i in 0 until collider.vertexCount) {
+            }
+        }
+    }
+
     val occluders = polys
         .filter { it.itemIdentifier == "OCCLUDER" }
         .map { it.shape.vertices.map { v -> Vector2(v.x + it.x, v.y + it.y) } }

@@ -244,7 +244,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Treasure
         val createTreasure = { pos: Vector2 -> Entity().apply {
 
-            val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
+            val spriteRadius = (treasureAnim.width ) / 2f
             add(CTransform(pos, 0f, spriteRadius))
             add(CHaulable())
             add(CDiscovery("An impressive pile of gold coin. A heavy load to carry, but certainly worthwhile!"))

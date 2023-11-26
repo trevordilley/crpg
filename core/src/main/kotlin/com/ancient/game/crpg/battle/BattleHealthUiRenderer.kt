@@ -2,7 +2,6 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CAnimated
 import com.ancient.game.crpg.CTransform
-import com.ancient.game.crpg.SiUnits
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
@@ -68,7 +67,7 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
                 arc(
                         x,
                         y,
-                        (((sprite.width * healthPct) * SiUnits.PIXELS_TO_METER) / 2),
+                        (((sprite.width * healthPct) ) / 2),
                         r + 90f,
                         healthDegrees, 100
                 )
@@ -83,7 +82,7 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
                                     y,
                                     ((
                                             (sprite.width * stamPct)
-                                                    * SiUnits.PIXELS_TO_METER) / 2
+                                                  ) / 2
                                             )
                                     ,
                                     r - (deg / 2),
