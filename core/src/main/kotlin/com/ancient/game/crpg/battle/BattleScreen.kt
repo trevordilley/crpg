@@ -101,7 +101,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                                         30,
                                         3f,
                                         NumberHandsToWield.ONE,
-                                        1f),
+                                        spriteRadius),
                                 Shield("Large Shield", 0.7f),
                                 Armor("Plate Mail", 20, 30f))
                 ))
@@ -145,13 +145,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val orcAnim: Aseprite = assetManager[AsepriteAsset.ORC.assetName]
         val createOrc = { pos: Vector2 ->
             Entity().apply {
-                add(CCombatant(Enemy(3f),
+                add(CCombatant(Enemy(300f),
                         Equipment(
                                 MeleeWeapon("Large Axe",
                                         300,
                                         4f,
                                         NumberHandsToWield.TWO,
-                                        1f
+                                        orcAnim.width/2f
                                 ),
                                 Nothing,
                                 Armor("Shirt", 0, 0f))
@@ -164,7 +164,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         3)
                 )
                 add(CTransform(pos, 270f, orcAnim.width / 2f))
-                add(CMovable(2f, null, Stack(), 8f, null))
+                add(CMovable(200f, null, Stack(), 8f, null))
                 add(CAnimated(
                         mapOf(
                                 AsepriteAsset.ORC to AnimationData(
@@ -219,10 +219,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             add(transform)
             val dropZoneRect =
                     Rectangle(
-                            2f,
-                            0f,
-                            2f,
-                            4f
+                            transform.position.x,
+                            transform.position.y,
+                            128f,
+                            256f
                     )
             add(
                     CDropZone(HealingKind, dropZoneRect)
