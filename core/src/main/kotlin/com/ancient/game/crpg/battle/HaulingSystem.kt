@@ -33,12 +33,15 @@ class HaulableSystem() : IteratingSystem(all(
     private val followDistance = 0.6f
     private val haulableM: ComponentMapper<CHaulable> = mapperFor()
     private val transformM: ComponentMapper<CTransform> = mapperFor()
+    private val moveableM: ComponentMapper<CMovable> = mapperFor()
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
 
         val haulable = entity[haulableM]!!
         val transform = entity[transformM]!!
+
         haulable.hauler?.let { hauler ->
+            val haulerSpeed = hauler[moveableM]?.movementSpeed
             val haulerTransform = hauler[transformM]!!
             if (followDistance < transform.position.dst(haulerTransform.position)) {
                 // now increment the current position towards
@@ -48,7 +51,7 @@ class HaulableSystem() : IteratingSystem(all(
                                 .cpy()
                                 .sub(transform.position)
                                 .nor()
-                                .scl(2f * dt)
+                                .scl((haulerSpeed ?: 200f) * dt)
                 transform.position.add(step)
             }
         }
