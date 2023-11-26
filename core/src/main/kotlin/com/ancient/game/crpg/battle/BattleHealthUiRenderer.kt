@@ -2,7 +2,6 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.CAnimated
 import com.ancient.game.crpg.CTransform
-import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
@@ -12,7 +11,6 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.ashley.get
-import ktx.ashley.mapperFor
 
 
 class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(

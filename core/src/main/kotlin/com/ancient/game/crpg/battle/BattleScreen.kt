@@ -113,7 +113,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CSelectable(kind = CharacterSelect(Allegiance.PLAYER)))
                 add(CFoV(null))
                 add(CPlayerControlled)
-                add(CMovable(200f, null, Stack(), 600f, null))
+                add(CMovable(BattleConstants.DEFAULT_SPEED, null, Stack(), BattleConstants.DEFAULT_ROTATION, null))
                 add(
                         CAnimated(
                                 mapOf(
@@ -164,7 +164,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         3)
                 )
                 add(CTransform(pos, 270f, orcAnim.width / 2f))
-                add(CMovable(200f, null, Stack(), 8f, null))
+                add(CMovable(BattleConstants.DEFAULT_SPEED, null, Stack(), 8f, null))
                 add(CAnimated(
                         mapOf(
                                 AsepriteAsset.ORC to AnimationData(
