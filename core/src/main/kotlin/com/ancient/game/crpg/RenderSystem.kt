@@ -163,21 +163,17 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
                 }
 
-//            shapeRenderer.apply {
-//                for(x in 0..<mapManager.pathNodes.size) {
-//                    for(y in 0..<mapManager.pathNodes[x].size) {
-//                        if(nodesOnPath[x] == y) {
-//                            color = Color.BLUE
-//                        }
-//                        else if(mapManager.pathNodes[x][y] < 0) {
-//                            color = Color.DARK_GRAY
-//                        } else {
-//                            color = Color.FOREST
-//                        }
-//                        rect((x.toFloat() * 10) - 5f, (y.toFloat() * 10) - 5f, 10f, 10f)
-//                    }
-//                }
-//            }
+
+            shapeRenderer.apply {
+                color = Color.BLUE
+                mapManager.navMesh.forEach {v ->
+                    circle(v.x, v.y, 32f)
+                }
+                color = Color.GREEN
+                mapManager.navMesh.forEach {v ->
+                    circle(v.x, v.y, 2f)
+                }
+            }
 //
         }
         shapeRenderer.end()

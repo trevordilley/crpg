@@ -1,5 +1,6 @@
 package com.ancient.game.crpg.map
 
+import com.ancient.game.crpg.utils.NavigationUtils
 import com.badlogic.gdx.ai.pfa.*
 import com.badlogic.gdx.ai.pfa.indexed.IndexedAStarPathFinder
 import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph
@@ -54,18 +55,7 @@ class MapManager(private val sceneLoader: SceneLoader, private val worldWidth: I
         .map {
             Polygon(it.toFloatArray())
         }
-    val navMesh = collision.let { colliders ->
-        val deriveNavPoint = { target: Vector2, before: Vector2, after: Vector2, center: Vector2, radiusToFit: Float ->
-           println("todo")
-           Vector2(0f,0f)
-        }
-
-        for(collider in colliders) {
-            // TODO: need to pair these verts up
-            for(i in 0 until collider.vertexCount) {
-            }
-        }
-    }
+    val navMesh = collision.map { NavigationUtils.deriveNavPointsFromPolygon(it, 32f) }.flatten()
 
     val occluders = polys
         .filter { it.itemIdentifier == "OCCLUDER" }
