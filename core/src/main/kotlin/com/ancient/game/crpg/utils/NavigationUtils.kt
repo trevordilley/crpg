@@ -6,6 +6,15 @@ import com.badlogic.gdx.math.Vector2
 import ktx.math.div
 
 object NavigationUtils {
+    fun angleFromPoints(
+        cx: Float, cy: Float,
+        px: Float, py: Float,
+        nx: Float, ny: Float
+        ): Float {
+        return (atan2(nx- cx, ny - cy) - atan2(px - cx, py - cy)).let { Math.toDegrees(it.toDouble())}.toFloat()
+    }
+
+
     fun deriveNavPointsFromPolygon(polygon: Polygon, radius: Float): List<Vector2> {
         val verts = mutableListOf<Pair<Float, Float>>()
 
@@ -35,10 +44,12 @@ object NavigationUtils {
                 verts[i - 1]
             }.let { (x,y) -> Vector2(x,y)}
 
-            val vec1 = prev.cpy().sub(cur)
-            val vec2 = next.cpy().sub(cur)
 
-            val halfAng =  vec1.angleDeg(vec2)/2f
+            // Move points to origin for simpler maths
+            prev.sub(cur)
+            next.sub(cur)
+
+            val halfAng = atan2(prev.x, prev.y) - atan2(next.x, next.y)
 
 //            val halfAng = acos(
 //                Vector2.dot(vec1.x,vec1.y, vec2.x,vec2.y)/
