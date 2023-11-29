@@ -30,7 +30,7 @@ class HaulableSystem() : IteratingSystem(all(
         CTransform::class.java
 ).get()) {
 
-    private val followDistance = 0.6f
+    private val followDistance = 32f
     private val haulableM: ComponentMapper<CHaulable> = mapperFor()
     private val transformM: ComponentMapper<CTransform> = mapperFor()
     private val moveableM: ComponentMapper<CMovable> = mapperFor()
