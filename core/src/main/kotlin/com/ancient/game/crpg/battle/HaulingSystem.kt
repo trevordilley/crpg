@@ -1,5 +1,6 @@
 package com.ancient.game.crpg.battle
 
+import com.ancient.game.crpg.CAnimated
 import com.ancient.game.crpg.CTransform
 import com.ancient.game.crpg.UserInputManager
 import com.badlogic.ashley.core.Component
@@ -30,7 +31,6 @@ class HaulableSystem() : IteratingSystem(all(
         CTransform::class.java
 ).get()) {
 
-    private val followDistance = 32f
     private val haulableM: ComponentMapper<CHaulable> = mapperFor()
     private val transformM: ComponentMapper<CTransform> = mapperFor()
     private val moveableM: ComponentMapper<CMovable> = mapperFor()
@@ -43,6 +43,7 @@ class HaulableSystem() : IteratingSystem(all(
         haulable.hauler?.let { hauler ->
             val haulerSpeed = hauler[moveableM]?.movementSpeed
             val haulerTransform = hauler[transformM]!!
+            val followDistance = haulerTransform.radius
             if (followDistance < transform.position.dst(haulerTransform.position)) {
                 // now increment the current position towards
                 val step =
@@ -65,7 +66,7 @@ class HaulableSystem() : IteratingSystem(all(
         val haulable = haulableE[haulableM]!!
         val haulablePosition = haulableE[transformM]!!.position
         entity[transformM]?.let {transform ->
-            if(transform.position.dst(haulablePosition) <= followDistance) {
+            if(transform.position.dst(haulablePosition) <= transform.radius) {
                 haulable.hauler = entity
             }
         } ?: {println("Entity $entity has no transform?")}.invoke()
