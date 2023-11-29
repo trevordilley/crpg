@@ -1,11 +1,7 @@
 package com.ancient.game.crpg.utils
 
-import com.badlogic.gdx.math.Bezier
-import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Vector2
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck
-import games.rednblack.editor.renderer.utils.poly.earclipping.ewjordan.Polygon
-import games.rednblack.editor.renderer.utils.poly.earclipping.ewjordan.Triangle
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -48,24 +44,20 @@ internal class NavigationUtilsTest {
 
     @Test
     fun `Simple square polygon has correct nav verts`() {
-        val verts = squarePoly.vertices
-        val ang = NavigationUtils.angleFromPoints(
-           verts[0], verts[1], // bl
-            verts[2], verts[3], // tl
-            verts[6], verts[7] // br
-        )
-
-        assert(ang == 90f) { "Expected 45 degrees, got $ang"}
+        val navPoints = NavigationUtils.deriveNavPointsFromPolygon(squarePoly, 32f)
+        assert(navPoints.size == 4)
     }
 
     @Test
     fun `opposing edge in triangle intersects square poly`() {
         val verts = squarePoly.vertices
-        val shouldIntersect = Intersector.intersectLinePolygon(
-            Vector2(verts[2], verts[3]),
-            Vector2(verts[6], verts[7]),
-            squarePoly
-            )
+
+        val start =
+            Vector2(verts[2], verts[3])
+        val end =
+            Vector2(verts[6], verts[7])
+
+        val shouldIntersect = NavigationUtils.polygonContainsLineOpenStartAndEnd(Line(start, end), squarePoly)
 
         assert(shouldIntersect)
     }
@@ -75,19 +67,10 @@ internal class NavigationUtilsTest {
         val verts = impactedSquare.vertices
         val start = Vector2(verts[6], verts[7])
         val end = Vector2(verts[10], verts[11])
-        val tmp = Vector2(0f,0f)
 
-        val s = Vector2.Zero
-        val e = Vector2.Zero
-        Bezier.linear(s, 0.001f, start.cpy(), end, tmp)
-        Bezier.linear(e, 0.999f, start, end, tmp)
-        val shouldNOTIntersect = Intersector.intersectLinePolygon(
-            s,
-            e,
-            impactedSquare
-        )
+        val shouldIntersect = NavigationUtils.polygonContainsLineOpenStartAndEnd(Line(start, end), impactedSquare)
 
-        assert(!shouldNOTIntersect)
+        assert(!shouldIntersect)
 
     }
 }
