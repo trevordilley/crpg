@@ -2,6 +2,7 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.equipment.Shield
+import com.ancient.game.crpg.battle.CInvulnerability
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.ComponentMapper
 import com.badlogic.ashley.core.Entity
@@ -44,7 +45,8 @@ class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSyst
                 CCombatant::class.java
         )
                 .exclude(
-                        CDead::class.java
+                        CDead::class.java,
+                        CInvulnerability::class.java
                 )
                 .get()) {
 
