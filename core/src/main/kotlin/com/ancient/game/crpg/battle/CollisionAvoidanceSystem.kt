@@ -106,7 +106,7 @@ class CollisionAvoidanceSystem : IteratingSystem(
             if (otherEntity == entity) return@forEach
             
             // Skip dead entities
-            if (otherEntity.has(CDead::class)) return@forEach
+            if (otherEntity.has(CDead.m())) return@forEach
             
             val otherTransform = otherEntity[transformM] ?: return@forEach
             val otherPosition = otherTransform.position
