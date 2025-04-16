@@ -60,31 +60,54 @@ fun rotationStep(speed: Float, currentRotation: Float) = normalizeDeg(currentRot
 
 fun determineRotationDistance(targetRotation: Float, currentRotation: Float): Float {
     // Example: cur 348, target 5, distance is 17
-    val d1 = Math.abs(targetRotation - currentRotation)
-    val d2 = Math.abs((FULL_ROTATION_DEGREES - currentRotation + targetRotation))
-    return min(d1, d2)
+    val normalizedTarget = normalizeDeg(targetRotation)
+    val normalizedCurrent = normalizeDeg(currentRotation)
+    val clockwiseDistance = if (normalizedTarget <= normalizedCurrent) {
+        normalizedCurrent - normalizedTarget
+    } else {
+        normalizedCurrent + (FULL_ROTATION_DEGREES - normalizedTarget)
+    }
+    val counterClockwiseDistance = if (normalizedTarget >= normalizedCurrent) {
+        normalizedTarget - normalizedCurrent
+    } else {
+        (FULL_ROTATION_DEGREES - normalizedCurrent) + normalizedTarget
+    }
+    return Math.min(clockwiseDistance, counterClockwiseDistance)
 }
 
 
 fun rotate(currentRotation: Float, targetRotation: Float, rotationSpeed: Float): Float {
-    val rotDelta = determineRotationDistance(targetRotation, currentRotation)
-    return if (rotDelta.toInt() <= rotationSpeed) {
+    val normalizedTarget = normalizeDeg(targetRotation)
+    val normalizedCurrent = normalizeDeg(currentRotation)
+    
+    val rotDelta = determineRotationDistance(normalizedTarget, normalizedCurrent)
+    
+    if (rotDelta <= rotationSpeed) {
         // Rotation difference is so small we should just
         // set it to the target. This may look "snappy" with
         // high rotationSpeed values.
-        targetRotation
+        return normalizedTarget
+    }
+    
+    // Calculate clockwise and counterclockwise distances
+    val clockwiseDistance = if (normalizedTarget <= normalizedCurrent) {
+        normalizedCurrent - normalizedTarget
     } else {
-
-        val clockwise = rotationStep(-rotationSpeed, currentRotation)
-        val clockwiseDistance = determineRotationDistance(targetRotation, clockwise)
-
-        val counterClockwise = rotationStep(rotationSpeed, currentRotation)
-        val counterClockwiseDistance = determineRotationDistance(targetRotation, counterClockwise)
-
-        if (clockwiseDistance < counterClockwiseDistance) {
-            clockwise
-        } else {
-            counterClockwise
-        }
+        normalizedCurrent + (FULL_ROTATION_DEGREES - normalizedTarget)
+    }
+    
+    val counterClockwiseDistance = if (normalizedTarget >= normalizedCurrent) {
+        normalizedTarget - normalizedCurrent
+    } else {
+        (FULL_ROTATION_DEGREES - normalizedCurrent) + normalizedTarget
+    }
+    
+    // Choose the shortest path
+    return if (clockwiseDistance < counterClockwiseDistance) {
+        // Clockwise rotation (decrease angle)
+        normalizeDeg(normalizedCurrent - rotationSpeed)
+    } else {
+        // Counterclockwise rotation (increase angle)
+        normalizeDeg(normalizedCurrent + rotationSpeed)
     }
 }
