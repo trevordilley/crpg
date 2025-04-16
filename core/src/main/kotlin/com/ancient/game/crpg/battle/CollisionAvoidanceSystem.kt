@@ -9,6 +9,7 @@ import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
+import ktx.ashley.has
 import ktx.ashley.mapperFor
 import ktx.math.minus
 import ktx.math.times
