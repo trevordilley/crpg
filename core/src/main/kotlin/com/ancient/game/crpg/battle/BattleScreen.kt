@@ -74,6 +74,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         )
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
+        // Add collision avoidance system before movement system
+        engine.addSystem(CollisionAvoidanceSystem())
         engine.addSystem(BattleMovementSystem(mapManager.collision))
         engine.addSystem(HealthSystem(selectionSystem))
         engine.addSystem(DeadSystem(haulableSystem))
@@ -114,6 +116,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CFoV(null))
                 add(CPlayerControlled)
                 add(CMovable(BattleConstants.DEFAULT_SPEED, null, Stack(), BattleConstants.DEFAULT_ROTATION, null))
+                add(CCollisionAvoidance(1.5f, 2.0f))
                 add(
                         CAnimated(
                                 mapOf(
@@ -165,6 +168,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 )
                 add(CTransform(pos, 270f, orcAnim.width / 2f))
                 add(CMovable(BattleConstants.DEFAULT_SPEED, null, Stack(), 8f, null))
+                add(CCollisionAvoidance(1.5f, 2.0f))
                 add(CAnimated(
                         mapOf(
                                 AsepriteAsset.ORC to AnimationData(
