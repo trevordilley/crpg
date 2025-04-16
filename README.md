@@ -3,6 +3,8 @@ Mix Lords of Magic's site based dungeon overworld
 with Baldur's Gate style combat with a Dark Souls stamina 
 management twist!
 
+A tactical RPG prototype with focus on positioning and resource management.
+
 ## Key Distinctions
 * CRPG style combat, but less forgiving
     * Position and rotation are very important, getting shot in the back is real bad
