@@ -88,6 +88,16 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
                                                             )
                                                     if (dist <= weapon.range) {
                                                         health.damages.add(Damage(weapon.staminaDamage, attackerPos.position))
+                                                        
+                                                        // Chance to apply poison effect (example: 20% chance)
+                                                        if (Math.random() < 0.2) {
+                                                            // Apply poison that deals 1 damage every 2 seconds for 10 seconds
+                                                            target.add(CPoison(
+                                                                damagePerTick = 1,
+                                                                tickInterval = 2f,
+                                                                remainingDuration = 10f
+                                                            ))
+                                                        }
                                                     }
                                                 }
                                             }

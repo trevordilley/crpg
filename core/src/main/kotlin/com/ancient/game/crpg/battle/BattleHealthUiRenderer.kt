@@ -5,6 +5,7 @@ import com.ancient.game.crpg.CTransform
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
+import kotlin.math.sin
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -87,6 +88,19 @@ class BattleHealthUiRenderer(private val viewport: Viewport) : IteratingSystem(
                                     deg,
                                     100)
                         }
+                
+                // Display poison indicator if entity is poisoned
+                entity.getComponent(CPoison::class.java)?.let { poison ->
+                    // Green pulsing circle for poison
+                    val poisonAlpha = 0.5f + (Math.sin(System.currentTimeMillis() * 0.005).toFloat() * 0.3f)
+                    val poisonColor = Color(0.2f, 0.8f, 0.2f, poisonAlpha)
+                    color = poisonColor
+                    circle(
+                        x,
+                        y,
+                        sprite.width / 4f
+                    )
+                }
             }
         }
         shapeRenderer.end()
