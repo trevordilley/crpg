@@ -85,6 +85,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleHealthUiRenderer(viewportManager.viewport))
         engine.addSystem(AnimationSystem())
         engine.addSystem(DropZoneSystem(selectionSystem))
+        engine.addSystem(InvulnerabilitySystem())
         engine.addSystem(selectionSystem)
         // Player Character
         val playerCharacterAnim: Aseprite = assetManager[AsepriteAsset.SWORD_SHIELD.assetName]
