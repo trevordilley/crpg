@@ -71,6 +71,10 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
                 }
                 entity[CHealth.m()]!!.health = entity[CHealth.m()]!!.maxHealth
                 entity[CHealth.m()]!!.stamina = (entity[CHealth.m()]!!.maxStamina.toDouble() * 0.25).toInt()
+                // Grant invincibility after resurrection (only for players)
+                if (entity[CCombatant.m()]?.combatant is Player) {
+                    entity.add(CInvincible(3f)) // 3 seconds of invincibility after resurrection
+                }
                 println("$entity is back in action with ${entity[CHealth.m()]!!.stamina} stamina!")
 
             }

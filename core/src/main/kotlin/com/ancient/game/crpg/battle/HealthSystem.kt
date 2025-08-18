@@ -53,6 +53,7 @@ class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSyst
     private val animatedM: ComponentMapper<CAnimated> = mapperFor()
     private val transformM: ComponentMapper<CTransform> = mapperFor()
     private val combatantM: ComponentMapper<CCombatant> = mapperFor()
+    private val invincibleM: ComponentMapper<CInvincible> = mapperFor()
 
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -69,6 +70,12 @@ class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSyst
 
             if (shouldRechargeStamina) {
                 health.stamina += health.staminaRechargeRate
+            }
+
+            // Skip damage processing if entity is invincible
+            if (entity[invincibleM] != null) {
+                health.damages.clear()
+                return
             }
 
             val (armor, shield) =
@@ -125,12 +132,20 @@ class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSyst
                                 }
                     } else {
                         health.health -= 1//damage.health
+                        // Grant temporary invincibility after taking health damage (only for players)
+                        if (entity[combatantM]?.combatant is Player) {
+                            entity.add(CInvincible(2f)) // 2 seconds of invincibility
+                        }
                     }
                 } else {
                     health.stamina =
                             max(health.stamina - armorAdjustedDamage.stamina, 0)
                     if (health.stamina == 0) {
                         health.staminaNotRechargingForSeconds = 4f
+                        // Grant brief invincibility when stamina is depleted (only for players)
+                        if (entity[combatantM]?.combatant is Player) {
+                            entity.add(CInvincible(1f)) // 1 second of invincibility
+                        }
                     }
                 }
             }

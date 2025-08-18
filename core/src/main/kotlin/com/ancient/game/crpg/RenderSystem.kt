@@ -1,5 +1,6 @@
 package com.ancient.game.crpg
 
+import com.ancient.game.crpg.battle.CInvincible
 import com.ancient.game.crpg.battle.CMovable
 import com.ancient.game.crpg.map.Edge
 import com.ancient.game.crpg.map.MapManager
@@ -38,7 +39,14 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
 
     private val shapeRenderer = ShapeRenderer(204 * 204 * 4)
     private var spritesToRender = mutableListOf<Pair<Sprite, CTransform>>()
+    private val invincibleM: ComponentMapper<CInvincible> = mapperFor()
+    
     override fun processEntity(entity: Entity, deltaTime: Float) {
+        // Check if entity is invincible and should be hidden (blinking effect)
+        val invincible = entity[invincibleM]
+        if (invincible != null && !invincible.isVisible) {
+            return // Skip rendering this frame for blinking effect
+        }
 
         entity[CAnimated.m()]
                 ?.anims

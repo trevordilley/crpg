@@ -75,6 +75,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
         engine.addSystem(BattleMovementSystem(mapManager.collision))
+        engine.addSystem(InvincibilitySystem())
         engine.addSystem(HealthSystem(selectionSystem))
         engine.addSystem(DeadSystem(haulableSystem))
         engine.addSystem(BattleActionSystem())
