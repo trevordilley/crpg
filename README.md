@@ -1,4 +1,9 @@
 # CRPG Game
+
+> Stamina runs thin
+> Shields raised in narrow hallways
+> Pause, plan, strike, survive
+
 Mix Lords of Magic's site based dungeon overworld 
 with Baldur's Gate style combat with a Dark Souls stamina 
 management twist!
