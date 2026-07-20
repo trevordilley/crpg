@@ -57,7 +57,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         Screenshot.logRenderState("show", viewportManager.viewport)
         log.info("Revving Engines")
         engine = PooledEngine()
-        engine.addSystem(FovRenderSystem(viewportManager.viewport))
+        // Render order is load-bearing: FoV writes the depth mask, then the map
+        // and sprites draw through it. See MapRenderSystem.
+        engine.addSystem(FovRenderSystem(viewportManager.viewport, showDebug = false))
+        engine.addSystem(MapRenderSystem(viewportManager.viewport, mapRenderer))
         engine.addSystem(
                 RenderSystem(
                         batch,
@@ -324,9 +327,8 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         com.badlogic.gdx.Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         com.badlogic.gdx.Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT)
 
-        // Render Map
-        mapRenderer.setView(viewportManager.viewport.camera as OrthographicCamera)
-        mapRenderer.render()
+        // The map is drawn by MapRenderSystem inside the engine, so that it
+        // lands after FovRenderSystem has written the visibility mask.
 
         // Update systems
         engine.update(delta)

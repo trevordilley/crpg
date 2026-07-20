@@ -378,36 +378,44 @@ and produces garbage polygons.
 ### `FieldOfViewSystem` — takes `List<Edge>` from occluders instead of tile-derived edges.
 Interface is already `List<Edge>` on `main`, so this is mostly a wiring change.
 
-### `FovRenderSystem` — port `pr/1`'s framebuffer version
+### Field of view works — do NOT port `pr/1`'s framebuffer rewrite
 
-`main` has a 61-line version; `pr/1` has a 104-line rewrite using an FBO
-(`b963713` — "using a framebuffer that we render over the other stuff seems to do the trick").
-Port the FBO approach, with two changes:
+**Revised after Phase 1.** Both halves of FoV are working on `main`:
 
-- Constructor takes a plain `Batch`, not `sceneLoader.batch`.
-- The FBO is sized from `viewport.screenWidth/screenHeight` at construction and **never
-  recreated on resize** — that's a latent bug on `pr/1`. Add `resize()` handling.
+- **Line of sight** — `FieldOfViewSystem` implements the `sight-and-light.js` visibility
+  polygon (raycast to every occluder vertex ±ε, nearest hit, sort by angle). Verified: 4
+  viewers, ~153 vertices each, light spilling through doorways and correctly blocked by walls.
+- **Compositing the combined field** — `FovRenderSystem` renders every party member's polygon
+  into the depth buffer with colour writes off. **The depth buffer unions them for free**,
+  and everything drawn afterwards uses a `GL_EQUAL` test so it appears only where *someone*
+  can see. Measured: 100% of the FoV region lit, 0% falsely occluded, ~75% of the screen
+  correctly dark.
 
-`pr/1` left a comment questioning the whole approach (invert it: draw a black quad and
-*subtract* the FoV polygons, rather than masking). Worth trying if the port fights us, but not
-in scope for this phase — port first, then improve.
+The only thing wrong was **draw order**: the map was rendered from `BattleScreen.render()`,
+i.e. *before* the mask was built, so it was tested against the previous frame's stale mask.
+Fixed by moving it into `MapRenderSystem`, registered between `FovRenderSystem` and
+`RenderSystem`. That order is load-bearing.
 
-### Carried forward from Phase 1
+**Consequence for this phase:** the plan previously assumed we'd port `pr/1`'s framebuffer
+rewrite (`b963713`). That now looks like it was chasing this same ordering bug rather than a
+real deficiency in the depth approach — and the depth approach is cheaper (no FBO, no resize
+handling, union for free). **Port the polygon occluders into the existing working pipeline
+first**, and only reach for the framebuffer if a concrete problem shows up. The `pr/1` FoV
+rendering code is no longer a reference to copy.
 
-Nothing outstanding — the rendering problems were traced and fixed in Phase 1 (see below).
+What Phase 3 actually needs here: feed `FieldOfViewSystem` the polygon occluder edges instead
+of tile-derived ones. Its interface is already `List<Edge>`, so this is mostly wiring.
+
 There is **no HiDPI bug**: content fills the full 3840×2160 backbuffer correctly.
 
-The one thing to carry in mind is that field-of-view masking is currently **inert**. Phase 1
-restored the leaked depth/colour state that was breaking everything else, which necessarily
-disabled the depth-buffer masking trick. Restoring the *effect* is this phase's job, via the
-framebuffer renderer.
-
-### Known-broken thing to fix
+### Known-broken thing to watch
 
 `pr/1` commit `1759d34`: *"the UI rendering breaks the FOV system."* `BattleHealthUiRenderer`
 and `FovRenderSystem` both begin/end the shared batch, and system order decides who wins.
-Fix by making FoV composite last, or by giving the UI its own batch with a separate
-projection matrix.
+
+Phase 1 may have addressed this incidentally — `RenderSystem` now disables the depth test
+before drawing UI and debug geometry, so the UI no longer draws through the mask. Verify
+before spending time on it.
 
 ### `BattleScreen.kt` / `Application.kt` — de-H2D
 
