@@ -1,6 +1,6 @@
 # Plan: Apple Silicon revival + polygon levels without HyperLap2D
 
-**Status:** draft
+**Status:** phases 1-4 landed; see Remaining below
 **Branch:** `polygon-levels` (off `main`)
 **Source of salvage:** `origin/pr/1` (the deleted `add-hyperlap2d` branch, recovered from the GitHub PR ref)
 
@@ -536,6 +536,28 @@ Click-to-move produces taut paths that round corners at a believable distance, w
 clipping, for all three size classes.
 
 ---
+
+## Status
+
+| Phase | State |
+|---|---|
+| 1 — Apple Silicon / toolchain | **done** — builds on JDK 21/arm64, game runs |
+| 2 — Extract level data | **done** — converter, level JSON, background PNG, Level/LevelLoader |
+| 3 — Port polygon systems | **done** — TiledMap gone, FoV on polygon occluders |
+| 4 — Nav mesh | **done** — visibility graph, 3 size classes, 17 unit tests |
+
+39 tests passing. Remaining work is listed under Deferred, plus:
+
+- **Click-to-move does not clamp the goal.** `NavMesh.findPath` deliberately does not
+  validate endpoints, so clicking inside an obstacle returns an empty path rather than the
+  nearest legal point. The clamp belongs in `BattleCommandSystem`.
+- **Creature size is not wired to entities.** `MapManager.findPath` defaults to
+  `CreatureSize.MEDIUM` for everyone; `CTransform` already carries a radius, so entities
+  should select their own size class.
+- **`BattleMovementSystem` follows waypoints but does not re-path.** If a unit is blocked
+  mid-path nothing recomputes.
+- Self-intersecting outlines would produce a garbage nav graph. Worth a guard in the loader
+  if the editor can emit them.
 
 ## Sequencing
 

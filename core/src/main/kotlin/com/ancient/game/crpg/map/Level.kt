@@ -91,3 +91,16 @@ class Level(
         )
     }
 }
+
+/**
+ * Creature size classes, as radii in world units.
+ *
+ * SiUnits.UNIT (64px) is the minimum resolution of a character, so these are
+ * half the 64 / 128 / 256px sprite diameters. The nav mesh builds one graph per
+ * size, since a wider creature needs more clearance to round a corner.
+ */
+enum class CreatureSize(val radius: Float) {
+    SMALL(0.5f),
+    MEDIUM(1.0f),
+    LARGE(2.0f)
+}

@@ -3,6 +3,7 @@ package com.ancient.game.crpg.systems
 import com.ancient.game.crpg.SiUnits
 import com.ancient.game.crpg.UserInputManager
 import com.ancient.game.crpg.battle.systems.CMovable
+import com.ancient.game.crpg.map.CreatureSize
 import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
@@ -31,7 +32,9 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float, 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
                    val mapManager: MapManager,
-                   val showDebug: Boolean = false) : IteratingSystem(
+                   val showDebug: Boolean = false,
+                   val showNavMesh: Boolean = false,
+                   val navMeshSize: CreatureSize = CreatureSize.MEDIUM) : IteratingSystem(
         all(CAnimated::class.java, CTransform::class.java).get()) {
 
 
@@ -143,6 +146,21 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
                     color = Color.MAGENTA
                     line(e.p1, e.p2)
                 }
+            }
+
+            if (showNavMesh) {
+                // The visibility graph for one size class. Nodes sit a creature
+                // radius off each obstacle corner; edges are pairs with line of
+                // sight and enough clearance to walk between.
+                val graph = mapManager.navGraph(navMeshSize)
+                shapeRenderer.color = Color(0f, 0.45f, 0.55f, 1f)
+                graph.nodes.forEach { node ->
+                    graph.getConnections(node).forEach { c ->
+                        shapeRenderer.line(c.fromNode.position, c.toNode.position)
+                    }
+                }
+                shapeRenderer.color = Color.CYAN
+                graph.nodes.forEach { shapeRenderer.circle(it.position.x, it.position.y, 0.12f, 12) }
             }
 
             entities

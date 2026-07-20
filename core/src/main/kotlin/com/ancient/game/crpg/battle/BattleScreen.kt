@@ -8,6 +8,7 @@ import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.battle.systems.*
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
+import com.ancient.game.crpg.map.CreatureSize
 import com.ancient.game.crpg.map.Level
 import com.ancient.game.crpg.map.LevelLoader
 import com.ancient.game.crpg.map.MapManager
@@ -66,7 +67,10 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         batch,
                         viewportManager.viewport,
                         mapManager,
-                        showDebug = true
+                        showDebug = true,
+                        // Flip to true to inspect the visibility graph.
+                        showNavMesh = false,
+                        navMeshSize = CreatureSize.SMALL
                 )
         )
         engine.addSystem(BattleHealthUiRendererSystem(viewportManager.viewport))
