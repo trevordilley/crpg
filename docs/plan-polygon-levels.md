@@ -546,18 +546,43 @@ clipping, for all three size classes.
 | 3 — Port polygon systems | **done** — TiledMap gone, FoV on polygon occluders |
 | 4 — Nav mesh | **done** — visibility graph, 3 size classes, 17 unit tests |
 
-39 tests passing. Remaining work is listed under Deferred, plus:
+52 tests passing. Since then:
 
-- **Click-to-move does not clamp the goal.** `NavMesh.findPath` deliberately does not
-  validate endpoints, so clicking inside an obstacle returns an empty path rather than the
-  nearest legal point. The clamp belongs in `BattleCommandSystem`.
-- **Creature size is not wired to entities.** `MapManager.findPath` defaults to
-  `CreatureSize.MEDIUM` for everyone; `CTransform` already carries a radius, so entities
-  should select their own size class.
-- **`BattleMovementSystem` follows waypoints but does not re-path.** If a unit is blocked
-  mid-path nothing recomputes.
+- ✅ **Goal clamping.** `MapManager.nearestStandable` projects an illegal click onto the
+  nearest legal standing position, so clicking a wall walks up to it. `NavGraph.findPath`
+  still refuses illegal goals — that is the right pathfinder contract; the clamp is
+  game-facing and lives one layer up.
+- ✅ **Creature size wired to entities.** `CMovable.size`, chosen by
+  `CreatureSize.forRadius`, which never under-selects — picking a class smaller than the
+  creature would let it path through gaps it cannot fit through.
+- ✅ **Re-pathing.** `BattleMovementSystem` re-paths when a unit stops making progress.
+  Note the first attempt used a blocked-frame counter and was *wrong*: a unit pressed against
+  a wall oscillates (blocked, backs off, moves freely, blocked), so reset-on-success fired
+  every other frame and the counter never tripped. Watching distance-to-destination catches
+  oscillation, grinding and genuine stuckness with one rule. A test caught this.
+
+Still open:
+
+- **Doors / dynamic obstacles.** Needs a design decision, and there is no door data in the
+  level format yet. A static visibility graph cannot express a door; the cheapest extension
+  is per-edge predicates rather than a graph rebuild. This matters a lot for the Door Kickers
+  half of the game.
 - Self-intersecting outlines would produce a garbage nav graph. Worth a guard in the loader
   if the editor can emit them.
+- Combat, selection and hauling compile and run but have never been driven end to end.
+
+### Verifying without playing
+
+I cannot play the game, so behaviour is proven by test and *shown* by driving it:
+
+```
+./gradlew :desktop:run -Dcrpg.demo=move -Dcrpg.capture=400 -Dcrpg.capture.out=/tmp/f.png
+```
+
+`-Dcrpg.demo=move` issues a real move order to every unit at startup; the capture then shows
+where they got to. Any `crpg.*` system property is forwarded into the forked JVM by
+`desktop/build.gradle`. Compare frames numerically rather than by eye — I misread captures
+twice doing otherwise.
 
 ## Sequencing
 

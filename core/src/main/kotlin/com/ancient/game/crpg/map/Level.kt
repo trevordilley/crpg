@@ -102,5 +102,15 @@ class Level(
 enum class CreatureSize(val radius: Float) {
     SMALL(0.5f),
     MEDIUM(1.0f),
-    LARGE(2.0f)
+    LARGE(2.0f);
+
+    companion object {
+        /**
+         * The size class that best fits [radius] (world units), never choosing
+         * one smaller than the creature actually is — under-selecting would let
+         * it path through gaps it cannot fit through.
+         */
+        fun forRadius(radius: Float): CreatureSize =
+            values().firstOrNull { it.radius >= radius } ?: LARGE
+    }
 }

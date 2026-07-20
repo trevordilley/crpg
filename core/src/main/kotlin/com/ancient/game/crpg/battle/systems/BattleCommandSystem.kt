@@ -128,7 +128,11 @@ class BattleCommandSystem(private val viewport: Viewport,
                                 .filter { selectionSystem.selection.contains(it) }
                                 .forEach {
 
-                                    val path = mapManager.findPath(it[CTransform.m()]!!.position, worldPos)
+                                    val path = mapManager.findPath(
+                                            it[CTransform.m()]!!.position,
+                                            worldPos,
+                                            it[CMovable.m()]!!.size
+                                    )
 
                                     it[CAnimated.m()]?.anims?.values?.first()?.setAnimation<MovingAnimation>()
 

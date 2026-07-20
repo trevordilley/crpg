@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxScreen
+import ktx.ashley.get
 import java.util.Stack
 
 
@@ -76,7 +77,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleHealthUiRendererSystem(viewportManager.viewport))
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
-        engine.addSystem(BattleMovementSystem(mapManager::collidesAt))
+        engine.addSystem(BattleMovementSystem(mapManager::collidesAt, mapManager::findPath))
         engine.addSystem(HealthSystem(selectionSystem))
         engine.addSystem(DeadSystem(haulableSystem))
         engine.addSystem(BattleActionSystem())
@@ -118,7 +119,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                 add(CSelectable(kind = CharacterSelect(Allegiance.PLAYER)))
                 add(CFoV(null))
                 add(CPlayerControlled)
-                add(CMovable(2f, null, Stack(), 600f, null))
+                add(CMovable(2f, null, Stack(), 600f, null, size = CreatureSize.forRadius(spriteRadius)))
                 add(
                         CAnimated(
                                 mapOf(
@@ -173,7 +174,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
                         3)
                 )
                 add(CTransform(pos, 270f, orcAnim.width / 2f))
-                add(CMovable(2f, null, Stack(), 8f, null))
+                add(CMovable(2f, null, Stack(), 8f, null, size = CreatureSize.forRadius(orcAnim.width / 2f * SiUnits.PIXELS_TO_METER)))
                 add(
                     CAnimated(
                         mapOf(
@@ -308,6 +309,50 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         mapManager.spawns(SpawnKind.PARTY).forEach { engine.addEntity(createPc(it)) }
 
         mapManager.spawns(SpawnKind.ENEMY).forEach { engine.addEntity(createOrc(it)) }
+
+        scriptedMove(mapManager)
+    }
+
+    /**
+     * Issues a real move order at startup, so pathfinding can be *seen* rather
+     * than only asserted.
+     *
+     * I cannot play the game to check that units route sensibly around
+     * obstacles, so this drives it: every player character is ordered to the far
+     * corner of the level, which forces a path around several tree canopies.
+     * Combined with the debug path overlay and a framebuffer capture, that turns
+     * an untestable claim into a picture.
+     *
+     *   ./gradlew :desktop:run -Dcrpg.demo=move -Dcrpg.capture=240
+     *
+     * Off unless -Dcrpg.demo=move is set.
+     */
+    private fun scriptedMove(mapManager: MapManager) {
+        if (System.getProperty("crpg.demo") != "move") return
+
+        // Somewhere across the map that is not trivially reachable in a straight
+        // line: the treasure furthest from the party.
+        val party = mapManager.spawns(SpawnKind.PARTY).firstOrNull() ?: return
+        val target = mapManager.spawns(SpawnKind.TREASURE)
+            .maxByOrNull { it.dst2(party) } ?: return
+
+        var ordered = 0
+        engine.getEntitiesFor(
+            com.badlogic.ashley.core.Family.all(CMovable::class.java, CTransform::class.java).get()
+        ).forEach { entity ->
+            val movable = entity[CMovable.m()]!!
+            val from = entity[CTransform.m()]!!.position
+            val path = mapManager.findPath(from, target, movable.size)
+            if (path.isNotEmpty()) {
+                movable.destination = path.last()
+                movable.path = Stack<Vector2>().apply { path.reversed().forEach { push(it) } }
+                ordered++
+                log.info("DEMO: ${from} -> ${target} via ${path.size} waypoints (${movable.size})")
+            } else {
+                log.info("DEMO: no path from ${from} to ${target} for ${movable.size}")
+            }
+        }
+        log.info("DEMO: ordered $ordered entities to move")
     }
 
 

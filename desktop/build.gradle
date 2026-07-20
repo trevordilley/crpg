@@ -21,12 +21,13 @@ tasks.register('run', JavaExec) {
     // for longer before the code cache fills.
     jvmArgs += "-XX:ReservedCodeCacheSize=512m"
 
-    // Forward the screenshot properties into the forked JVM; Gradle does not
-    // pass -D through automatically. See Screenshot.kt.
+    // Forward every crpg.* property into the forked JVM; Gradle does not pass
+    // -D through automatically. Used by Screenshot.kt and the scripted demos.
     //   ./gradlew :desktop:run -Dcrpg.capture=60 -Dcrpg.capture.out=/tmp/frame.png
-    ["crpg.capture", "crpg.capture.out", "crpg.capture.exit"].each { key ->
-        if (System.getProperty(key) != null) {
-            systemProperty key, System.getProperty(key)
+    //   ./gradlew :desktop:run -Dcrpg.demo=move -Dcrpg.capture=240
+    System.properties.each { key, value ->
+        if (key.toString().startsWith("crpg.")) {
+            systemProperty key.toString(), value.toString()
         }
     }
 }

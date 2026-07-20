@@ -259,6 +259,16 @@ object NavMesh {
         return inside
     }
 
+    /** The point on segment [a]→[b] closest to [p]. */
+    fun closestPointOnSegment(p: Vector2, a: Vector2, b: Vector2): Vector2 {
+        val abX = b.x - a.x
+        val abY = b.y - a.y
+        val lengthSquared = abX * abX + abY * abY
+        val t = if (lengthSquared <= 0f) 0f else
+            (((p.x - a.x) * abX + (p.y - a.y) * abY) / lengthSquared).coerceIn(0f, 1f)
+        return Vector2(a.x + t * abX, a.y + t * abY)
+    }
+
     fun distancePointSegment(p: Vector2, a: Vector2, b: Vector2): Float {
         val abX = b.x - a.x
         val abY = b.y - a.y

@@ -8,6 +8,7 @@ import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
 import com.badlogic.ashley.systems.IteratingSystem
+import com.ancient.game.crpg.map.CreatureSize
 import com.badlogic.gdx.math.Vector2
 import ktx.ashley.get
 import ktx.ashley.mapperFor
@@ -23,7 +24,11 @@ data class CMovable(
         var path: Stack<Vector2>,
         val rotationSpeed: Float, // How fast can we turn
         var facingDirection: Float? = null, // Where are you looking while you move?
-        var onArrival: (() -> Unit?)? = null // Do something when we get there?
+        var onArrival: (() -> Unit?)? = null, // Do something when we get there?
+        // Which nav graph this entity paths on. A wider creature needs more
+        // clearance to round a corner, so it gets a sparser graph and can
+        // legitimately fail to reach somewhere a smaller one can.
+        val size: CreatureSize = CreatureSize.MEDIUM
 ) : Component {
     companion object {
         fun m() = mapperFor<CMovable>()
@@ -31,7 +36,12 @@ data class CMovable(
 }
 
 
-class BattleMovementSystem(private val collidesAt: (Vector2) -> Boolean) : IteratingSystem(
+class BattleMovementSystem(
+        private val collidesAt: (Vector2) -> Boolean,
+        // Re-path when a unit gets stuck. Nullable so tests and any caller that
+        // does not care about recovery can omit it.
+        private val repath: ((Vector2, Vector2, CreatureSize) -> List<Vector2>)? = null
+) : IteratingSystem(
         all(
                 CMovable::class.java,
                 CTransform::class.java
@@ -40,6 +50,20 @@ class BattleMovementSystem(private val collidesAt: (Vector2) -> Boolean) : Itera
                 .get()) {
     private val arrivalDistance = 0.2f
     private val positionUpdatesThisFrame: MutableMap<Entity, Vector2> = mutableMapOf()
+
+    // Re-path when an entity stops making progress, rather than when it is
+    // merely blocked for a frame.
+    //
+    // A blocked-frame counter does not work: a unit pressed against a wall
+    // oscillates — blocked, backs off, moves freely, blocked again — so any
+    // reset-on-success resets every other frame and the counter never fires,
+    // leaving the unit grinding forever. Watching the distance to the
+    // destination instead catches oscillation, grinding and genuine stuckness
+    // with one rule.
+    private val framesWithoutProgressBeforeRepath = 30
+    private val progressEpsilon = 0.01f
+    private val bestDistanceToDestination: MutableMap<Entity, Float> = mutableMapOf()
+    private val framesWithoutProgress: MutableMap<Entity, Int> = mutableMapOf()
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val dt = UserInputManager.deltaTime(deltaTime)
@@ -157,11 +181,68 @@ class BattleMovementSystem(private val collidesAt: (Vector2) -> Boolean) : Itera
                         }
                         // If even the corrected position collides, stay put rather
                         // than pushing the entity deeper into the obstacle.
+
                     } else {
                         entity[CTransform.m()]!!.position = newPosition
                     }
+
+                    trackProgress(entity)
                 }
         positionUpdatesThisFrame.clear()
+    }
+
+    /**
+     * Watch how close the entity has ever got to its destination. If that stops
+     * improving for long enough, it is stuck however busy it looks, so re-path.
+     */
+    private fun trackProgress(entity: Entity) {
+        val destination = entity[CMovable.m()]?.destination
+        if (destination == null) {
+            bestDistanceToDestination.remove(entity)
+            framesWithoutProgress.remove(entity)
+            return
+        }
+
+        val distance = entity[CTransform.m()]!!.position.dst(destination)
+        val best = bestDistanceToDestination[entity]
+
+        if (best == null || distance < best - progressEpsilon) {
+            bestDistanceToDestination[entity] = distance
+            framesWithoutProgress[entity] = 0
+            return
+        }
+
+        val stalled = (framesWithoutProgress[entity] ?: 0) + 1
+        framesWithoutProgress[entity] = stalled
+        if (stalled >= framesWithoutProgressBeforeRepath) {
+            framesWithoutProgress[entity] = 0
+            // Let the fresh path prove itself from wherever we are now.
+            bestDistanceToDestination.remove(entity)
+            recomputePath(entity)
+        }
+    }
+
+    /**
+     * Recompute the route to the current destination. Gives up and stops the
+     * entity if nowhere is reachable, rather than leaving it pressed against a
+     * wall replaying a dead path.
+     */
+    private fun recomputePath(entity: Entity) {
+        val repath = repath ?: return
+        val movable = entity[CMovable.m()] ?: return
+        val destination = movable.destination ?: return
+        val from = entity[CTransform.m()]!!.position
+
+        val fresh = repath(from, destination, movable.size)
+        if (fresh.isEmpty()) {
+            movable.destination = null
+            movable.path = Stack()
+            bestDistanceToDestination.remove(entity)
+            framesWithoutProgress.remove(entity)
+            entity[CAnimated.m()]?.anims?.values?.first()?.setAnimation<IdleAnimation>()
+        } else {
+            movable.path = Stack<Vector2>().apply { fresh.reversed().forEach { push(it) } }
+        }
     }
 
 

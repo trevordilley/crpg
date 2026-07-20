@@ -48,11 +48,57 @@ class MapManager(private val level: Level) {
     fun navGraph(size: CreatureSize): NavGraph = graphs.getValue(size)
 
     /**
+     * Can a unit of this size class stand centred here? Outside every obstacle
+     * *and* at least its radius clear of every wall.
+     *
+     * `hasClearance(p, p)` is a degenerate zero-length segment, which reduces to
+     * point-to-wall distance — exactly the clearance test we want.
+     */
+    fun isStandable(point: Vector2, size: CreatureSize = CreatureSize.MEDIUM): Boolean =
+        !level.collidesAt(point) && graphs.getValue(size).hasClearance(point, point)
+
+    /**
+     * The legal standing position closest to [point], or null if none exists.
+     *
+     * NavMesh deliberately refuses illegal goals rather than guessing, which is
+     * correct for a pathfinder but wrong for a mouse click: players click walls
+     * constantly and expect the unit to walk as close as it can. So the clamp
+     * lives here, on the game-facing side.
+     *
+     * Candidates are the projections of [point] onto every wall, pushed clear by
+     * the creature radius, plus the nav nodes themselves as a backstop for a
+     * click deep inside a large obstacle.
+     */
+    fun nearestStandable(point: Vector2, size: CreatureSize = CreatureSize.MEDIUM): Vector2? {
+        if (isStandable(point, size)) return point
+
+        val graph = graphs.getValue(size)
+        val inside = level.collidesAt(point)
+        // Overshoot slightly: landing exactly at `radius` is on the boundary and
+        // float rounding can put it back on the wrong side.
+        val push = graph.radius * 1.02f
+
+        val projected = graph.walls.map { wall ->
+            val closest = NavMesh.closestPointOnSegment(point, wall.a, wall.b)
+            // Inside an obstacle we push outward along (closest - point); outside
+            // but too close, we push away along (point - closest).
+            val dir = if (inside) closest.cpy().sub(point) else point.cpy().sub(closest)
+            if (dir.len2() < 1e-6f) closest.cpy() else closest.cpy().add(dir.nor().scl(push))
+        }
+
+        return (projected + graph.nodes.map { it.position })
+            .filter { isStandable(it, size) }
+            .minByOrNull { it.dst2(point) }
+    }
+
+    /**
      * Waypoints from [start] to [goal] in world units, empty if unreachable.
      *
-     * Note this does not clamp [goal] to a legal standing position: clicking
-     * inside an obstacle yields no path rather than the nearest reachable point.
+     * [goal] is clamped to the nearest legal standing position first, so clicking
+     * a wall walks up to it rather than doing nothing.
      */
-    fun findPath(start: Vector2, goal: Vector2, size: CreatureSize = CreatureSize.MEDIUM): List<Vector2> =
-        graphs.getValue(size).findPath(start, goal)
+    fun findPath(start: Vector2, goal: Vector2, size: CreatureSize = CreatureSize.MEDIUM): List<Vector2> {
+        val target = nearestStandable(goal, size) ?: return emptyList()
+        return graphs.getValue(size).findPath(start, target)
+    }
 }

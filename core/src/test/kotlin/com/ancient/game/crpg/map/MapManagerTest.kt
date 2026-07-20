@@ -64,20 +64,25 @@ class MapManagerTest {
     }
 
     @Test
-    fun `pathing into an obstacle yields no path rather than a bogus one`() {
-        // NavMesh deliberately does not clamp the goal to a legal position, so a
-        // click on a wall must come back empty. Whoever wires click-to-move owns
-        // the clamp.
+    fun `pathing into an obstacle walks up to it rather than returning a bogus path`() {
+        // NavGraph.findPath still refuses illegal goals outright — that is the
+        // right pathfinder contract. MapManager.findPath clamps first, so a click
+        // on a wall walks as close as it legally can. See GoalClampingTest.
         val from = mapManager.spawns(SpawnKind.PARTY).first()
-        val insideAnObstacle = mapManager.collision.first().outline
+        val poly = mapManager.collision.first()
+        val insideAnObstacle = poly.outline
             .fold(com.badlogic.gdx.math.Vector2()) { acc, v -> acc.add(v) }
-            .scl(1f / mapManager.collision.first().outline.size)
+            .scl(1f / poly.outline.size)
 
         if (mapManager.collidesAt(insideAnObstacle)) {
-            assertTrue(
-                "expected no path into an obstacle",
-                mapManager.findPath(from, insideAnObstacle, CreatureSize.SMALL).isEmpty()
-            )
+            // Unclamped: no path, because the goal is not a legal standing spot.
+            val raw = mapManager.navGraph(CreatureSize.SMALL).findPath(from, insideAnObstacle)
+            assertTrue("raw NavGraph should refuse an illegal goal", raw.isEmpty())
+
+            // Clamped: a real path, ending outside the obstacle.
+            val clamped = mapManager.findPath(from, insideAnObstacle, CreatureSize.SMALL)
+            assertTrue("clamped path should reach the obstacle's edge", clamped.isNotEmpty())
+            assertFalse("path must not end inside collision", mapManager.collidesAt(clamped.last()))
         }
     }
 }
