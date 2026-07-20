@@ -569,7 +569,12 @@ Still open:
   half of the game.
 - Self-intersecting outlines would produce a garbage nav graph. Worth a guard in the loader
   if the editor can emit them.
-- Hauling and drop zones still have no cover. Combat and selection now do.
+- **Combat cancels move orders permanently.** `CombatantSystem` sets
+  `destination = null` when a unit is in attack range, so a hauler that walks into a fight
+  drops its order and never resumes — the player must re-issue it. Found while trying to run
+  the hauling loop end to end past the orcs. Plausibly intended for a pause-and-plan game, but
+  it is a decision, not an accident, and `path` is left populated while `destination` is
+  nulled, which is an inconsistent state.
 
 ### Verifying without playing
 
@@ -579,9 +584,15 @@ I cannot play the game, so behaviour is proven by test and *shown* by driving it
 ./gradlew :desktop:run -Dcrpg.demo=move -Dcrpg.capture=400 -Dcrpg.capture.out=/tmp/f.png
 ```
 
-`-Dcrpg.demo=move` issues a real move order to every unit at startup; `-Dcrpg.demo=fight`
-walks only the party onto the nearest enemy and centres the camera there, so combat is
-visible. The capture then shows what happened. Any `crpg.*` system property is forwarded into the forked JVM by
+Three demos, all centring the camera on the action:
+
+- `-Dcrpg.demo=move` — orders every unit across the map, forcing routes around obstacles.
+- `-Dcrpg.demo=fight` — walks only the party onto the nearest enemy.
+- `-Dcrpg.demo=haul` — picks up the nearest treasure and carries it to the cart. Clears the
+  enemies first, because otherwise combat cancels the move order and the loop never
+  completes.
+
+The capture then shows what happened. Any `crpg.*` system property is forwarded into the forked JVM by
 `desktop/build.gradle`. Compare frames numerically rather than by eye — I misread captures
 twice doing otherwise.
 

@@ -9,7 +9,6 @@ import com.badlogic.ashley.systems.IteratingSystem
 import ktx.ashley.get
 import ktx.ashley.has
 import ktx.ashley.mapperFor
-import ktx.log.info
 
 class CDead(
     var deadFor: Double = 0.0,
@@ -42,17 +41,18 @@ class DeadSystem(val haulingSystem: HaulableSystem) : IteratingSystem(all(CDead:
         dead.deadFor += dt
 
         if (entity[CPlayerControlled.m()] == null) {
-            engine.removeEntity(entity).also {
-                info { "Removing enemy immediately $entity." }
-            }
+            // slf4j, not ktx.log: ktx.log routes through Gdx.app, which is null
+            // outside a running libGDX application, so it NPEs in tests and in
+            // any headless path. Every other system here uses gameLogger.
+            engine.removeEntity(entity)
+            log.debug("Removing enemy immediately $entity.")
 
         }
 
         if (dead.deadFor >= timeTillPermaDeath && !dead.beingHealed) {
             entity[CHaulable.m()]?.let { haulingSystem.drop(it) }
-            engine.removeEntity(entity).also {
-                info { "Removing dead critter $entity." }
-            }
+            engine.removeEntity(entity)
+            log.debug("Removing dead critter $entity.")
         }
 
         if (dead.beingHealed) {

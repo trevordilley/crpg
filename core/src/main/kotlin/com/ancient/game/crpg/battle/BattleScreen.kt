@@ -310,7 +310,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         mapManager.spawns(SpawnKind.ENEMY).forEach { engine.addEntity(createOrc(it)) }
 
-        scriptedMove(mapManager)
+        scriptedMove(mapManager, haulableSystem)
     }
 
     /**
@@ -327,28 +327,58 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
      *
      * Off unless -Dcrpg.demo=move is set.
      */
-    private fun scriptedMove(mapManager: MapManager) {
-        if (System.getProperty("crpg.demo") !in listOf("move", "fight")) return
+    private fun scriptedMove(mapManager: MapManager, haulableSystem: HaulableSystem) {
+        if (System.getProperty("crpg.demo") !in listOf("move", "fight", "haul")) return
 
         val party = mapManager.spawns(SpawnKind.PARTY).firstOrNull() ?: return
 
         // "fight" walks the party onto the enemies so combat actually triggers;
         // "move" sends them to the furthest treasure, which forces a route
         // around several obstacles.
-        val target = if (System.getProperty("crpg.demo") == "fight") {
-            mapManager.spawns(SpawnKind.ENEMY).minByOrNull { it.dst2(party) } ?: return
-        } else {
-            mapManager.spawns(SpawnKind.TREASURE).maxByOrNull { it.dst2(party) } ?: return
+        val demo = System.getProperty("crpg.demo")
+        val target = when (demo) {
+            "fight" -> mapManager.spawns(SpawnKind.ENEMY).minByOrNull { it.dst2(party) } ?: return
+            // Haul: carry the loot back to the cart, which is the actual game loop.
+            "haul" -> mapManager.spawns(SpawnKind.CART).firstOrNull() ?: return
+            else -> mapManager.spawns(SpawnKind.TREASURE).maxByOrNull { it.dst2(party) } ?: return
+        }
+
+        if (demo == "haul") {
+            // Clear the enemies first. CombatantSystem nulls an attacker's
+            // destination when it is in range, so a hauler that walks into a
+            // fight loses its order permanently and never delivers. Removing
+            // them isolates the hauling loop, which is what this demo is for.
+            engine.getEntitiesFor(
+                com.badlogic.ashley.core.Family.all(CCombatant::class.java).get()
+            ).filter { it[CCombatant.m()]!!.combatant !is Player }
+                .toList()
+                .forEach { engine.removeEntity(it) }
+
+            // Put a character on the nearest treasure and have them pick it up,
+            // so the capture shows the loot actually being dragged. Pickup has a
+            // reach check, so the character is placed within it rather than the
+            // check being bypassed.
+            val loot = engine.getEntitiesFor(
+                com.badlogic.ashley.core.Family.all(CHaulable::class.java, CTreasure::class.java).get()
+            ).minByOrNull { it[CTransform.m()]!!.position.dst2(party) }
+            val carrier = engine.getEntitiesFor(
+                com.badlogic.ashley.core.Family.all(CPlayerControlled::class.java).get()
+            ).firstOrNull()
+            if (loot != null && carrier != null) {
+                carrier[CTransform.m()]!!.position.set(loot[CTransform.m()]!!.position)
+                haulableSystem.attemptToPickUp(carrier, loot)
+                log.info("DEMO: haul pickup succeeded=${loot[CHaulable.m()]!!.hauler != null}")
+            }
         }
 
         var ordered = 0
-        val fightMode = System.getProperty("crpg.demo") == "fight"
+        val fightMode = demo == "fight"
         engine.getEntitiesFor(
             com.badlogic.ashley.core.Family.all(CMovable::class.java, CTransform::class.java).get()
         ).forEach { entity ->
             // In fight mode leave the orcs where they are, so the party has
             // something to close on rather than everyone converging on a point.
-            if (fightMode && entity[CCombatant.m()]?.combatant !is Player) return@forEach
+            if ((fightMode || demo == "haul") && entity[CCombatant.m()]?.combatant !is Player) return@forEach
             val movable = entity[CMovable.m()]!!
             val from = entity[CTransform.m()]!!.position
             val path = mapManager.findPath(from, target, movable.size)

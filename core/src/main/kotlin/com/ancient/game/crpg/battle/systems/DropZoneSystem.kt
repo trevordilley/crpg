@@ -27,6 +27,12 @@ class CDropZone(
 class DropZoneSystem(private val selectionSystem: SelectionSystem) : IteratingSystem(one(
         CDropZone::class.java, CHaulable::class.java).get()) {
 
+    private val log = gameLogger(this::class.java)
+
+    /** Running total of loot delivered to a treasure drop zone. */
+    var claimedValue: Int = 0
+        private set
+
     private val dropZones = mutableListOf<Entity>()
     private val haulables = mutableListOf<Entity>()
     override fun processEntity(entity: Entity, deltaTime: Float) {
@@ -44,15 +50,20 @@ class DropZoneSystem(private val selectionSystem: SelectionSystem) : IteratingSy
                 if (dz.bounds.contains(pos)) {
                     when (dz.kind) {
                         is TreasureKind -> {
-                            h[CTreasure.m()]?.let {
-                                val anim = dzEnt[CAnimated.m()]!!.anims.values.first()
-                                anim.setAnimation<OnDropAnimation>(OnAnimationEnd to {
-                                    anim.setAnimation<IdleAnimation>()
-                                })
+                            h[CTreasure.m()]?.let { treasure ->
+                                // Null-safe: claiming loot must not depend on the
+                                // drop zone having an animation to play. The !!
+                                // here would NPE on any zone without CAnimated.
+                                dzEnt[CAnimated.m()]?.anims?.values?.firstOrNull()?.let { anim ->
+                                    anim.setAnimation<OnDropAnimation>(OnAnimationEnd to {
+                                        anim.setAnimation<IdleAnimation>()
+                                    })
+                                }
 
                                 selectionSystem.deselect(h)
                                 this.engine.removeEntity(h)
-                                println("Claimed some loot worth ${it.value}!!!")
+                                claimedValue += treasure.value
+                                log.info("Claimed some loot worth ${treasure.value}")
                             }
                         }
                         is HealingKind -> {

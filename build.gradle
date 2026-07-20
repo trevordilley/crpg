@@ -78,7 +78,6 @@ project(":core") {
         api "io.github.libktx:ktx-ashley:$ktxVersion"
         api "io.github.libktx:ktx-collections:$ktxVersion"
         api "io.github.libktx:ktx-inject:$ktxVersion"
-        api "io.github.libktx:ktx-log:$ktxVersion"
         api "io.github.libktx:ktx-math:$ktxVersion"
 
         // Logging (slf4j-api arrives transitively via logback)
