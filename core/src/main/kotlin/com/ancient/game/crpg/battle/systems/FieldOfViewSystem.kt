@@ -129,7 +129,10 @@ class FieldOfViewSystem(private val mapManager: MapManager)
                                 ),
                                 angle.toFloat())
                     }
-                    .minBy { it.param }
+                    // minByOrNull, not minBy: a ray can hit no walls at all, and
+                    // the mapNotNull below relies on this returning null there.
+                    // (Kotlin <1.4 minBy returned null on empty; since 1.7 it throws.)
+                    .minByOrNull { it.param }
         }
 
         return uniqueAngles

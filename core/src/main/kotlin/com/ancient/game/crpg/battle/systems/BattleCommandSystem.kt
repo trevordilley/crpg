@@ -169,6 +169,10 @@ class BattleCommandSystem(private val viewport: Viewport,
                         rotationPivot = null
                     }
                 }
+                // MouseDown has never been handled here; Kotlin 1.7+ just
+                // requires it to be explicit.
+                else -> {
+                }
             }
         }
     }

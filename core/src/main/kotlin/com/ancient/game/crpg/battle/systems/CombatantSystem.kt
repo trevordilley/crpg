@@ -53,7 +53,10 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
     private fun attackNearby(attacker: Entity, targets: List<Entity>) {
         val (x, y) = attacker[CTransform.m()]!!.position
         val target =
-                targets.minBy {
+                // minByOrNull, not minBy: there may be no targets left on the
+                // other side, which the elvis below handles. Kotlin 1.7+ minBy
+                // throws NoSuchElementException on an empty list instead.
+                targets.minByOrNull {
                     val (tx, ty) = it[CTransform.m()]!!.position
                     Vector2.dst(x, y, tx, ty)
                 } ?: return
@@ -105,6 +108,11 @@ class CombatantSystem : IteratingSystem(all(CCombatant::class.java).exclude(CDea
                                 if (distance <= combatant.aggroRange) {
                                     attacker[CMovable.m()]!!.destination = Vector2(tx, ty)
                                 }
+                            }
+                            // Player characters don't auto-approach; only
+                            // enemies aggro. Explicit branch required by
+                            // Kotlin 1.7+ exhaustiveness rules.
+                            else -> {
                             }
                         }
                     }

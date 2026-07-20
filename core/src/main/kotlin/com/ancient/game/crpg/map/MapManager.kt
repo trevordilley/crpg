@@ -295,8 +295,8 @@ class MapManager(val map: TiledMap) : IndexedGraph<TileCell> {
                     tiles
                             .map { Pair(it.pos.x.toInt(), it.pos.y.toInt()) to it }
                             .toMap()
-            val maxX = tiles.maxBy { it.pos.x }!!.pos.x.toInt()
-            val maxY = tiles.maxBy { it.pos.y }!!.pos.y.toInt()
+            val maxX = tiles.maxOf { it.pos.x }.toInt()
+            val maxY = tiles.maxOf { it.pos.y }.toInt()
 
             var curGroup = 0
 

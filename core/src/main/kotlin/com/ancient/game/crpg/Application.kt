@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.app.KtxGame
 import ktx.inject.Context
+import ktx.inject.register
 
 object SiUnits {
     const val UNIT = 64 // minimum resolution of a character.

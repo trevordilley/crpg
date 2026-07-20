@@ -304,12 +304,24 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
     }
 
 
+    // No screen overrode resize(), so the viewport was never updated for the
+    // real surface size. Correct on its own terms, though it did not by itself
+    // fix the HiDPI mis-scaling still open against Phase 3.
+    override fun resize(width: Int, height: Int) {
+        viewportManager.viewport.update(width, height, true)
+    }
+
     override fun render(delta: Float) {
         // Receive user input first
         inputManager.update()
 
         // Update camera
         viewportManager.update(delta)
+
+        // The render loop never cleared the colour buffer at all, leaving the
+        // back buffer undefined between frames.
+        com.badlogic.gdx.Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        com.badlogic.gdx.Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT)
 
         // Render Map
         mapRenderer.setView(viewportManager.viewport.camera as OrthographicCamera)

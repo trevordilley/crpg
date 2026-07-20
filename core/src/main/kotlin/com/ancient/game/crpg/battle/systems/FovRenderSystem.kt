@@ -57,5 +57,18 @@ class FovRenderSystem(val viewport: Viewport)
             }
         }
         shapeRenderer.end()
+
+        // Restore GL state. The pass above disables colour writes to build a
+        // depth-only mask but never restores them, so it leaks glColorMask=false
+        // and an enabled depth test into every subsequent draw.
+        //
+        // NOTE: re-enabling colour writes here also makes the depth-mask trick
+        // inert, so field-of-view currently occludes nothing. That is an
+        // accepted gap: Phase 3 replaces this whole system with the
+        // framebuffer-based renderer from the 2023 branch, which is why that
+        // rewrite happened in the first place.
+        Gdx.gl20.glColorMask(true, true, true, true)
+        Gdx.gl20.glDisable(GL20.GL_DEPTH_TEST)
+        Gdx.gl20.glDepthMask(false)
     }
 }

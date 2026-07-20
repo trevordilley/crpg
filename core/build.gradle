@@ -1,13 +1,5 @@
-apply plugin: "kotlin"
-
-sourceCompatibility = 1.6
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-
-// sourceSets.main.java.srcDirs = ["src/main/"]
+// Kotlin plugin, java target, and UTF-8 encoding are applied to all
+// subprojects from the root build.gradle.
 sourceSets {
     main.kotlin.srcDirs += 'src/main/kotlin'
-}
-
-eclipse.project {
-    name = appName + "-core"
 }
