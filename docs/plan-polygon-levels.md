@@ -163,14 +163,38 @@ Kotlin 1.2 → 2.2 is a 7-year jump; expect compile errors, mostly mechanical:
 - `.toMap()` on a `List<Pair<..>>` and other stdlib signature drift.
 - `assetManager.setLoader` / ktx extension signature changes across ktx majors.
 
-### Exit criteria
+### Exit criteria — **DONE** (commit `bf38f9f`), with one caveat
 
-- `./gradlew build` passes, including `core:test` (`MapManagerTest`, `UtilsKtTest`).
-- `./gradlew desktop:run` opens a window and the tile-based game is playable.
-- No `hyperlap2d` string anywhere in the tree.
+- ✅ `./gradlew build` passes; `core:test` 14/14 (`MapManagerTest`, `UtilsKtTest`).
+- ✅ `./gradlew desktop:run` opens a window on arm64, loads assets, runs the engine loop,
+  and renders sprites.
+- ✅ No `hyperlap2d` string anywhere in the tree.
+- ⚠️ **Rendering is not correct yet.** The tilemap does not draw, and content is mis-scaled
+  on HiDPI (backbuffer 3840×2160 vs logical 1920×1080). Deliberately deferred — see below.
 
-**Commit this phase on its own before touching gameplay.** It's the risky-but-boring part and
-we want a bisectable point where "the old game runs on this Mac" is true.
+Bugs found and fixed beyond the planned scope, all from the `minBy` semantic change
+(pre-1.4 returned `null` on empty; since 1.7 throws `NoSuchElementException` — same call
+site, same signature, no compile error):
+
+- `FieldOfViewSystem` crashed on frame 1 when a ray hit no walls.
+- `CombatantSystem` was written `minBy { .. } ?: return` and would have crashed the moment
+  either side ran out of units — i.e. on killing the last orc.
+
+Plus three latent rendering bugs: `FovRenderSystem` leaked `glColorMask(false)` and an
+enabled depth test into every subsequent draw; the render loop never cleared the colour
+buffer; and no screen overrode `resize()`, so the viewport was never updated.
+
+**Why the rendering caveat is deferred, not fixed:** both remaining symptoms live in code
+Phase 3 deletes outright — `OrthogonalTiledMapRenderer` is replaced by the polygon level plus
+background image, and `FovRenderSystem` is replaced by the framebuffer version. Fixing the
+TiledMap path now means fixing it twice. The HiDPI scaling **does** carry forward and must be
+resolved in Phase 3; it is listed there as a work item.
+
+A note on method for whoever picks this up: **macOS `screencapture` cannot see window contents
+without Screen Recording permission** — it silently returns byte-identical frames of the
+desktop and menu bar, which reads convincingly as "the game renders black." Verify in-engine
+instead, via `ScreenUtils.getFrameBufferPixmap` + `PixmapIO.writePNG`. Two wrong diagnoses came
+out of trusting `screencapture`.
 
 ---
 
@@ -188,7 +212,8 @@ Recovered via `git show origin/pr/1:core/assets/scenes/MainScene.dt`:
 | `LabelVO` | 15 | 2 `PARTY_SPAWN`, 3 `ENEMY_SPAWN`, 8 `TREASURE_SPAWN`, 1 `CART_SPAWN`, 1 `HEALER_SPAWN` |
 | `SimpleImageVO` | 1 | `BACKGROUND` → `imageName: "openExterior"` |
 
-Polygon vert counts run 4–10. Background region is 1980×1485 inside a 2048² atlas
+Collision polygon vert counts run 4–10; **occluders run 4–18** (they're drawn in more
+detail). Background region is 1980×1485 inside a 2048² atlas
 (`core/assets/orig/background.atlas`), and it is the *only* region in that atlas — so it
 becomes a plain PNG and the atlas is deleted.
 
@@ -257,14 +282,25 @@ Flat `[x, y]` pairs rather than `{"x":..,"y":..}` objects — smaller, and trivi
 
 ### Work items
 
-1. **Converter** — a throwaway script (`tools/convert-h2d-scene.py`) reading `MainScene.dt`
-   from `origin/pr/1` and emitting the level JSON. Run once, commit the output, keep the
-   script for provenance. It is not part of the build.
-2. **Background asset** — extract the `openExterior` region from `background.png` to
-   `core/assets/levels/main-background.png`. Drop the atlas.
-3. **`Level.kt` / `LevelLoader.kt`** — data classes plus a loader using libGDX's `Json`
-   reader (already on the classpath; no new dependency).
-4. **Delete** `core/assets/project.dt`, `core/assets/scenes/`, `core/assets/orig/`.
+1. ✅ **Converter** — `tools/convert-h2d-scene.py`, reads `MainScene.dt` and `background.png`
+   straight out of `origin/pr/1` via `git show`. Re-runnable, has `--dry-run`, not part of
+   the build.
+2. ✅ **Background asset** — `core/assets/levels/main-background.png`, 1980×1485, verified
+   opaque artwork rather than a blank or offset crop.
+3. ⬜ **`Level.kt` / `LevelLoader.kt`** — data classes plus a loader using libGDX's `Json`
+   reader (already on the classpath; no new dependency). **Still to do.**
+4. ✅ **Delete** `project.dt`, `scenes/`, `orig/` — no-op; those only ever existed on `pr/1`,
+   never on this lineage.
+
+Extraction landed in `c66f627` (merged as `f745ebf`). Verified independently:
+
+- 8 collision / 8 occluders / 15 spawns; kind counts PARTY 2, ENEMY 3, TREASURE 8, CART 1,
+  HEALER 1.
+- Geometry bbox **x [319.2 … 1963.8], y [43.4 … 1482.8]** against 1980×1485 art. The y-max
+  landing 2.2px inside the art height is strong evidence the `vertex + (x, y)`,
+  ignore-`originX/originY` convention is right.
+- Every convex piece is non-degenerate — minimum shoelace area **1348.93 px²**, so H2D's
+  decomposer emitted no slivers and the loader needs no area guard.
 
 ### Exit criteria
 
@@ -321,6 +357,21 @@ Port the FBO approach, with two changes:
 `pr/1` left a comment questioning the whole approach (invert it: draw a black quad and
 *subtract* the FoV polygons, rather than masking). Worth trying if the port fights us, but not
 in scope for this phase — port first, then improve.
+
+### Carried forward from Phase 1
+
+**HiDPI mis-scaling.** On this Mac the backbuffer is 3840×2160 while the logical surface is
+1920×1080, and rendered content lands in a small region rather than filling the window.
+Adding a `resize()` override that calls `viewport.update(w, h, true)` did *not* fix it, so
+the cause is elsewhere — likely the interaction between `ScreenViewport.unitsPerPixel`
+(= `SiUnits.PIXELS_TO_METER`) and `Lwjgl3ApplicationConfiguration`'s default
+`HdpiMode.Logical`. Worth checking `setHdpiMode(HdpiMode.Pixels)` and whether the viewport
+should be sized from `Gdx.graphics.backBufferWidth`. Resolve this **before** trusting any
+Phase 2 visual alignment check, since a mis-scaled viewport would make correct geometry look
+wrong.
+
+**Tilemap not rendering.** Not investigated further, because `OrthogonalTiledMapRenderer`
+goes away in this phase regardless.
 
 ### Known-broken thing to fix
 
