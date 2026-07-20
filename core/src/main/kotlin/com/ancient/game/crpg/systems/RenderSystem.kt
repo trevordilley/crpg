@@ -96,6 +96,20 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
             )
         }
         batch.end()
+
+        // Restore depth state. The GL_EQUAL test above is half of an unfinished
+        // field-of-view masking scheme: FovRenderSystem writes the visibility
+        // polygons into the depth buffer, and sprites then draw only where depth
+        // matches. But this system runs last, so leaving the test enabled leaked
+        // it into the *next* frame, where the tilemap renders before the depth
+        // buffer is rewritten - and the map got culled against a stale mask.
+        // That is why the map never appeared.
+        //
+        // As in FovRenderSystem, restoring state makes the masking inert. The
+        // whole scheme is replaced by the framebuffer renderer in Phase 3.
+        Gdx.gl20.glDisable(GL20.GL_DEPTH_TEST)
+        Gdx.gl20.glDepthMask(false)
+
         // UI Rendering
         val originalMatrix = batch.projectionMatrix.cpy()
         val uiMatrix = originalMatrix.scale(SiUnits.PIXELS_TO_METER, SiUnits.PIXELS_TO_METER, 1f)

@@ -89,6 +89,9 @@ class Application : KtxGame<Screen>() {
                 setScreen<BattleScreen>()
             }
         }
+        // Only once a screen is actually drawing, so -Dcrpg.capture=N counts
+        // frames of real gameplay rather than of the asset-loading blank.
+        if (loaded) Screenshot.update()
     }
 
     override fun dispose() {

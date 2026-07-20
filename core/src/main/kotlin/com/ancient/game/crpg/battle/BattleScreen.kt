@@ -54,6 +54,7 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         Gdx.input.inputProcessor = inputManager
 
+        Screenshot.logRenderState("show", viewportManager.viewport)
         log.info("Revving Engines")
         engine = PooledEngine()
         engine.addSystem(FovRenderSystem(viewportManager.viewport))
@@ -304,11 +305,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
     }
 
 
-    // No screen overrode resize(), so the viewport was never updated for the
-    // real surface size. Correct on its own terms, though it did not by itself
-    // fix the HiDPI mis-scaling still open against Phase 3.
+    // No screen overrode resize(), so the viewport was never updated when the
+    // window changed size.
     override fun resize(width: Int, height: Int) {
         viewportManager.viewport.update(width, height, true)
+        Screenshot.logRenderState("resize $width x $height", viewportManager.viewport)
     }
 
     override fun render(delta: Float) {

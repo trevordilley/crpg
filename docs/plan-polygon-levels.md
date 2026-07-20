@@ -166,11 +166,9 @@ Kotlin 1.2 → 2.2 is a 7-year jump; expect compile errors, mostly mechanical:
 ### Exit criteria — **DONE** (commit `bf38f9f`), with one caveat
 
 - ✅ `./gradlew build` passes; `core:test` 14/14 (`MapManagerTest`, `UtilsKtTest`).
-- ✅ `./gradlew desktop:run` opens a window on arm64, loads assets, runs the engine loop,
-  and renders sprites.
+- ✅ `./gradlew desktop:run` opens a window on arm64 and **renders the dungeon correctly** —
+  tilemap, entities, and debug geometry filling the full 3840×2160 backbuffer.
 - ✅ No `hyperlap2d` string anywhere in the tree.
-- ⚠️ **Rendering is not correct yet.** The tilemap does not draw, and content is mis-scaled
-  on HiDPI (backbuffer 3840×2160 vs logical 1920×1080). Deliberately deferred — see below.
 
 Bugs found and fixed beyond the planned scope, all from the `minBy` semantic change
 (pre-1.4 returned `null` on empty; since 1.7 throws `NoSuchElementException` — same call
@@ -180,21 +178,57 @@ site, same signature, no compile error):
 - `CombatantSystem` was written `minBy { .. } ?: return` and would have crashed the moment
   either side ran out of units — i.e. on killing the last orc.
 
-Plus three latent rendering bugs: `FovRenderSystem` leaked `glColorMask(false)` and an
-enabled depth test into every subsequent draw; the render loop never cleared the colour
-buffer; and no screen overrode `resize()`, so the viewport was never updated.
+#### The rendering bug: leaked GL depth state
 
-**Why the rendering caveat is deferred, not fixed:** both remaining symptoms live in code
-Phase 3 deletes outright — `OrthogonalTiledMapRenderer` is replaced by the polygon level plus
-background image, and `FovRenderSystem` is replaced by the framebuffer version. Fixing the
-TiledMap path now means fixing it twice. The HiDPI scaling **does** carry forward and must be
-resolved in Phase 3; it is listed there as a work item.
+The map never drew. Root cause, in `RenderSystem.draw()`:
 
-A note on method for whoever picks this up: **macOS `screencapture` cannot see window contents
-without Screen Recording permission** — it silently returns byte-identical frames of the
-desktop and menu bar, which reads convincingly as "the game renders black." Verify in-engine
-instead, via `ScreenUtils.getFrameBufferPixmap` + `PixmapIO.writePNG`. Two wrong diagnoses came
-out of trusting `screencapture`.
+```kotlin
+Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST)
+Gdx.gl20.glDepthFunc(GL20.GL_EQUAL)   // ...never disabled
+```
+
+This is one half of an **unfinished field-of-view masking scheme**: `FovRenderSystem` renders
+the visibility polygons into the depth buffer with colour writes off, then `RenderSystem`
+draws sprites with `GL_EQUAL` so only fragments inside the FoV survive.
+
+It cannot work as arranged, because of system order. `FovRenderSystem` is registered *before*
+`RenderSystem`, so per frame:
+
+1. clear — **`GL_COLOR_BUFFER_BIT` only**, depth is never cleared here
+2. `mapRenderer.render()`
+3. `FovRenderSystem` — clears depth, writes the FoV mask
+4. `RenderSystem` — enables `GL_EQUAL` depth test, draws sprites, **leaves it enabled**
+5. UI
+
+Step 4 leaks the `GL_EQUAL` test into the *next* frame's step 2, where the tilemap is tested
+against a stale mask and culled almost everywhere. `FovRenderSystem` had the same
+non-restoration problem with `glColorMask(false)`.
+
+Both now restore state at the end of their draw. That necessarily makes the masking inert —
+FoV occludes nothing today — which is an accepted trade: Phase 3 replaces the scheme with the
+framebuffer renderer. This is almost certainly why the 2023 branch rewrote it (`b963713`,
+*"using a framebuffer that we render over the other stuff seems to do the trick"*). **Treat
+"this worked in 2019" as unproven** — the evidence says this path never worked.
+
+Also fixed: the render loop never cleared the colour buffer, and no screen overrode `resize()`.
+
+#### A note on method
+
+**macOS `screencapture` cannot see window contents without Screen Recording permission.** It
+silently returns byte-identical frames of the desktop and menu bar, which reads convincingly
+as "the game renders black". Two wrong diagnoses came out of trusting it — a phantom GL-state
+bug and a phantom HiDPI bug.
+
+Use `Screenshot.kt` instead (added in Phase 1), which reads the real framebuffer from inside
+the app:
+
+```
+./gradlew :desktop:run -Dcrpg.capture=60 -Dcrpg.capture.out=/tmp/frame.png
+```
+
+or press **F12** in-game to write `screenshots/crpg-NNNN.png`. `Screenshot.logRenderState()`
+dumps logical vs backbuffer size, viewport, camera, and the visible world rect — the numbers
+you compare a capture against.
 
 ---
 
@@ -360,18 +394,13 @@ in scope for this phase — port first, then improve.
 
 ### Carried forward from Phase 1
 
-**HiDPI mis-scaling.** On this Mac the backbuffer is 3840×2160 while the logical surface is
-1920×1080, and rendered content lands in a small region rather than filling the window.
-Adding a `resize()` override that calls `viewport.update(w, h, true)` did *not* fix it, so
-the cause is elsewhere — likely the interaction between `ScreenViewport.unitsPerPixel`
-(= `SiUnits.PIXELS_TO_METER`) and `Lwjgl3ApplicationConfiguration`'s default
-`HdpiMode.Logical`. Worth checking `setHdpiMode(HdpiMode.Pixels)` and whether the viewport
-should be sized from `Gdx.graphics.backBufferWidth`. Resolve this **before** trusting any
-Phase 2 visual alignment check, since a mis-scaled viewport would make correct geometry look
-wrong.
+Nothing outstanding — the rendering problems were traced and fixed in Phase 1 (see below).
+There is **no HiDPI bug**: content fills the full 3840×2160 backbuffer correctly.
 
-**Tilemap not rendering.** Not investigated further, because `OrthogonalTiledMapRenderer`
-goes away in this phase regardless.
+The one thing to carry in mind is that field-of-view masking is currently **inert**. Phase 1
+restored the leaked depth/colour state that was breaking everything else, which necessarily
+disabled the depth-buffer masking trick. Restoring the *effect* is this phase's job, via the
+framebuffer renderer.
 
 ### Known-broken thing to fix
 

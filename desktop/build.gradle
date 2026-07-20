@@ -20,6 +20,15 @@ tasks.register('run', JavaExec) {
     // Carried over from the 2023 revival work: keeps JVM hot-reload usable
     // for longer before the code cache fills.
     jvmArgs += "-XX:ReservedCodeCacheSize=512m"
+
+    // Forward the screenshot properties into the forked JVM; Gradle does not
+    // pass -D through automatically. See Screenshot.kt.
+    //   ./gradlew :desktop:run -Dcrpg.capture=60 -Dcrpg.capture.out=/tmp/frame.png
+    ["crpg.capture", "crpg.capture.out", "crpg.capture.exit"].each { key ->
+        if (System.getProperty(key) != null) {
+            systemProperty key, System.getProperty(key)
+        }
+    }
 }
 
 tasks.register('debug', JavaExec) {
