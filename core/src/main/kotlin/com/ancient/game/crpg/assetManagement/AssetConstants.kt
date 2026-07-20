@@ -10,4 +10,5 @@ enum class AsepriteAsset(val assetName: String) {
     LOOT_DROP_ZONE("cart")
 }
 
-const val MAP_FILEPATH = "64-dungeon-30x30.tmx"
+const val LEVEL_FILEPATH = "levels/main.level.json"
+const val LEVEL_BACKGROUND_FILEPATH = "levels/main-background.png"

@@ -30,7 +30,7 @@ class CTransform(var position: Vector2, var rotation: Float, val radius: Float, 
 
 // TODO add the CRenderableMap to the system!
 class RenderSystem(val batch: Batch, val viewport: Viewport,
-                   val collisionPoints: Set<Vector2>, val mapManager: MapManager,
+                   val mapManager: MapManager,
                    val showDebug: Boolean = false) : IteratingSystem(
         all(CAnimated::class.java, CTransform::class.java).get()) {
 
@@ -97,16 +97,14 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         }
         batch.end()
 
-        // Restore depth state. The GL_EQUAL test above is half of an unfinished
-        // field-of-view masking scheme: FovRenderSystem writes the visibility
-        // polygons into the depth buffer, and sprites then draw only where depth
-        // matches. But this system runs last, so leaving the test enabled leaked
-        // it into the *next* frame, where the tilemap renders before the depth
-        // buffer is rewritten - and the map got culled against a stale mask.
-        // That is why the map never appeared.
+        // Disarm the field-of-view mask. Everything above this point draws
+        // through it (GL_EQUAL against the depth the FoV pass wrote); the UI and
+        // debug geometry below must NOT be occluded, so the depth test goes off
+        // here.
         //
-        // As in FovRenderSystem, restoring state makes the masking inert. The
-        // whole scheme is replaced by the framebuffer renderer in Phase 3.
+        // Leaving it enabled past this point is what previously leaked the test
+        // into the next frame, where the map drew before the mask was rebuilt
+        // and got culled against stale depth.
         Gdx.gl20.glDisable(GL20.GL_DEPTH_TEST)
         Gdx.gl20.glDepthMask(false)
 
@@ -134,11 +132,10 @@ class RenderSystem(val batch: Batch, val viewport: Viewport,
         if (!displayDebug) return
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         if (showDebug) {
-            collisionPoints.forEach { v ->
-                shapeRenderer.apply {
-                    color = Color.YELLOW
-                    rect(v.x, v.y, 1f, 1f)
-                }
+            // Collision outlines, rather than a rectangle per impassable tile.
+            mapManager.collision.forEach { poly ->
+                shapeRenderer.color = Color.YELLOW
+                poly.edges().forEach { e -> shapeRenderer.line(e.p1, e.p2) }
             }
 
             mapManager.opaqueEdges.forEach { e ->

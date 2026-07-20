@@ -2,7 +2,6 @@ package com.ancient.game.crpg.battle.systems
 
 import com.ancient.game.crpg.systems.CTransform
 import com.ancient.game.crpg.map.Edge
-import com.ancient.game.crpg.map.MapManager
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.Family.all
@@ -19,7 +18,7 @@ class CFoV(var fovPoly: Polygon?) : Component {
    }
 }
 
-class FieldOfViewSystem(private val mapManager: MapManager)
+class FieldOfViewSystem(private val opaqueEdges: List<Edge>)
     : IteratingSystem(
         all(
                 CFoV::class.java,
@@ -28,8 +27,6 @@ class FieldOfViewSystem(private val mapManager: MapManager)
 
     override fun processEntity(entity: Entity, deltaTime: Float) {
         val pos = entity[CTransform.m()]!!.position
-
-        val opaqueEdges = mapManager.opaqueEdges
 
         // line 66 to 89 in sight-and-light.js
         val uniquePoints = opaqueEdges.map { listOf(it.p1, it.p2) }.flatten().toSet()

@@ -2,21 +2,23 @@ package com.ancient.game.crpg.battle
 
 import com.ancient.game.crpg.*
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
-import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
+import com.ancient.game.crpg.assetManagement.LEVEL_FILEPATH
+import com.ancient.game.crpg.assetManagement.LEVEL_BACKGROUND_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.battle.systems.*
 import com.ancient.game.crpg.equipment.*
 import com.ancient.game.crpg.equipment.Nothing
+import com.ancient.game.crpg.map.Level
+import com.ancient.game.crpg.map.LevelLoader
 import com.ancient.game.crpg.map.MapManager
+import com.ancient.game.crpg.map.SpawnKind
 import com.ancient.game.crpg.systems.*
 import com.badlogic.ashley.core.Entity
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
-import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import ktx.app.KtxScreen
@@ -30,17 +32,15 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
     private lateinit var engine: PooledEngine
     private lateinit var inputManager: UserInputManager
-    private lateinit var mapRenderer: OrthogonalTiledMapRenderer
 
     override fun show() {
         log.info("Showing at camera pos ${viewportManager.viewport.camera.position}")
         log.info("Input Management")
 
         log.info("Building Map")
-        val map: TiledMap = assetManager[MAP_FILEPATH]
-        val mapManager = MapManager(map)
-        val collisionPoints = mapManager.impassableCellPositions()
-        mapRenderer = OrthogonalTiledMapRenderer(map, SiUnits.PIXELS_TO_METER, batch)
+        val level: Level = LevelLoader.load(LEVEL_FILEPATH)
+        val background: Texture = assetManager[LEVEL_BACKGROUND_FILEPATH]
+        val mapManager = MapManager(level)
 
         val selectionCircleAnim: Aseprite = assetManager[AsepriteAsset.SELECTION_CIRCLE.assetName]
         val selectionSystem = SelectionSystem()
@@ -60,12 +60,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         // Render order is load-bearing: FoV writes the depth mask, then the map
         // and sprites draw through it. See MapRenderSystem.
         engine.addSystem(FovRenderSystem(viewportManager.viewport, showDebug = false))
-        engine.addSystem(MapRenderSystem(viewportManager.viewport, mapRenderer))
+        engine.addSystem(MapRenderSystem(viewportManager.viewport, batch, background, level))
         engine.addSystem(
                 RenderSystem(
                         batch,
                         viewportManager.viewport,
-                        collisionPoints,
                         mapManager,
                         showDebug = true
                 )
@@ -73,13 +72,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         engine.addSystem(BattleHealthUiRendererSystem(viewportManager.viewport))
         engine.addSystem(haulableSystem)
         engine.addSystem(battleCommandSystem)
-        engine.addSystem(BattleMovementSystem(collisionPoints))
+        engine.addSystem(BattleMovementSystem(mapManager::collidesAt))
         engine.addSystem(HealthSystem(selectionSystem))
         engine.addSystem(DeadSystem(haulableSystem))
         engine.addSystem(BattleActionSystem())
         engine.addSystem(BattleActionEffectSystem())
         engine.addSystem(CombatantSystem())
-        engine.addSystem(FieldOfViewSystem(mapManager))
+        engine.addSystem(FieldOfViewSystem(mapManager.opaqueEdges))
         engine.addSystem(AnimationSystem())
         engine.addSystem(DropZoneSystem(selectionSystem))
         engine.addSystem(selectionSystem)
@@ -188,6 +187,11 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
 
+        // Fall back to a sensible spot if a level omits one of these, rather
+        // than crashing on an empty list.
+        val cartSpawn = mapManager.spawns(SpawnKind.CART).firstOrNull() ?: Vector2(2f, 2f)
+        val healerSpawn = mapManager.spawns(SpawnKind.HEALER).firstOrNull() ?: Vector2(4f, 2f)
+
         // DropZones have to come before other entities in render order!
         val lootDropZoneAnim: Aseprite = assetManager[AsepriteAsset.LOOT_DROP_ZONE.assetName]
         // OOps, I mixed up the way the cart if facing, so it's width and height are mixed up
@@ -196,12 +200,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val width = lootDropZoneAnim.frame(0).regionHeight.toFloat()
         val normedW = width * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(2f, 2f), 270f, 1f)
+            val transform = CTransform(cartSpawn, 270f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
-                            0f,
-                            0f,
+                            cartSpawn.x - 1f,
+                            cartSpawn.y - 2f,
                             2f,
                             4f
                     )
@@ -231,12 +235,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
         val healingHeight = healingDropZoneAnim.frame(0).regionHeight.toFloat()
         val healingNormedH = healingHeight * SiUnits.PIXELS_TO_METER
         engine.addEntity(Entity().apply {
-            val transform = CTransform(Vector2(4f, 2f), 0f, 1f)
+            val transform = CTransform(healerSpawn, 0f, 1f)
             add(transform)
             val dropZoneRect =
                     Rectangle(
-                            2f,
-                            0f,
+                            healerSpawn.x - 1f,
+                            healerSpawn.y - 2f,
                             2f,
                             4f
                     )
@@ -261,11 +265,12 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
 
         val treasureAnim: Aseprite = assetManager[AsepriteAsset.TREASURE.assetName]
 
-        // Treasure
+        // Treasure - one per authored spawn
+        mapManager.spawns(SpawnKind.TREASURE).forEach { treasurePos ->
         engine.addEntity(Entity().apply {
 
             val spriteRadius = (treasureAnim.width * SiUnits.PIXELS_TO_METER) / 2f
-            add(CTransform(Vector2(1.5f, 7f), 0f, spriteRadius))
+            add(CTransform(treasurePos, 0f, spriteRadius))
             add(CHaulable())
             add(CDiscovery("An impressive pile of gold coin. A cumbersome load to carry, but certainly worthwhile!"))
             add(CTreasure(100))
@@ -292,19 +297,13 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             )
             )
         })
+        }
 
 
-        engine.addEntity(createPc(Vector2(1.5f, 1f)))
-        engine.addEntity(createPc(Vector2(1.5f, 2f)))
-        engine.addEntity(createPc(Vector2(2.5f, 1f)))
-        engine.addEntity(createPc(Vector2(2.5f, 2f)))
+        // Spawn positions now come from the level rather than being hardcoded.
+        mapManager.spawns(SpawnKind.PARTY).forEach { engine.addEntity(createPc(it)) }
 
-        engine.addEntity(createOrc(Vector2(4.5f, 9f)))
-        engine.addEntity(createOrc(Vector2(5.5f, 12f)))
-        engine.addEntity(createOrc(Vector2(10.5f, 9.5f)))
-        engine.addEntity(createOrc(Vector2(11.5f, 9.5f)))
-        engine.addEntity(createOrc(Vector2(22.5f, 21f)))
-        engine.addEntity(createOrc(Vector2(20.5f, 21f)))
+        mapManager.spawns(SpawnKind.ENEMY).forEach { engine.addEntity(createOrc(it)) }
     }
 
 

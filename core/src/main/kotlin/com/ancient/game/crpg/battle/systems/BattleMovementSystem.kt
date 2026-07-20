@@ -31,7 +31,7 @@ data class CMovable(
 }
 
 
-class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : IteratingSystem(
+class BattleMovementSystem(private val collidesAt: (Vector2) -> Boolean) : IteratingSystem(
         all(
                 CMovable::class.java,
                 CTransform::class.java
@@ -142,31 +142,21 @@ class BattleMovementSystem(private val collisionPoints: Set<Vector2>) : Iteratin
 
         positionUpdatesThisFrame
                 .forEach { (entity, newPosition) ->
-                    val (x, y) = newPosition
-                            .let { (x, y) ->
-                                Pair(
-                                        x.toInt(),
-                                        y.toInt()
-                                )
-                            }
-                    if ((collisionPoints.contains(Vector2(x.toFloat(), y.toFloat())))) {
-                        // do some collision correction, move them slightly closer to the center of their
-                        // containing cell
-                        val centerOfTheirCell =
-                                entity[CTransform.m()]!!.position
-                                        .let {
-                                            Vector2(
-                                                    it.x.toInt().toFloat() + 0.5f,
-                                                    it.y.toInt().toFloat() + 0.5f
-                                            )
-                                        }
-                        entity[CTransform.m()]!!.position =
-                                position(
-                                        entity[CTransform.m()]!!.position,
-                                        centerOfTheirCell,
-                                        3f,
-                                        dt
-                                )
+                    // Collision is now polygon containment rather than a lookup in
+                    // a set of impassable tile coordinates, so the position is
+                    // tested directly instead of being floored to a cell.
+                    if (collidesAt(newPosition)) {
+                        // Refuse the move and slide back along the vector we came
+                        // from. The tile version nudged toward the centre of the
+                        // occupied cell, which has no meaning without a grid.
+                        val current = entity[CTransform.m()]!!.position
+                        val backOff = current.cpy().sub(newPosition).nor().scl(dt * 3f)
+                        val corrected = current.cpy().add(backOff)
+                        if (!collidesAt(corrected)) {
+                            entity[CTransform.m()]!!.position = corrected
+                        }
+                        // If even the corrected position collides, stay put rather
+                        // than pushing the entity deeper into the obstacle.
                     } else {
                         entity[CTransform.m()]!!.position = newPosition
                     }

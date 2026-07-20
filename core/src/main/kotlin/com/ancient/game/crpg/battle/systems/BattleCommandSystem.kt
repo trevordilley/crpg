@@ -134,13 +134,10 @@ class BattleCommandSystem(private val viewport: Viewport,
 
                                     it[CMovable.m()]!!.destination = dest
                                     it[CMovable.m()]!!.onArrival = onArrival
-                                    it[CMovable.m()]!!.path = path.let { p ->
-                                        val stack = Stack<Vector2>()
-                                        p.toList().reversed().forEach { tile ->
-                                            // Move to middle of the tile
-                                            stack.push(Vector2(tile.pos.x + 0.5f, tile.pos.y + 0.5f))
-                                        }
-                                        stack
+                                    // findPath returns world-unit waypoints in
+                                    // order; the stack is popped, so push reversed.
+                                    it[CMovable.m()]!!.path = Stack<Vector2>().apply {
+                                        path.reversed().forEach { push(it) }
                                     }
                                 }
 

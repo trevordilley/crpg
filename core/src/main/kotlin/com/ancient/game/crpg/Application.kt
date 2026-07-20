@@ -1,7 +1,7 @@
 package com.ancient.game.crpg
 
 import com.ancient.game.crpg.assetManagement.AsepriteAsset
-import com.ancient.game.crpg.assetManagement.MAP_FILEPATH
+import com.ancient.game.crpg.assetManagement.LEVEL_BACKGROUND_FILEPATH
 import com.ancient.game.crpg.assetManagement.aseprite.Aseprite
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJson
 import com.ancient.game.crpg.assetManagement.aseprite.AsepriteJsonLoader
@@ -14,8 +14,7 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.maps.tiled.TiledMap
-import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.viewport.Viewport
@@ -65,8 +64,9 @@ class Application : KtxGame<Screen>() {
             assetManager.load(it.assetName, Aseprite::class.java)
         }
 
-        assetManager.setLoader(TiledMap::class.java, TmxMapLoader(InternalFileHandleResolver()))
-        assetManager.load(MAP_FILEPATH, TiledMap::class.java)
+        // The level geometry is plain JSON read directly by LevelLoader; only
+        // the background art goes through the AssetManager.
+        assetManager.load(LEVEL_BACKGROUND_FILEPATH, Texture::class.java)
         log.info("Setting up Context")
         context.register {
             bindSingleton<Batch>(SpriteBatch())
