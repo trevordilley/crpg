@@ -72,7 +72,11 @@ class HealthSystem(private val selectionSystem: SelectionSystem) : IteratingSyst
                             health.staminaNotRechargingForSeconds <= 0f
 
             if (shouldRechargeStamina) {
-                health.stamina += health.staminaRechargeRate
+                // Clamp: the guard above only checks stamina < max, so any
+                // recharge rate above 1 overshoots the maximum.
+                health.stamina =
+                        (health.stamina + health.staminaRechargeRate)
+                                .coerceAtMost(health.maxStamina)
             }
 
             val (armor, shield) =

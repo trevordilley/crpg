@@ -74,6 +74,13 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
     fun deselect(selectable: Entity) {
         selectable[CSelectable.m()]?.selected = false
         selectable[CSelectable.m()]?.newlyDeselected = true
+        // Drop it from the selection list too, not just the component flags.
+        // `selection` is what callers filter against, and BattleCommandSystem
+        // takes selection.firstOrNull() to decide who picks up a haulable — so
+        // leaving a deselected (e.g. freshly dead) entity in the list meant a
+        // corpse could be ordered to haul the treasure.
+        characterSelection.remove(selectable)
+        if (targetSelection == selectable) targetSelection = null
     }
 
     fun deselect(selectables: Iterable<Entity>) {
@@ -83,7 +90,9 @@ class SelectionSystem : IteratingSystem(all(CSelectable::class.java).get()) {
     }
 
     fun deselectAll() {
-        characterSelection.forEach {
+        // Iterate a copy: deselect() now removes from characterSelection, so
+        // walking the live list here throws ConcurrentModificationException.
+        characterSelection.toList().forEach {
             deselect(it)
         }
         characterSelection.clear()

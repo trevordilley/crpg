@@ -569,7 +569,7 @@ Still open:
   half of the game.
 - Self-intersecting outlines would produce a garbage nav graph. Worth a guard in the loader
   if the editor can emit them.
-- Combat, selection and hauling compile and run but have never been driven end to end.
+- Hauling and drop zones still have no cover. Combat and selection now do.
 
 ### Verifying without playing
 
@@ -579,8 +579,9 @@ I cannot play the game, so behaviour is proven by test and *shown* by driving it
 ./gradlew :desktop:run -Dcrpg.demo=move -Dcrpg.capture=400 -Dcrpg.capture.out=/tmp/f.png
 ```
 
-`-Dcrpg.demo=move` issues a real move order to every unit at startup; the capture then shows
-where they got to. Any `crpg.*` system property is forwarded into the forked JVM by
+`-Dcrpg.demo=move` issues a real move order to every unit at startup; `-Dcrpg.demo=fight`
+walks only the party onto the nearest enemy and centres the camera there, so combat is
+visible. The capture then shows what happened. Any `crpg.*` system property is forwarded into the forked JVM by
 `desktop/build.gradle`. Compare frames numerically rather than by eye — I misread captures
 twice doing otherwise.
 

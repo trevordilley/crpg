@@ -328,18 +328,27 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
      * Off unless -Dcrpg.demo=move is set.
      */
     private fun scriptedMove(mapManager: MapManager) {
-        if (System.getProperty("crpg.demo") != "move") return
+        if (System.getProperty("crpg.demo") !in listOf("move", "fight")) return
 
-        // Somewhere across the map that is not trivially reachable in a straight
-        // line: the treasure furthest from the party.
         val party = mapManager.spawns(SpawnKind.PARTY).firstOrNull() ?: return
-        val target = mapManager.spawns(SpawnKind.TREASURE)
-            .maxByOrNull { it.dst2(party) } ?: return
+
+        // "fight" walks the party onto the enemies so combat actually triggers;
+        // "move" sends them to the furthest treasure, which forces a route
+        // around several obstacles.
+        val target = if (System.getProperty("crpg.demo") == "fight") {
+            mapManager.spawns(SpawnKind.ENEMY).minByOrNull { it.dst2(party) } ?: return
+        } else {
+            mapManager.spawns(SpawnKind.TREASURE).maxByOrNull { it.dst2(party) } ?: return
+        }
 
         var ordered = 0
+        val fightMode = System.getProperty("crpg.demo") == "fight"
         engine.getEntitiesFor(
             com.badlogic.ashley.core.Family.all(CMovable::class.java, CTransform::class.java).get()
         ).forEach { entity ->
+            // In fight mode leave the orcs where they are, so the party has
+            // something to close on rather than everyone converging on a point.
+            if (fightMode && entity[CCombatant.m()]?.combatant !is Player) return@forEach
             val movable = entity[CMovable.m()]!!
             val from = entity[CTransform.m()]!!.position
             val path = mapManager.findPath(from, target, movable.size)
@@ -353,13 +362,24 @@ class BattleScreen(private val assetManager: AssetManager, private val batch: Ba
             }
         }
         log.info("DEMO: ordered $ordered entities to move")
+
+        // Point the camera at the action. Without this the demo can walk units
+        // clean out of the visible region — the viewport only covers part of the
+        // 32x32 world — and the capture shows an empty field.
+        viewportManager.viewport.camera.position.set(target.x, target.y, 0f)
+        viewportManager.viewport.camera.update()
+        log.info("DEMO: camera centred on $target")
     }
 
 
     // No screen overrode resize(), so the viewport was never updated when the
     // window changed size.
+    //
+    // centerCamera = false deliberately: libGDX calls resize() after show(), so
+    // re-centring here would snap the camera back to the middle of the map and
+    // throw away wherever the player had scrolled to.
     override fun resize(width: Int, height: Int) {
-        viewportManager.viewport.update(width, height, true)
+        viewportManager.viewport.update(width, height, false)
         Screenshot.logRenderState("resize $width x $height", viewportManager.viewport)
     }
 
