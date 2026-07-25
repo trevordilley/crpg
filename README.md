@@ -1,3 +1,5 @@
+> 🌐 [English](README.md) | [Español](README.es.md)
+
 # CRPG Game
 Mix Lords of Magic's site based dungeon overworld 
 with Baldur's Gate style combat with a Dark Souls stamina 
